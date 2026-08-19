@@ -1,4 +1,5 @@
 """Application configuration from environment."""
+import sys
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -32,7 +33,10 @@ class Settings(BaseSettings):
     environment: str = "development"
     hearts_per_minute: float = 50.0
     heart_farm_script: str = "heart_farm/heart_farm.py"
-    python_bin: str = "python3"
+    # ว่างไว้ = ใช้ล่ามตัวเดียวกับที่รัน API (venv ตอน dev / คอนเทนเนอร์ตอน deploy)
+    # ตั้งค่านี้เฉพาะเมื่อจงใจให้ worker รันด้วยล่ามคนละตัวจริง ๆ — ถ้าชี้ไปที่ล่าม
+    # ที่ไม่ได้ติดตั้ง requirements.txt ไว้ worker จะตายด้วย ModuleNotFoundError
+    python_bin: str = ""
 
     # Operations / reliability (tokens must remain environment-only)
     telegram_bot_token: str = ""
@@ -46,6 +50,11 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def python_executable(self) -> str:
+        """ล่ามที่ใช้ spawn heart_farm.py — ดีฟอลต์คือตัวเดียวกับที่รัน API"""
+        return self.python_bin.strip() or sys.executable
 
 
 @lru_cache

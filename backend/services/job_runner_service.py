@@ -135,7 +135,7 @@ class JobRunnerService:
             env["PYTHONUNBUFFERED"] = "1"
 
             cmd = [
-            settings.python_bin,
+            settings.python_executable,
             str(script),
             "--api-mode",
             "--email",
