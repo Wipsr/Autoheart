@@ -3,7 +3,7 @@ export const PACKAGES = [
     slug: "1000-hearts",
     name: "แพ็คเกจ 1,000 หัวใจ",
     hearts: 1000,
-    price_baht: 40,
+    price_baht: 49,
     description: "เหมาะสำหรับเริ่มต้น",
     badge: null as string | null,
   },
