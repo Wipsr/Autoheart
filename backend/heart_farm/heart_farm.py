@@ -63,6 +63,11 @@ STREAM_CONCURRENCY  = 2        # workers WITHIN the accept/sendlife steps (these
                                 # with a reliable retry pass covering the rest)
 ACCEPT_RETRIES      = 2
 ACCEPT_RETRY_SLEEP  = 0.3
+CLAIM_BATCH         = 50       # mail seqs per AcceptLife call. The server fails
+                                # the WHOLE call if it dislikes one mail in it,
+                                # so a smaller batch loses less work to a bisect.
+CLAIM_LEAF_RETRIES  = 3        # how many single-mail AcceptLife failures still
+                                # get a retry before we take them at their word.
 PRINT_EVERY         = 20       # print a progress line every N guests processed
 DRY_RUN             = False    # True = just report the plan, send nothing
 # ===========================================================================
@@ -881,6 +886,37 @@ def _accept_life(main, seqs):
     return (not r.get("__error__")), r
 
 
+def _claim_seqs(main, seqs, state):
+    """Claim `seqs` in ONE AcceptLife call, halving the batch on failure.
+
+    The server answers the whole call with INTERNAL SERVER ERROR when it dislikes
+    a SINGLE mail in it (already collected, expired, sender deleted), so a failed
+    batch says nothing about the other seqs it carried. Bisecting isolates the bad
+    ones in ~2*log2(n) extra calls instead of degrading the entire remainder to one
+    call per mail -- the old fallback, which cost hundreds of sequential round
+    trips whenever a single stale mail was in the mailbox."""
+    ok, r = _accept_life(main, seqs)
+    state["calls"] += 1
+    if not ok and len(seqs) == 1 and len(state["bad"]) < CLAIM_LEAF_RETRIES:
+        # a lone seq may just have caught a transient 500 -- give it one retry
+        # before writing it off. Only worth it while failures are still rare: a
+        # mailbox full of stale mail would otherwise pay a retry per seq.
+        time.sleep(ACCEPT_RETRY_SLEEP)
+        ok, r = _accept_life(main, seqs)
+        state["calls"] += 1
+    if ok:
+        state["ok"] += len(seqs)
+        if r.get("life_count") is not None:
+            state["life_count"] = r.get("life_count")
+        return
+    if len(seqs) == 1:
+        state["bad"].append((seqs[0], r))
+        return
+    half = len(seqs) // 2
+    _claim_seqs(main, seqs[:half], state)
+    _claim_seqs(main, seqs[half:], state)
+
+
 def claim_hearts(main, guests=None):
     print("\n=== CLAIM ===")
     ml = main.ds_call("game/myMailList.ds")
@@ -898,23 +934,22 @@ def claim_hearts(main, guests=None):
         print("  nothing to collect.")
         return 0
 
-    ok_count, life_count = 0, None
-    success, r = _accept_life(main, good)
-    if success:
-        ok_count = len(good)
-        life_count = r.get("life_count")
-        print("  AcceptLife (batched, %d seqs) OK" % len(good))
-    else:
-        print("  batched AcceptLife failed (%s) -> falling back to one-at-a-time ..." % r)
-        for seq in good:
-            ok, r2 = _accept_life(main, [seq])
-            if ok:
-                ok_count += 1
-                life_count = r2.get("life_count")
-    print("  collected %d/%d" % (ok_count, len(good)))
-    if life_count is not None:
-        print("  life_count now = %s" % life_count)
-    return ok_count
+    state = {"ok": 0, "calls": 0, "life_count": None, "bad": []}
+    for i in range(0, len(good), CLAIM_BATCH):
+        chunk = good[i:i + CLAIM_BATCH]
+        before = state["ok"]
+        _claim_seqs(main, chunk, state)
+        if state["ok"] - before < len(chunk):
+            print("  AcceptLife batch %d-%d: %d/%d claimed after bisect"
+                  % (i + 1, i + len(chunk), state["ok"] - before, len(chunk)))
+    if state["bad"]:
+        seq, r = state["bad"][0]
+        print("  %d mail(s) rejected on their own (already collected / expired?) e.g. seq=%s -> %s"
+              % (len(state["bad"]), seq, json.dumps(r, ensure_ascii=False)[:150]))
+    print("  collected %d/%d  (%d AcceptLife call(s))" % (state["ok"], len(good), state["calls"]))
+    if state["life_count"] is not None:
+        print("  life_count now = %s" % state["life_count"])
+    return state["ok"]
 
 
 def _looks_like_guest(friend):
