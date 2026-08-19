@@ -94,6 +94,26 @@ npm run dev
 
 เปิด http://localhost:3000
 
+## Dev workflow — อย่ารัน backend ที่เครื่อง
+
+> **กฎ:** ตอน dev รันแค่ `frontend` แล้วชี้ `NEXT_PUBLIC_API_URL` ไป backend บน Railway
+
+`job_runner_service` บังคับ "ทีละ 1 job" ในระดับ **process เดียว** ไม่ใช่ระดับระบบ
+ถ้า backend ที่เครื่องกับบน Railway ชี้ Supabase project เดียวกัน ทั้งคู่จะ poll
+ตาราง `jobs` เดียวกัน แล้วหยิบงานเดียวกันพร้อมกัน
+
+เคยเกิดจริง — worker สองตัวหยิบ job เดียวกันห่างกัน 233ms ตัวที่เครื่อง dev ตายแล้ว
+สั่ง fail งานที่ Railway กำลังฟาร์มสำเร็จอยู่ (เก็บไปแล้ว 587 หัวใจ) ครบ 3 ครั้ง
+ระบบเลย refund ทิ้ง เสียหาย 5 job รวด
+
+ถ้าจำเป็นต้องแก้ backend จริง ๆ ให้เลือกอย่างใดอย่างหนึ่ง:
+
+- แยก Supabase project สำหรับ dev (ทางที่ถูก) แล้วชี้ `SUPABASE_URL` ไปโปรเจกต์นั้น
+- หรือหยุด service `backend` บน Railway ก่อน แล้วค่อยเปิดกลับตอนเลิก (เสี่ยงลืม)
+
+การเรียก API บน Railway จาก `localhost:3000` ต้องเพิ่ม `http://localhost:3000`
+เข้าไปใน `CORS_ORIGINS` ที่ Railway ด้วย
+
 ## โฟลว์ผู้ใช้
 
 1. สมัคร / ล็อกอิน (Supabase Auth)
