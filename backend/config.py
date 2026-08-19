@@ -64,6 +64,10 @@ class Settings(BaseSettings):
         เอามาใส่ CORS_ORIGINS ตรง ๆ ไม่ได้ ที่นี่เลยเดา pattern จากโดเมน
         production ที่ตั้งไว้แล้ว ให้ preview ยิง backend ตัวเดียวกันได้
         โดยไม่เปิดกว้างถึง *.vercel.app ของโปรเจกต์อื่น
+
+        pattern ที่คืนไปถูก anchor ด้วย ^...$ เอง ไม่ฝากความปลอดภัยไว้กับว่า
+        ผู้เรียกใช้ match() หรือ fullmatch() — ไม่งั้น origin ที่เอา suffix
+        มาต่อท้าย (…vercel.app.evil.com) จะผ่านทันทีที่เจอตัวที่ใช้ match()
         """
         explicit = self.cors_origin_regex.strip()
         if explicit:
@@ -76,7 +80,9 @@ class Settings(BaseSettings):
                 patterns.append(
                     rf"https://{re.escape(match.group(1))}-[A-Za-z0-9-]+\.vercel\.app"
                 )
-        return "|".join(dict.fromkeys(patterns))
+        if not patterns:
+            return ""
+        return "^(?:{})$".format("|".join(dict.fromkeys(patterns)))
 
     @property
     def python_executable(self) -> str:

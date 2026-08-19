@@ -70,7 +70,8 @@ html=$(curl -sS -m 25 "$FRONTEND/" 2>/dev/null)
 chunks=$(printf '%s' "$html" | grep -o '/_next/static/[^"]*\.js' | sort -u)
 found=""
 for chunk in $chunks; do
-  if curl -sS -m 20 "$FRONTEND$chunk" 2>/dev/null | grep -q -- "$API"; then
+  # -F: $API มี "." เต็มไปหมด ถ้าปล่อยเป็น regex จุดจะ match อะไรก็ได้
+  if curl -sS -m 20 "$FRONTEND$chunk" 2>/dev/null | grep -qF -- "$API"; then
     found="$chunk"
     break
   fi
