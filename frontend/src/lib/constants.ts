@@ -12,7 +12,7 @@ export const PACKAGES = [
     name: "แพ็คเกจ 2,000 หัวใจ",
     hearts: 2000,
     price_baht: 69,
-    description: "คุ้มค่าที่สุด ประหยัดกว่า 14%",
+    description: "คุ้มค่าที่สุด ประหยัดกว่า 30%",
     badge: "ยอดนิยม",
   },
   {
@@ -20,7 +20,7 @@ export const PACKAGES = [
     name: "แพ็คเกจ 3,000 หัวใจ",
     hearts: 3000,
     price_baht: 99,
-    description: "สำหรับสายฟาร์มจริงจัง ประหยัดกว่า 18%",
+    description: "สำหรับสายฟาร์มจริงจัง ประหยัดกว่า 33%",
     badge: "คุ้มสุด",
   },
 ] as const;
