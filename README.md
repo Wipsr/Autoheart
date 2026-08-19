@@ -170,3 +170,36 @@ TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
 > **Egress IP**: Railway ใช้ IP ของ datacenter ซึ่ง DevPlay อาจบล็อก
 > ถ้า login fail หลัง deploy ให้เปิด proxy ที่ Admin → Proxy ก่อน (`proxy_config` ใน DB)
+
+### เชื่อม Vercel ↔ Railway
+
+การต่อสองฝั่งคือการตั้ง env สามตัวให้ชี้หากันแล้ว redeploy ทั้งคู่ — ไม่มีอะไรใน
+โค้ดต้องแก้:
+
+| ตั้งที่ | ตัวแปร | ค่า |
+| --- | --- | --- |
+| Vercel | `NEXT_PUBLIC_API_URL` | `https://autoheart-production.up.railway.app` |
+| Vercel | `NEXT_PUBLIC_WS_URL` | `wss://autoheart-production.up.railway.app` |
+| Railway | `CORS_ORIGINS` | `https://autoheart.vercel.app` (ตอน dev เติม `,http://localhost:3000`) |
+
+ข้อควรรู้:
+
+- `NEXT_PUBLIC_*` ถูก inline ตอน **build** ไม่ใช่ตอนรัน — แก้ค่าที่ Vercel แล้ว
+  ต้อง redeploy ด้วย ไม่งั้น bundle เดิมยังชี้ที่เดิม
+- ตั้ง env ที่ Vercel ให้ครบทั้ง Production / Preview / Development ไม่งั้น preview
+  จะ build ด้วยดีฟอลต์ `http://localhost:8000` แล้วยิง API ไม่ออก
+- `NEXT_PUBLIC_WS_URL` ไม่ตั้งก็ได้ โค้ดแปลง `https://` → `wss://` จาก API URL ให้เอง
+- โดเมนของ preview deployment เปลี่ยนทุก push เลยใส่ `CORS_ORIGINS` ตรง ๆ ไม่ได้
+  backend เลยอนุญาต `{project}-*.vercel.app` ของโปรเจกต์เดียวกันให้อัตโนมัติ
+  (ทับด้วย `CORS_ORIGIN_REGEX` ได้ถ้าใช้ custom domain)
+
+เช็คว่าต่อติดจริงด้วย:
+
+```bash
+./scripts/check-deploy-link.sh
+# หรือระบุโดเมนเอง
+./scripts/check-deploy-link.sh https://<vercel-domain> https://<railway-domain>
+```
+
+สคริปต์ไล่เช็ค `/health`, CORS preflight, `/api/packages`, WebSocket handshake
+และเปิด bundle ที่ Vercel serve อยู่จริงว่าชี้มาที่ Railway โดเมนนั้นไหม

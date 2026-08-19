@@ -1,4 +1,5 @@
 """Application configuration from environment."""
+import re
 import sys
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -30,6 +31,9 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+    # ว่างไว้ = เดา regex ของ preview deployment จาก cors_origins ที่เป็นโดเมน Vercel
+    # ตั้งเองเฉพาะเมื่อใช้ custom domain หรืออยากล็อกให้แคบ/กว้างกว่าค่าที่เดาให้
+    cors_origin_regex: str = ""
     environment: str = "development"
     hearts_per_minute: float = 50.0
     heart_farm_script: str = "heart_farm/heart_farm.py"
@@ -50,6 +54,29 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def cors_origin_regex_pattern(self) -> str:
+        """regex ของ origin ที่อนุญาตเพิ่มจาก cors_origins (ว่าง = ไม่มี)
+
+        Vercel ตั้งโดเมนให้ทุก deployment ที่ไม่ใช่ production เป็น
+        `{project}-{git branch หรือ hash}-{scope}.vercel.app` ซึ่งเปลี่ยนทุก push
+        เอามาใส่ CORS_ORIGINS ตรง ๆ ไม่ได้ ที่นี่เลยเดา pattern จากโดเมน
+        production ที่ตั้งไว้แล้ว ให้ preview ยิง backend ตัวเดียวกันได้
+        โดยไม่เปิดกว้างถึง *.vercel.app ของโปรเจกต์อื่น
+        """
+        explicit = self.cors_origin_regex.strip()
+        if explicit:
+            return explicit
+
+        patterns: list[str] = []
+        for origin in self.cors_origin_list:
+            match = re.fullmatch(r"https://([A-Za-z0-9-]+)\.vercel\.app", origin)
+            if match:
+                patterns.append(
+                    rf"https://{re.escape(match.group(1))}-[A-Za-z0-9-]+\.vercel\.app"
+                )
+        return "|".join(dict.fromkeys(patterns))
 
     @property
     def python_executable(self) -> str:

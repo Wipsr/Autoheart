@@ -36,9 +36,15 @@ export const JOB_STATUS_LABEL: Record<string, string> = {
   refunded: "คืนเครดิตแล้ว",
 };
 
-export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// โดเมนที่ copy จาก Railway มักติด "/" ท้ายมาด้วย ถ้าปล่อยไว้ทุก path จะกลาย
+// เป็น https://host//api/... ซึ่ง FastAPI ตอบ 404 — ตัดทิ้งตั้งแต่ตรงนี้ทีเดียว
+const trimSlash = (url: string) => url.replace(/\/+$/, "");
 
-export const WS_URL =
-  process.env.NEXT_PUBLIC_WS_URL ||
-  (API_URL.replace(/^http/, "ws"));
+export const API_URL = trimSlash(
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+);
+
+// ไม่ตั้ง NEXT_PUBLIC_WS_URL ก็ได้ — https:// → wss:// , http:// → ws://
+export const WS_URL = trimSlash(
+  process.env.NEXT_PUBLIC_WS_URL || API_URL.replace(/^http/, "ws")
+);
