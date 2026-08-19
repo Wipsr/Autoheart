@@ -1,0 +1,18 @@
+# virtualenv (Windows venv — ใช้ใน container ไม่ได้ และหนัก 82MB)
+.venv
+venv
+
+# secrets — ห้ามหลุดเข้า image
+.env
+.env.local
+.env.*.local
+
+# python artifacts
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+
+# dev only
+tests
+.pytest_cache

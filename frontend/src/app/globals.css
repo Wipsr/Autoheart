@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* พื้นและเส้น — เทาเอียงน้ำเงินเล็กน้อย ให้สีสถานะลอยขึ้นมาโดยไม่ต้องเพิ่มความสว่าง */
+  --ink: #0a0e13;
+  --panel: #111922;
+  --panel-2: #16212c;
+  --line: #22303e;
+  --line-soft: #1a242f;
+
+  --text: #e7eef5;
+  --muted: #8496a8;
+  --dim: #5d6e7f;
+
+  /* ชมพู = หัวใจ/เครดิต และปุ่มหลักเท่านั้น ห้ามใช้กับอย่างอื่น */
+  --heart: #ff4d7e;
+  /* สีความหมายของสถานะงาน */
+  --live: #3ddc97;
+  --wait: #f2a93b;
+  --fail: #ff6156;
+  --info: #5aa9ff;
+
+  --background: var(--ink);
+  --foreground: var(--text);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  min-height: 100vh;
+  font-family: var(--font-sans), "IBM Plex Sans Thai", system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 2px;
+}
+
+/* พื้นหลังหน้า: เรืองชมพูบาง ๆ ด้านบนอย่างเดียว ไม่ใช้ mesh หลายชั้นแล้ว */
+.bg-mesh {
+  background:
+    radial-gradient(ellipse 90% 40% at 50% -10%, rgba(255, 77, 126, 0.1), transparent 70%),
+    var(--ink);
+  background-attachment: fixed;
+}
+
+/* เดิมเป็นกระจกฝ้า — เปลี่ยนเป็นแผงทึบมีเส้น 1px ให้ตัวเลขคมขึ้น */
+.glass {
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
+.text-gradient {
+  color: var(--heart);
+}
+
+.console-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.console-scroll::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 999px;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.pulse-dot {
+  animation: pulse-dot 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot {
+    animation: none;
+  }
+}
