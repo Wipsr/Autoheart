@@ -129,6 +129,15 @@ npm run dev
 - แนะนำใช้ MCP / backend กับโปรเจกต์ non-production ก่อน
 - Anon key เป็น public ได้ แต่ service role ใช้ได้เฉพาะ backend
 
+## MCP (Supabase / Railway / Vercel / Cloudflare)
+
+Config อยู่ที่ `.cursor/mcp.json` (Cursor) และ `.mcp.json` (Claude Code)
+Railway (`https://mcp.railway.com`) กับ Vercel (`https://mcp.vercel.com`) เป็น remote MCP
+แบบ OAuth — เชื่อมได้พร้อมกัน ไม่ต้องเก็บ token ไว้ในโปรเจกต์
+
+วิธีเชื่อม + ข้อควรระวัง (ห้าม scale backend เกิน 1 replica ผ่าน MCP ฯลฯ)
+ดู [`.cursor/RAILWAY-VERCEL-MCP.md`](./.cursor/RAILWAY-VERCEL-MCP.md)
+
 ## Tailwind
 
 Scaffold ใช้ Tailwind CSS v3.4 (Next.js 14 template) พร้อมธีม Premium Dark / glassmorphism ตามสเปก UI ใน ARCHITECTURE
