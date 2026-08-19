@@ -1,12 +1,14 @@
 """DevPlay credential verification (login probe before queue)."""
 from __future__ import annotations
 
-import random
-import string
-import uuid
 from typing import Any
 
 import httpx
+
+# ใช้ lc + ตารางแปล error code ชุดเดียวกับที่ worker ใช้จริง
+# อย่า copy โครงสร้าง lc มาไว้ที่นี่: เคยทำแล้วมันไหลออกจากกัน จน DevPlay
+# ตอบ 40000 (request ไม่ถูกต้อง) ทุกครั้ง แล้วถูกรายงานว่า "รหัสผิด"
+from heart_farm.heart_farm import _LOGIN_ERROR_MESSAGES, fresh_lc
 
 
 class DevPlayAuthService:
@@ -19,18 +21,9 @@ class DevPlayAuthService:
     }
 
     def _fresh_lc(self) -> dict[str, Any]:
-        return {
-            "country": "TH",
-            "lang": "th",
-            "timezone": "Asia/Bangkok",
-            "device": "Android",
-            "os_version": "13",
-            "sdk_version": "5.3.2",
-            "app_version": "1.0.0",
-            "device_id": str(uuid.uuid4()),
-            "devsisters_id": "",
-            "random": "".join(random.choices(string.ascii_lowercase + string.digits, k=16)),
-        }
+        lc = fresh_lc()
+        lc["devsisters_id"] = ""  # ตรงกับที่ heart_farm._login ส่งตอนล็อกอินด้วย email
+        return lc
 
     async def verify_credentials(self, email: str, password: str) -> dict[str, Any]:
         email = email.strip()
@@ -70,10 +63,16 @@ class DevPlayAuthService:
                 "email": email,
             }
 
+        # อย่าเหมาว่าทุก response ที่ไม่มี token แปลว่ารหัสผิด — DevPlay แยก code
+        # ไว้ชัด (rate limit / ไม่พบบัญชี / request ไม่ถูกต้อง) ถ้ากลืนเป็นข้อความ
+        # เดียว ผู้ใช้จะไล่แก้รหัสที่ถูกอยู่แล้วโดยไม่รู้สาเหตุจริง
         code = data.get("code")
+        message = _LOGIN_ERROR_MESSAGES.get(code)
+        if not message:
+            message = f"DevPlay ปฏิเสธการเข้าสู่ระบบ (code {code}) — ไม่ใช่ปัญหารหัสผ่าน กรุณาแจ้งแอดมิน"
         return {
             "valid": False,
-            "error_message": "อีเมลหรือรหัสผ่าน DevPlay ไม่ถูกต้อง",
+            "error_message": message,
             "error_code": code,
             "raw": data,
         }

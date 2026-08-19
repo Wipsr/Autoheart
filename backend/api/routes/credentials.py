@@ -27,4 +27,7 @@ async def verify_credentials(
         "email": body.email,
         "mid": result.get("mid"),
         "error_message": result.get("error_message"),
+        # ส่ง code ดิบออกไปด้วยเพื่อให้แยกออกว่า "รหัสผิดจริง" กับ "DevPlay ปฏิเสธ
+        # ด้วยเหตุอื่น" ต่างกันยังไง (ไม่ส่ง raw ออกไป)
+        "error_code": result.get("error_code"),
     }
