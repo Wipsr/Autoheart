@@ -14,6 +14,7 @@ import type { Package } from "@/types";
 import { PACKAGES } from "@/lib/constants";
 
 type Step = 1 | 2 | 3 | 4;
+type PayMethod = "voucher" | "balance";
 
 const STEP_LABEL: Record<Step, string> = {
   1: "เลือกแพ็ค",
@@ -27,7 +28,7 @@ const emptyCred = (): Cred => ({ email: "", password: "", status: "idle" });
 export default function PurchasePage() {
   const params = useParams();
   const router = useRouter();
-  const { token, refreshProfile } = useAuth();
+  const { token, profile, refreshProfile } = useAuth();
   const packageId = Number(params.id);
 
   const [packages, setPackages] = useState<Package[]>([]);
@@ -44,6 +45,8 @@ export default function PurchasePage() {
   const [verifyingAll, setVerifyingAll] = useState(false);
 
   const [voucher, setVoucher] = useState("");
+  // null = ยังไม่ได้เลือกเอง ให้ระบบเดาให้ตามยอดคงเหลือ
+  const [payMethodChoice, setPayMethodChoice] = useState<PayMethod | null>(null);
   const [paid, setPaid] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
@@ -75,6 +78,16 @@ export default function PurchasePage() {
   const totalBaht = (pkg?.price_baht || 0) * qty;
   const totalHearts = (pkg?.hearts || 0) * qty;
   const payableBaht = coupon?.amount_after ?? totalBaht;
+
+  // จ่ายด้วยหัวใจที่มีอยู่: backend หักเครดิตให้อยู่แล้วตอน /api/jobs/create
+  // เส้นทางนี้จึงแค่ข้ามการแลกซอง ไม่ต้องเติมเครดิตเข้าไปก่อนแล้วหักออกทันที
+  const balance = profile?.credits ?? 0;
+  const canPayWithBalance = balance >= totalHearts;
+  const payMethod: PayMethod = useMemo(() => {
+    if (payMethodChoice === "balance" && !canPayWithBalance) return "voucher";
+    return payMethodChoice ?? (canPayWithBalance ? "balance" : "voucher");
+  }, [payMethodChoice, canPayWithBalance]);
+  const usingBalance = payMethod === "balance";
 
   // จำนวนช่องไอดีตามโหมด: ไอดีเดียวใช้ซ้ำ × qty หรือกรอกแยกทีละไอดี
   useEffect(() => {
@@ -218,7 +231,9 @@ export default function PurchasePage() {
       );
       setStep(2);
       setError(
-        "ไอดีบางอันใช้ไม่ได้แล้ว (อาจเปลี่ยนรหัสระหว่างทาง) — เครดิตเข้าบัญชีคุณเรียบร้อยแล้ว แก้ไอดีแล้วกดสร้างงานอีกครั้งได้เลย"
+        usingBalance
+          ? "ไอดีบางอันใช้ไม่ได้แล้ว (อาจเปลี่ยนรหัสระหว่างทาง) — ยังไม่มีการหักหัวใจ แก้ไอดีแล้วกดสร้างงานอีกครั้งได้เลย"
+          : "ไอดีบางอันใช้ไม่ได้แล้ว (อาจเปลี่ยนรหัสระหว่างทาง) — เครดิตเข้าบัญชีคุณเรียบร้อยแล้ว แก้ไอดีแล้วกดสร้างงานอีกครั้งได้เลย"
       );
       return;
     }
@@ -234,7 +249,9 @@ export default function PurchasePage() {
     setLoading(true);
     setError("");
     try {
-      if (!paid) {
+      // จ่ายด้วยหัวใจที่มีอยู่ = ไม่ต้องแลกซอง ข้ามไปสร้างงานได้เลย
+      // createJobs() เรียก /api/jobs/create ซึ่งเช็คยอดคงเหลือและหักให้เอง
+      if (!usingBalance && !paid) {
         await api("/api/topup/redeem", {
           method: "POST",
           token,
@@ -448,9 +465,65 @@ export default function PurchasePage() {
       {step === 3 && (
         <Card className="space-y-5 p-6">
           <div className="rounded-md border border-live/40 bg-live/10 px-3 py-2 text-sm text-live">
-            ไอดีผ่านครบ {activeCreds.length}/{activeCreds.length} แล้ว — งานจะเข้าคิวทันทีหลังชำระเงิน
+            ไอดีผ่านครบ {activeCreds.length}/{activeCreds.length} แล้ว —{" "}
+            {usingBalance ? "กดยืนยันแล้วงานเข้าคิวทันที" : "งานจะเข้าคิวทันทีหลังชำระเงิน"}
           </div>
 
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setPayMethodChoice("balance")}
+              disabled={!canPayWithBalance}
+              className={`rounded-md border p-3 text-left transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                usingBalance ? "border-heart bg-heart/10" : "border-line bg-white/[0.03]"
+              }`}
+            >
+              <span className="block text-sm font-medium">ใช้หัวใจที่มีอยู่</span>
+              <span className="mt-0.5 block text-xs text-muted">
+                {canPayWithBalance
+                  ? `คงเหลือ ${formatHearts(balance)}`
+                  : `มี ${formatHearts(balance)} ไม่พอ`}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPayMethodChoice("voucher")}
+              className={`rounded-md border p-3 text-left transition ${
+                !usingBalance ? "border-wait bg-wait/10" : "border-line bg-white/[0.03]"
+              }`}
+            >
+              <span className="block text-sm font-medium">ซองอั่งเปา</span>
+              <span className="mt-0.5 block text-xs text-muted">
+                จ่าย ฿{formatBahtExact(payableBaht)}
+              </span>
+            </button>
+          </div>
+
+          {usingBalance ? (
+            <div className="rounded-md border border-heart/40 bg-heart/[0.07] p-4">
+              <p className="text-xs uppercase tracking-wider text-heart">
+                หักจากหัวใจในบัญชี ไม่ต้องชำระเงิน
+              </p>
+              <div className="mt-3 space-y-1 text-sm">
+                <div className="flex justify-between text-muted">
+                  <span>มีอยู่</span>
+                  <span className="tabular-nums">{formatHearts(balance)} หัวใจ</span>
+                </div>
+                <div className="flex justify-between text-muted">
+                  <span>
+                    ใช้ไป ({formatHearts(pkg.hearts)} × {qty})
+                  </span>
+                  <span className="tabular-nums">−{formatHearts(totalHearts)} หัวใจ</span>
+                </div>
+                <div className="flex justify-between border-t border-heart/25 pt-1 font-medium">
+                  <span>คงเหลือหลังทำรายการ</span>
+                  <span className="tabular-nums text-heart">
+                    {formatHearts(balance - totalHearts)} หัวใจ
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
           <div className="rounded-md border border-wait/40 bg-wait/[0.07] p-4">
             <p className="text-xs uppercase tracking-wider text-wait">
               สร้างซองอั่งเปายอดนี้เป๊ะ ๆ
@@ -476,45 +549,54 @@ export default function PurchasePage() {
               <li>• สร้างซองจากเบอร์อื่น ไม่ใช่เบอร์ร้าน</li>
             </ul>
           </div>
+          )}
 
           <form onSubmit={submitPayment} className="space-y-4">
-            <div>
-              <label className="mb-1.5 block text-xs text-muted">ลิงก์ซองอั่งเปา TrueMoney</label>
-              <Input
-                required
-                placeholder="https://gift.truemoney.com/campaign/?v=..."
-                value={voucher}
-                onChange={(e) => setVoucher(e.target.value)}
-              />
-            </div>
+            {!usingBalance && (
+              <div>
+                <label className="mb-1.5 block text-xs text-muted">
+                  ลิงก์ซองอั่งเปา TrueMoney
+                </label>
+                <Input
+                  required
+                  placeholder="https://gift.truemoney.com/campaign/?v=..."
+                  value={voucher}
+                  onChange={(e) => setVoucher(e.target.value)}
+                />
+              </div>
+            )}
 
-            <div className="space-y-1 rounded-md border border-line bg-white/[0.03] p-3 text-sm">
-              <div className="flex justify-between text-muted">
-                <span>
-                  {formatHearts(pkg.hearts)} หัวใจ × {qty}
-                </span>
-                <span className="tabular-nums">฿{formatBahtExact(totalBaht)}</span>
-              </div>
-              {coupon && (
-                <div className="flex justify-between text-live">
-                  <span>คูปอง {coupon.code}</span>
-                  <span className="tabular-nums">−฿{formatBahtExact(coupon.discount_baht)}</span>
+            {!usingBalance && (
+              <div className="space-y-1 rounded-md border border-line bg-white/[0.03] p-3 text-sm">
+                <div className="flex justify-between text-muted">
+                  <span>
+                    {formatHearts(pkg.hearts)} หัวใจ × {qty}
+                  </span>
+                  <span className="tabular-nums">฿{formatBahtExact(totalBaht)}</span>
                 </div>
-              )}
-              <div className="flex justify-between border-t border-line pt-1 font-medium">
-                <span>ได้รับ</span>
-                <span className="text-heart">{formatHearts(totalHearts)} หัวใจ</span>
+                {coupon && (
+                  <div className="flex justify-between text-live">
+                    <span>คูปอง {coupon.code}</span>
+                    <span className="tabular-nums">−฿{formatBahtExact(coupon.discount_baht)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-t border-line pt-1 font-medium">
+                  <span>ได้รับ</span>
+                  <span className="text-heart">{formatHearts(totalHearts)} หัวใจ</span>
+                </div>
               </div>
-            </div>
+            )}
 
             {error && <p className="text-sm text-fail">{error}</p>}
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading
-                ? paid
+                ? paid || usingBalance
                   ? "กำลังสร้างงาน..."
                   : "กำลังแลกซอง..."
-                : "ยืนยันชำระเงินและเข้าคิว"}
+                : usingBalance
+                  ? `ใช้ ${formatHearts(totalHearts)} หัวใจ และเข้าคิว`
+                  : "ยืนยันชำระเงินและเข้าคิว"}
             </Button>
             <Button type="button" variant="ghost" className="w-full" onClick={() => setStep(2)}>
               ย้อนกลับไปแก้ไอดี
