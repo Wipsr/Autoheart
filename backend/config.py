@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     hearts_per_minute: float = 50.0
     heart_farm_script: str = "heart_farm/heart_farm.py"
+    friend_tool_script: str = "heart_farm/friend_tool.py"
     # ว่างไว้ = ใช้ล่ามตัวเดียวกับที่รัน API (venv ตอน dev / คอนเทนเนอร์ตอน deploy)
     # ตั้งค่านี้เฉพาะเมื่อจงใจให้ worker รันด้วยล่ามคนละตัวจริง ๆ — ถ้าชี้ไปที่ล่าม
     # ที่ไม่ได้ติดตั้ง requirements.txt ไว้ worker จะตายด้วย ModuleNotFoundError

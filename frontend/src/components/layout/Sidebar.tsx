@@ -10,6 +10,7 @@ import {
   Package,
   Settings,
   Shield,
+  UserMinus,
 } from "lucide-react";
 import { cn, formatHearts } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,6 +20,7 @@ const links = [
   { href: "/dashboard", label: "ภาพรวม", icon: LayoutDashboard },
   { href: "/packages", label: "ซื้อแพ็คเกจ", icon: Package },
   { href: "/history", label: "ประวัติ", icon: History },
+  { href: "/friends", label: "ลบเพื่อน", icon: UserMinus },
   { href: "/settings", label: "ตั้งค่า", icon: Settings },
 ];
 

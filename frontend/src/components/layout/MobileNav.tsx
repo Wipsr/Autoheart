@@ -9,6 +9,7 @@ import {
   Package,
   Settings,
   Shield,
+  UserMinus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +19,7 @@ const tabs = [
   { href: "/dashboard", label: "ภาพรวม", icon: LayoutDashboard },
   { href: "/packages", label: "ซื้อ", icon: Package },
   { href: "/history", label: "ประวัติ", icon: History },
+  { href: "/friends", label: "เพื่อน", icon: UserMinus },
   { href: "/settings", label: "ตั้งค่า", icon: Settings },
 ];
 
@@ -26,7 +28,7 @@ export function MobileNav() {
   const { isAdmin } = useAuth();
 
   const items = isAdmin
-    ? [...tabs.slice(0, 4), { href: "/admin", label: "Admin", icon: Shield }]
+    ? [...tabs.slice(0, tabs.length - 1), { href: "/admin", label: "Admin", icon: Shield }]
     : tabs;
 
   return (
@@ -34,7 +36,12 @@ export function MobileNav() {
       aria-label="เมนูหลัก"
       className="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-ink/90 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] md:hidden"
     >
-      <ul className="mx-auto grid max-w-lg grid-cols-5">
+      <ul
+        className={cn(
+          "mx-auto grid max-w-lg",
+          items.length === 6 ? "grid-cols-6" : "grid-cols-5"
+        )}
+      >
         {items.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
