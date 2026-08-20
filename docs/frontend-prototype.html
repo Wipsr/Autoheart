@@ -23,6 +23,9 @@ body {
 }
 body[data-screen="b"] { background: #080B11; }
 body[data-screen="c"] { background: #F3EEE4; }
+body[data-screen="d"] { background: #E8EAEE; }
+body[data-screen="e"] { background: #F4F5F3; }
+body[data-screen="f"] { background: #170F22; }
 
 .screen { display: none; min-height: 100vh; }
 .screen.on { display: flex; flex-direction: column; }
@@ -35,55 +38,49 @@ body[data-screen="c"] { background: #F3EEE4; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
-/* ═══════════ ตัวสลับจอ (ลอยอยู่นอกตัวงานออกแบบ) ═══════════ */
-.switcher {
-  position: fixed;
-  bottom: 1.1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 90;
-  display: flex;
-  align-items: center;
-  gap: .3rem;
-  padding: .3rem .32rem;
-  border-radius: 999px;
-  background: rgba(22, 24, 26, .88);
-  border: 1px solid rgba(255, 255, 255, .14);
+/* ═══════════ ตัวสลับจอ (เครื่องมือดูต้นแบบ ไม่ใช่ส่วนหนึ่งของงานออกแบบ) ═══════════ */
+.sw-fab {
+  position: fixed; bottom: 1.1rem; right: 1.1rem; z-index: 95;
+  width: 46px; height: 46px; border-radius: 50%;
+  background: rgba(22, 24, 26, .92);
+  border: 1px solid rgba(255, 255, 255, .16);
   backdrop-filter: blur(14px);
-  box-shadow: 0 10px 34px rgba(0, 0, 0, .42);
-  font-family: "IBM Plex Sans Thai", system-ui, sans-serif;
-}
-.switcher .lab {
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .45);
+  color: #EDEDE8;
   font-family: "IBM Plex Mono", monospace;
-  font-size: .625rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, .42);
-  padding: 0 .5rem 0 .65rem;
-  white-space: nowrap;
-}
-.switcher button {
-  font: inherit;
-  font-size: .8125rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, .62);
-  background: transparent;
-  border: 0;
-  border-radius: 999px;
-  padding: .4rem .95rem;
+  font-size: 1rem; font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .15s;
+}
+.sw-fab:hover { transform: scale(1.06); }
+.sw-menu {
+  position: fixed; bottom: 4.3rem; right: 1.1rem; z-index: 95;
+  display: none; flex-direction: column; gap: .12rem;
+  padding: .35rem;
+  border-radius: 14px;
+  background: rgba(22, 24, 26, .95);
+  border: 1px solid rgba(255, 255, 255, .16);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .5);
+  max-height: calc(100vh - 6rem); overflow-y: auto;
+}
+.sw-menu.open { display: flex; }
+.sw-menu .cap {
+  font-family: "IBM Plex Mono", monospace; font-size: .5625rem;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: rgba(255, 255, 255, .4); padding: .3rem .7rem .35rem;
+}
+.sw-menu button {
+  font-family: "IBM Plex Sans Thai", system-ui, sans-serif;
+  font-size: .8125rem; font-weight: 500; text-align: left;
+  color: rgba(255, 255, 255, .68);
+  background: transparent; border: 0; border-radius: 9px;
+  padding: .45rem .8rem; cursor: pointer; white-space: nowrap;
   transition: background .15s, color .15s;
 }
-.switcher button:hover { color: #fff; background: rgba(255, 255, 255, .09); }
-.switcher button[aria-selected="true"] { color: #16181A; background: #EDEDE8; font-weight: 600; }
-@media (min-width: 760px) {
-  .switcher { left: auto; right: 1.25rem; transform: none; }
-}
-@media (max-width: 560px) {
-  .switcher .lab { display: none; }
-  .switcher button { padding: .4rem .7rem; font-size: .75rem; }
-}
+.sw-menu button:hover { color: #fff; background: rgba(255, 255, 255, .1); }
+.sw-menu button[aria-selected="true"] { color: #16181A; background: #EDEDE8; font-weight: 600; }
 
 /* ══════════════════════════════════════════════════════════
    จอ A · คอนโซล
@@ -173,7 +170,7 @@ body[data-screen="c"] { background: #F3EEE4; }
 .a-caret { width: 8px; height: 15px; background: var(--amber); flex: none; animation: blink 1.15s step-end infinite; }
 .a-inp span { color: var(--dim); }
 .a-chips { display: flex; gap: .35rem; flex-wrap: wrap; padding: 0 1.15rem .8rem; }
-@media (max-width: 759px) { .a-chips { padding-bottom: 4rem; } }
+@media (max-width: 759px) { .a-chips { padding-bottom: 1.4rem; } }
 .a-chips button {
   font: inherit; font-size: 11px;
   color: var(--mid); background: transparent;
@@ -433,6 +430,8 @@ body[data-screen="c"] { background: #F3EEE4; }
 
 @media (max-width: 900px) {
   .c-wrap { grid-template-columns: minmax(0, 1fr); padding: 1.15rem 1.15rem 7rem; }
+  .sw-fab { bottom: 4.4rem; }
+  .sw-menu { bottom: 7.6rem; }
   .c-side { position: static; }
   .c-links { display: none; }
   .c-tabs {
@@ -445,8 +444,283 @@ body[data-screen="c"] { background: #F3EEE4; }
     background: transparent; border: 0; padding: .65rem 0 .75rem; cursor: pointer;
   }
   .c-tabs button[aria-current="page"] { color: var(--jade); font-weight: 600; box-shadow: inset 0 2px 0 var(--jade); }
-  .switcher { bottom: 4.4rem; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   จอ D · แชท — สั่งงานด้วยการคุย
+   ══════════════════════════════════════════════════════════ */
+.d {
+  --ground: #E8EAEE;
+  --bubble: #FFFFFF;
+  --ink:    #1B2028;
+  --ink2:   #48525F;
+  --soft:   #7B8696;
+  --hair:   #D6DBE2;
+  --navy:   #1F3D6E;
+  --navy2:  #2C5798;
+  --rose:   #DC4468;
+  --mint:   #12876A;
+  background: var(--ground);
+  color: var(--ink);
+  font-size: 15px;
+  min-height: 100vh;
+}
+.d-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .7rem 1.15rem;
+  background: var(--bubble);
+  border-bottom: 1px solid var(--hair);
+  position: sticky; top: 0; z-index: 5;
+}
+.d-id { display: flex; align-items: center; gap: .65rem; }
+.d-bot { width: 34px; height: 34px; border-radius: 50%; background: var(--navy); color: #fff; font-size: .75rem; font-weight: 600; display: flex; align-items: center; justify-content: center; flex: none; }
+.d-id b { font-size: .9375rem; font-weight: 600; display: block; line-height: 1.25; }
+.d-id span { font-family: "IBM Plex Mono", monospace; font-size: .6875rem; color: var(--mint); }
+.d-bal { font-family: "IBM Plex Mono", monospace; font-size: .875rem; color: var(--rose); }
+
+.d-thread { flex: 1; width: 100%; max-width: 46rem; margin: 0 auto; padding: 1.15rem 1rem 1.5rem; display: flex; flex-direction: column; gap: .55rem; }
+.d-day { align-self: center; font-family: "IBM Plex Mono", monospace; font-size: .6875rem; color: var(--soft); background: rgba(0,0,0,.05); border-radius: 999px; padding: .18rem .8rem; margin: .35rem 0; }
+.d-row { display: flex; gap: .55rem; align-items: flex-end; }
+.d-row.me { justify-content: flex-end; }
+.d-av { width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: #fff; font-size: .625rem; font-weight: 600; display: flex; align-items: center; justify-content: center; flex: none; }
+.d-b {
+  background: var(--bubble); border-radius: 17px 17px 17px 5px;
+  padding: .6rem .9rem; max-width: 30rem; line-height: 1.6;
+  box-shadow: 0 1px 2px rgba(20, 28, 40, .07);
+}
+.d-row.me .d-b { background: var(--navy); color: #EEF2F8; border-radius: 17px 17px 5px 17px; }
+.d-time { font-family: "IBM Plex Mono", monospace; font-size: .625rem; color: var(--soft); flex: none; padding-bottom: .15rem; }
+
+.d-card {
+  background: var(--bubble); border: 1px solid var(--hair); border-radius: 17px 17px 17px 5px;
+  padding: .9rem 1rem; max-width: 25rem; box-shadow: 0 1px 2px rgba(20, 28, 40, .07);
+}
+.d-card .k { font-family: "IBM Plex Mono", monospace; font-size: .625rem; letter-spacing: .14em; text-transform: uppercase; color: var(--soft); display: block; }
+.d-card .em { font-weight: 600; font-size: .9375rem; margin-top: .15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d-card .z { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: .1rem; }
+.d-card .z i { font-style: normal; font-size: .5em; color: var(--soft); }
+.d-mtr { height: 5px; background: #E3E7ED; border-radius: 99px; margin-top: .5rem; overflow: hidden; }
+.d-mtr i { display: block; height: 100%; background: var(--mint); transition: width .6s; }
+.d-card .fin { font-family: "IBM Plex Mono", monospace; font-size: .6875rem; color: var(--soft); margin-top: .45rem; }
+.d-qrow { display: flex; justify-content: space-between; gap: .75rem; padding: .34rem 0; border-bottom: 1px solid #EDEFF3; font-size: .875rem; }
+.d-qrow:last-child { border-bottom: 0; }
+.d-qrow b { font-weight: 500; }
+.d-qrow.you { color: var(--navy); font-weight: 600; }
+.d-qrow span { font-family: "IBM Plex Mono", monospace; font-size: .75rem; color: var(--soft); flex: none; }
+.d-qrow.you span { color: var(--navy2); }
+
+.d-chips { display: flex; flex-wrap: wrap; gap: .4rem; padding-left: 2.15rem; margin-top: .2rem; }
+.d-chips button {
+  font: inherit; font-size: .8125rem; font-weight: 500;
+  color: var(--navy); background: var(--bubble);
+  border: 1px solid #C3CEDF; border-radius: 999px;
+  padding: .38rem 1rem; cursor: pointer; transition: background .15s, border-color .15s;
+}
+.d-chips button:hover { background: #EDF2F9; border-color: var(--navy2); }
+
+.d-bar { position: sticky; bottom: 0; background: var(--bubble); border-top: 1px solid var(--hair); }
+.d-bar-in { max-width: 46rem; margin: 0 auto; display: flex; align-items: center; gap: .7rem; padding: .7rem 1rem; }
+.d-fake {
+  flex: 1; background: var(--ground); border: 1px solid var(--hair); border-radius: 999px;
+  padding: .55rem 1rem; color: var(--soft); font-size: .875rem;
+}
+.d-send { width: 38px; height: 38px; border-radius: 50%; background: var(--navy); color: #fff; border: 0; font-size: 1rem; cursor: pointer; flex: none; }
+.d-send:hover { background: var(--navy2); }
+
+
+/* ══════════════════════════════════════════════════════════
+   จอ E · ตารางเวลา — คิวคือเวลานัด
+   ══════════════════════════════════════════════════════════ */
+.e {
+  --ground:  #F4F5F3;
+  --panel:   #FFFFFF;
+  --ink:     #1C211F;
+  --ink2:    #48524D;
+  --soft:    #8A928C;
+  --hair:    #DDE1DC;
+  --hair2:   #ECEFEA;
+  --petrol:  #14607A;
+  --petrol-l:#E2EEF3;
+  --amber:   #B5761C;
+  --amber-l: #FBF2E2;
+  background: var(--ground);
+  color: var(--ink);
+  font-size: 15px;
+  min-height: 100vh;
+}
+.e-top {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1.5rem;
+  padding: .8rem 1.6rem;
+  background: var(--panel); border-bottom: 1px solid var(--hair);
+  position: sticky; top: 0; z-index: 5;
+}
+.e-brand { font-family: "Anuphan", system-ui, sans-serif; font-weight: 700; font-size: 1.05rem; letter-spacing: -.015em; }
+.e-brand span { color: var(--petrol); }
+.e-stat { font-family: "IBM Plex Mono", monospace; font-size: .75rem; color: var(--soft); }
+.e-stat b { color: var(--ink2); font-weight: 500; }
+.e-stat .live { color: #157A52; }
+.e-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #157A52; animation: pulse 1.9s infinite; }
+
+.e-wrap { flex: 1; width: 100%; max-width: 70rem; margin: 0 auto; padding: 1.6rem 1.6rem 6rem; display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 1.5rem; align-items: start; }
+.e-lbl { font-family: "IBM Plex Mono", monospace; font-size: .625rem; letter-spacing: .17em; text-transform: uppercase; color: var(--soft); display: block; }
+
+.e-sched { background: var(--panel); border: 1px solid var(--hair); border-radius: 14px; overflow: hidden; }
+.e-sh { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1rem; padding: .9rem 1.2rem; border-bottom: 1px solid var(--hair); }
+.e-sh h2 { font-family: "Anuphan", system-ui, sans-serif; font-size: 1.05rem; font-weight: 600; margin: 0; }
+.e-sh .sub { font-family: "IBM Plex Mono", monospace; font-size: .6875rem; color: var(--soft); }
+.e-list { padding: .9rem 1.2rem 1.2rem; }
+
+.e-slot { display: grid; grid-template-columns: 4.6rem minmax(0, 1fr); gap: 1rem; }
+.e-t { font-family: "IBM Plex Mono", monospace; font-size: .8125rem; color: var(--soft); font-variant-numeric: tabular-nums; padding-top: .55rem; }
+.e-blk { border-radius: 10px; border-left: 4px solid var(--hair); background: var(--hair2); padding: .6rem .9rem; margin-bottom: .5rem; }
+.e-blk .r1 { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem .75rem; align-items: baseline; }
+.e-blk .nm { font-size: .9375rem; font-weight: 500; }
+.e-blk .dur { font-family: "IBM Plex Mono", monospace; font-size: .75rem; color: var(--soft); font-variant-numeric: tabular-nums; }
+.e-blk .meta { font-family: "IBM Plex Mono", monospace; font-size: .6875rem; color: var(--soft); margin-top: .2rem; }
+.e-blk.other .nm { color: var(--soft); font-weight: 400; }
+.e-blk.you { background: var(--amber-l); border-left-color: var(--amber); }
+.e-blk.you .nm { color: #6B4610; }
+.e-blk.run { background: var(--petrol-l); border-left-color: var(--petrol); }
+.e-blk.run .nm { color: #0C4457; font-weight: 600; }
+.e-tag {
+  font-family: "IBM Plex Mono", monospace; font-size: .625rem; letter-spacing: .08em;
+  border-radius: 4px; padding: .06rem .38rem; white-space: nowrap;
+}
+.e-tag.you { background: var(--amber); color: #FFF8EC; }
+.e-tag.run { background: var(--petrol); color: #EAF5F8; }
+.e-bmtr { height: 4px; background: #C9DFE7; border-radius: 99px; margin-top: .5rem; overflow: hidden; }
+.e-bmtr i { display: block; height: 100%; background: var(--petrol); transition: width .6s; }
+
+.e-nowrow { display: grid; grid-template-columns: 4.6rem minmax(0, 1fr); gap: 1rem; align-items: center; margin: .15rem 0 .65rem; }
+.e-nowt { font-family: "IBM Plex Mono", monospace; font-size: .8125rem; font-weight: 600; color: #B4213F; font-variant-numeric: tabular-nums; }
+.e-nowline { height: 2px; background: #B4213F; position: relative; }
+.e-nowline::before { content: ""; position: absolute; left: 0; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: #B4213F; }
+
+.e-side { display: flex; flex-direction: column; gap: 1.15rem; position: sticky; top: 5rem; }
+.e-panel { background: var(--panel); border: 1px solid var(--hair); border-radius: 14px; padding: 1.15rem 1.25rem; }
+.e-next { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 2.6rem; letter-spacing: -.03em; color: var(--petrol); font-variant-numeric: tabular-nums; line-height: 1.05; margin-top: .3rem; }
+.e-next-sub { font-size: .875rem; color: var(--ink2); margin-top: .3rem; }
+.e-kv { display: flex; justify-content: space-between; gap: .75rem; padding: .42rem 0; border-bottom: 1px solid var(--hair2); font-size: .875rem; }
+.e-kv:last-child { border-bottom: 0; }
+.e-kv span { color: var(--soft); }
+.e-kv b { font-weight: 500; font-family: "IBM Plex Mono", monospace; font-size: .8125rem; }
+.e-btn {
+  display: block; width: 100%; font: inherit; font-size: .9375rem; font-weight: 600;
+  background: var(--petrol); color: #F0F7F9; border: 0; border-radius: 10px;
+  padding: .68rem; cursor: pointer; margin-top: .9rem; transition: background .15s;
+}
+.e-btn:hover { background: #0F4E63; }
+.e-btn.ghost { background: transparent; color: var(--ink2); border: 1px solid var(--hair); font-weight: 500; margin-top: .5rem; }
+.e-btn.ghost:hover { background: var(--hair2); }
+.e-fine { font-size: .8125rem; color: var(--soft); line-height: 1.55; margin: .9rem 0 0; }
+
+@media (max-width: 900px) {
+  .e-wrap { grid-template-columns: minmax(0, 1fr); padding: 1.15rem 1.15rem 6rem; }
+  .e-side { position: static; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   จอ F · ฟาร์มของฉัน — ภาษาเกม
+   ══════════════════════════════════════════════════════════ */
+.f {
+  --ground: #170F22;
+  --panel:  #241634;
+  --panel2: #2E1D42;
+  --ink:    #F3EAF8;
+  --ink2:   #C6B4D8;
+  --soft:   #8E7BA6;
+  --hair:   #3A2752;
+  --pink:   #FF4D7E;
+  --gold:   #FFC24A;
+  --mint:   #4FE0A8;
+  background: var(--ground);
+  color: var(--ink);
+  font-size: 15px;
+  min-height: 100vh;
+}
+.f-hud {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1.5rem;
+  padding: .8rem 1.5rem;
+  background: var(--panel); border-bottom: 1px solid var(--hair);
+  position: sticky; top: 0; z-index: 5;
+}
+.f-brand { font-family: "Anuphan", system-ui, sans-serif; font-weight: 700; font-size: 1.05rem; }
+.f-brand span { color: var(--pink); }
+.f-res { display: flex; align-items: center; gap: 1.15rem; }
+.f-chip { display: flex; align-items: center; gap: .4rem; background: var(--panel2); border: 1px solid var(--hair); border-radius: 999px; padding: .3rem .85rem; }
+.f-chip .ic { font-size: .875rem; }
+.f-chip b { font-family: "IBM Plex Mono", monospace; font-size: .9375rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.f-chip.h b { color: var(--pink); }
+.f-chip.g b { color: var(--gold); }
+.f-rank { display: flex; align-items: center; gap: .6rem; }
+.f-rank .av { width: 34px; height: 34px; border-radius: 12px; background: linear-gradient(150deg, #FF4D7E, #B93FA6); color: #fff; font-size: .75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.f-rank .who b { display: block; font-size: .875rem; line-height: 1.2; }
+.f-rank .who span { font-family: "IBM Plex Mono", monospace; font-size: .6875rem; color: var(--gold); }
+
+.f-wrap { flex: 1; width: 100%; max-width: 72rem; margin: 0 auto; padding: 1.6rem 1.5rem 6rem; display: grid; grid-template-columns: 20rem minmax(0, 1fr); gap: 1.4rem; align-items: start; }
+.f-lbl { font-family: "IBM Plex Mono", monospace; font-size: .625rem; letter-spacing: .17em; text-transform: uppercase; color: var(--soft); display: block; }
+
+.f-quest { background: var(--panel); border: 1px solid var(--hair); border-radius: 20px; padding: 1.3rem; text-align: center; }
+.f-ring {
+  width: 168px; height: 168px; border-radius: 50%; margin: 1rem auto .2rem;
+  display: grid; place-items: center; position: relative;
+  background: conic-gradient(var(--mint) 0 62%, #3A2752 62% 100%);
+  transition: background .6s;
+}
+.f-ring::after { content: ""; position: absolute; inset: 13px; border-radius: 50%; background: var(--panel); }
+.f-ring .in { position: relative; z-index: 1; }
+.f-ring .z { font-family: "IBM Plex Mono", monospace; font-size: 2rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.f-ring .of { font-family: "IBM Plex Mono", monospace; font-size: .75rem; color: var(--soft); }
+.f-quest .em { font-size: .9375rem; font-weight: 600; margin-top: .5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.f-quest .meta { font-family: "IBM Plex Mono", monospace; font-size: .75rem; color: var(--soft); margin-top: .25rem; }
+.f-quest .btn {
+  display: block; width: 100%; font: inherit; font-size: .875rem; font-weight: 600;
+  background: var(--panel2); color: var(--ink2); border: 1px solid var(--hair);
+  border-radius: 12px; padding: .58rem; margin-top: 1rem; cursor: pointer;
+}
+.f-quest .btn:hover { background: #38235010; border-color: var(--pink); color: var(--ink); }
+
+.f-streak { background: var(--panel); border: 1px solid var(--hair); border-radius: 20px; padding: 1.1rem 1.2rem; margin-top: 1.15rem; }
+.f-streak .big { font-family: "IBM Plex Mono", monospace; font-size: 1.6rem; font-weight: 600; color: var(--gold); margin-top: .2rem; }
+.f-streak p { font-size: .8125rem; color: var(--soft); margin: .3rem 0 0; line-height: 1.5; }
+
+.f-sech { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1rem; margin-bottom: .7rem; }
+.f-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: .85rem; }
+.f-card { background: var(--panel); border: 1px solid var(--hair); border-radius: 18px; padding: 1rem; transition: border-color .15s, transform .15s; }
+.f-card:hover { border-color: #52396F; transform: translateY(-2px); }
+.f-card .head { display: flex; align-items: flex-start; gap: .65rem; }
+.f-card .face { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex: none; }
+.f-card .nm { display: block; font-size: .875rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.f-card .sub { display: block; font-family: "IBM Plex Mono", monospace; font-size: .6875rem; color: var(--soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.f-badge { font-family: "IBM Plex Mono", monospace; font-size: .625rem; letter-spacing: .06em; border-radius: 6px; padding: .12rem .45rem; white-space: nowrap; }
+.f-badge.run  { background: rgba(79,224,168,.14); color: var(--mint); }
+.f-badge.wait { background: rgba(255,194,74,.14); color: var(--gold); }
+.f-badge.idle { background: rgba(142,123,166,.16); color: var(--soft); }
+.f-badge.fail { background: rgba(255,109,109,.14); color: #FF8A8A; }
+.f-gauge { height: 7px; background: #1D122B; border-radius: 99px; margin-top: .85rem; overflow: hidden; }
+.f-gauge i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #FF4D7E, #FF8FB0); }
+.f-card .foot { display: flex; justify-content: space-between; gap: .5rem; font-family: "IBM Plex Mono", monospace; font-size: .6875rem; color: var(--soft); margin-top: .45rem; font-variant-numeric: tabular-nums; }
+.f-card .foot span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.f-card .act {
+  width: 100%; font: inherit; font-size: .8125rem; font-weight: 600;
+  background: var(--pink); color: #2A0A16; border: 0; border-radius: 10px;
+  padding: .45rem; margin-top: .8rem; cursor: pointer;
+}
+.f-card .act:hover { filter: brightness(1.08); }
+.f-card .act.ghost { background: transparent; border: 1px solid var(--hair); color: var(--ink2); }
+
+.f-inv { background: var(--panel); border: 1px solid var(--hair); border-radius: 18px; padding: 1rem 1.15rem; margin-top: 1.4rem; }
+.f-items { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .7rem; }
+.f-item { display: flex; align-items: center; gap: .5rem; background: var(--panel2); border: 1px solid var(--hair); border-radius: 12px; padding: .45rem .8rem; }
+.f-item .ic { font-size: 1rem; }
+.f-item .n { font-family: "IBM Plex Mono", monospace; font-size: .875rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.f-item .l { font-size: .75rem; color: var(--soft); }
+.f-note { font-size: .8125rem; color: var(--soft); line-height: 1.55; margin: .85rem 0 0; }
+
+@media (max-width: 900px) {
+  .f-wrap { grid-template-columns: minmax(0, 1fr); padding: 1.15rem 1.15rem 6rem; }
+}
+
 </style>
 
 <!-- ═════════════════ จอ A · คอนโซล ═════════════════ -->
@@ -743,50 +1017,374 @@ body[data-screen="c"] { background: #F3EEE4; }
   </nav>
 </div>
 
+<!-- ═════════════════ จอ D · แชท ═════════════════ -->
+<div class="screen d" id="scr-d">
+  <header class="d-top">
+    <span class="d-id">
+      <span class="d-bot">AH</span>
+      <span><b>Autoheart</b><span>● พร้อมรับงาน · ตอบอัตโนมัติ</span></span>
+    </span>
+    <span class="d-bal">♥ 4,820</span>
+  </header>
+
+  <main class="d-thread">
+    <span class="d-day">วันนี้</span>
+
+    <div class="d-row">
+      <span class="d-av">AH</span>
+      <div class="d-b">สวัสดีครับคุณ arm 👋<br>ตอนนี้มีงานกำลังรันอยู่ 1 งาน และรออีก 1 งานครับ</div>
+      <span class="d-time">14:22</span>
+    </div>
+
+    <div class="d-row">
+      <span class="d-av" style="visibility:hidden">AH</span>
+      <div class="d-card">
+        <span class="k">กำลังฟาร์ม</span>
+        <div class="em">bee_cookie@gmail.com</div>
+        <div class="z"><span id="d-hearts">248</span><i> / 400 ♥</i></div>
+        <div class="d-mtr"><i id="d-bar" style="width:62%"></i></div>
+        <div class="fin">รอบ 4/6 · น่าจะเสร็จ 14:44 · จะทักมาบอกตอนเสร็จครับ</div>
+      </div>
+      <span class="d-time">14:22</span>
+    </div>
+
+    <div class="d-row me">
+      <span class="d-time">14:23</span>
+      <div class="d-b">คิวอีกอันของฉันถึงยัง</div>
+    </div>
+
+    <div class="d-row">
+      <span class="d-av">AH</span>
+      <div class="d-b">งาน <b>nut_cr@hotmail.com</b> อยู่คิวที่ 2 ครับ<br>คาดว่าจะเริ่มประมาณ <b>15:04 น.</b></div>
+      <span class="d-time">14:23</span>
+    </div>
+
+    <div class="d-row">
+      <span class="d-av" style="visibility:hidden">AH</span>
+      <div class="d-card">
+        <span class="k">คิวตอนนี้ · 14 งาน</span>
+        <div style="margin-top:.5rem">
+          <div class="d-qrow"><b>1. ผู้ใช้ nut···</b><span>~13 น.</span></div>
+          <div class="d-qrow you"><b>2. nut_cr@hotmail.com</b><span>15:04 น.</span></div>
+          <div class="d-qrow"><b>3. ผู้ใช้ fai···</b><span>~38 น.</span></div>
+          <div class="d-qrow"><b>4. ผู้ใช้ pim···</b><span>~46 น.</span></div>
+        </div>
+      </div>
+      <span class="d-time">14:23</span>
+    </div>
+
+    <div class="d-row me">
+      <span class="d-time">14:24</span>
+      <div class="d-b">ขอส่งงานเพิ่ม 3 ไอดี</div>
+    </div>
+
+    <div class="d-row">
+      <span class="d-av">AH</span>
+      <div class="d-b">ได้เลยครับ — วางรายการมาได้เลย บรรทัดละ 1 ไอดี รูปแบบ <b>อีเมล:รหัสผ่าน</b><br>ผมจะตรวจให้ก่อนว่าล็อกอินผ่านไหม แล้วค่อยสรุปยอดหัวใจให้ดูก่อนตัดครับ</div>
+      <span class="d-time">14:24</span>
+    </div>
+
+    <div class="d-chips">
+      <button type="button">วางรายการไอดี</button>
+      <button type="button">เติมหัวใจ</button>
+      <button type="button">เช็คของในไอดี</button>
+      <button type="button">ลบเพื่อน</button>
+      <button type="button">ดูประวัติ</button>
+    </div>
+  </main>
+
+  <div class="d-bar">
+    <div class="d-bar-in">
+      <span class="d-fake">พิมพ์ข้อความ หรือวางรายการไอดี…</span>
+      <button class="d-send" type="button" aria-label="ส่ง">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════════ จอ E · ตารางเวลา ═════════════════ -->
+<div class="screen e" id="scr-e">
+  <header class="e-top">
+    <span class="e-brand">Auto<span>heart</span></span>
+    <span class="e-stat">
+      <span class="live"><span class="e-dot"></span> เครื่องเดินตามตาราง</span> ·
+      ช้ากว่ากำหนด <b>2 นาที</b> · กำลังการผลิต <b>51 ♥/นาที</b>
+    </span>
+    <span class="e-stat"><b>♥ 4,820</b> · arm_wipsr</span>
+  </header>
+
+  <div class="e-wrap">
+    <main class="e-sched">
+      <div class="e-sh">
+        <h2>ตารางเดินเครื่องวันนี้ · พุธ 20 ส.ค.</h2>
+        <span class="sub">เวลาโดยประมาณ คำนวณจากคิวจริง</span>
+      </div>
+
+      <div class="e-list">
+        <div class="e-slot">
+          <span class="e-t">14:02</span>
+          <div class="e-blk run">
+            <div class="r1">
+              <span class="nm">bee_cookie@gmail.com</span>
+              <span class="dur">42 นาที · <span id="e-hearts">248</span>/400 ♥</span>
+            </div>
+            <div class="meta"><span class="e-tag run">กำลังรัน</span> &nbsp;รอบ 4/6 · เสร็จประมาณ 14:44</div>
+            <div class="e-bmtr"><i id="e-fill" style="width:62%"></i></div>
+          </div>
+        </div>
+
+        <div class="e-nowrow">
+          <span class="e-nowt" id="e-clock">14:22</span>
+          <span class="e-nowline"></span>
+        </div>
+
+        <div class="e-slot">
+          <span class="e-t">14:44</span>
+          <div class="e-blk other">
+            <div class="r1"><span class="nm">ผู้ใช้ nut···</span><span class="dur">20 นาที</span></div>
+            <div class="meta">400 ♥</div>
+          </div>
+        </div>
+
+        <div class="e-slot">
+          <span class="e-t">15:04</span>
+          <div class="e-blk you">
+            <div class="r1">
+              <span class="nm">nut_cr@hotmail.com</span>
+              <span class="dur">27 นาที</span>
+            </div>
+            <div class="meta"><span class="e-tag you">ของคุณ</span> &nbsp;400 ♥ · เสร็จประมาณ 15:31</div>
+          </div>
+        </div>
+
+        <div class="e-slot">
+          <span class="e-t">15:31</span>
+          <div class="e-blk other">
+            <div class="r1"><span class="nm">ผู้ใช้ fai···</span><span class="dur">21 นาที</span></div>
+            <div class="meta">400 ♥</div>
+          </div>
+        </div>
+
+        <div class="e-slot">
+          <span class="e-t">15:52</span>
+          <div class="e-blk other">
+            <div class="r1"><span class="nm">ผู้ใช้ pim···</span><span class="dur">33 นาที</span></div>
+            <div class="meta">600 ♥</div>
+          </div>
+        </div>
+
+        <div class="e-slot">
+          <span class="e-t">16:25</span>
+          <div class="e-blk other">
+            <div class="r1"><span class="nm">ผู้ใช้ tar···</span><span class="dur">14 นาที</span></div>
+            <div class="meta">250 ♥ · และอีก 9 งานหลังจากนี้</div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="e-side">
+      <section class="e-panel">
+        <span class="e-lbl">งานถัดไปของคุณเริ่ม</span>
+        <div class="e-next">15:04</div>
+        <p class="e-next-sub" style="margin:0">nut_cr@hotmail.com · อีก 42 นาที</p>
+        <button class="e-btn" type="button">เตือนก่อนถึงเวลา 10 นาที</button>
+        <button class="e-btn ghost" type="button">เลื่อนไปคิวหลังสุด</button>
+        <p class="e-fine">ถ้างานก่อนหน้าเสร็จเร็วกว่ากำหนด เวลาจะขยับขึ้นเอง — ระบบจะแจ้งให้ทราบทุกครั้งที่ตารางเปลี่ยนเกิน 5 นาที</p>
+      </section>
+
+      <section class="e-panel">
+        <span class="e-lbl" style="margin-bottom:.6rem">วันนี้</span>
+        <div class="e-kv"><span>หัวใจคงเหลือ</span><b>4,820 ♥</b></div>
+        <div class="e-kv"><span>งานของคุณวันนี้</span><b>4 งาน</b></div>
+        <div class="e-kv"><span>เก็บได้แล้ว</span><b>1,248 ♥</b></div>
+        <div class="e-kv"><span>เครื่องว่างครั้งแรก</span><b>16:39 น.</b></div>
+        <button class="e-btn" type="button">จองช่วงเวลาถัดไป</button>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<!-- ═════════════════ จอ F · ฟาร์มของฉัน ═════════════════ -->
+<div class="screen f" id="scr-f">
+  <header class="f-hud">
+    <span class="f-brand">Auto<span>heart</span></span>
+    <span class="f-res">
+      <span class="f-chip h"><span class="ic">💗</span><b>4,820</b></span>
+      <span class="f-chip g"><span class="ic">⚡</span><b>51</b><span class="l" style="font-size:.6875rem;color:#8E7BA6">♥/นาที</span></span>
+    </span>
+    <span class="f-rank">
+      <span class="av">AW</span>
+      <span class="who"><b>arm_wipsr</b><span>นักฟาร์มระดับ 4 · 38 งาน</span></span>
+    </span>
+  </header>
+
+  <div class="f-wrap">
+    <aside>
+      <section class="f-quest">
+        <span class="f-lbl">เควสต์ที่กำลังทำ</span>
+        <div class="f-ring" id="f-ring">
+          <span class="in">
+            <span class="z" id="f-hearts">248</span>
+            <span class="of">/ 400 ♥</span>
+          </span>
+        </div>
+        <div class="em">bee_cookie@gmail.com</div>
+        <div class="meta">รอบ 4 จาก 6 · เหลืออีก ~6 นาที</div>
+        <button class="btn" type="button">ดูบันทึกการฟาร์มสด</button>
+      </section>
+
+      <section class="f-streak">
+        <span class="f-lbl">สำเร็จติดต่อกัน</span>
+        <div class="big">12 งาน</div>
+        <p>นับจากงานที่สำเร็จเรียงกันโดยไม่มีงานล้ม — เป็นตัวเลขจริงจากประวัติ ไม่ใช่แต้มสะสมที่ต้องซื้อเพิ่ม</p>
+      </section>
+    </aside>
+
+    <main>
+      <div class="f-sech">
+        <span class="f-lbl">ไอดีของฉัน · 4</span>
+        <span class="f-lbl">กำลังฟาร์ม 1 · รอคิว 1 · ว่าง 1 · ติดปัญหา 1</span>
+      </div>
+
+      <div class="f-cards">
+        <article class="f-card">
+          <div class="head">
+            <span class="face" style="background:rgba(79,224,168,.14)">🍪</span>
+            <span style="min-width:0;flex:1">
+              <span class="nm">bee_cookie@gmail.com</span>
+              <span class="sub">เป้าหมาย 400 ♥</span>
+            </span>
+            <span class="f-badge run">กำลังฟาร์ม</span>
+          </div>
+          <div class="f-gauge"><i id="f-gauge" style="width:62%"></i></div>
+          <div class="foot"><span>248 / 400 ♥</span><span>เหลือ ~6 น.</span></div>
+          <button class="act ghost" type="button">ดูสด</button>
+        </article>
+
+        <article class="f-card">
+          <div class="head">
+            <span class="face" style="background:rgba(255,194,74,.14)">🕐</span>
+            <span style="min-width:0;flex:1">
+              <span class="nm">nut_cr@hotmail.com</span>
+              <span class="sub">เป้าหมาย 400 ♥</span>
+            </span>
+            <span class="f-badge wait">คิวที่ 2</span>
+          </div>
+          <div class="f-gauge"><i style="width:0"></i></div>
+          <div class="foot"><span>0 / 400 ♥</span><span>เริ่ม ~15:04</span></div>
+          <button class="act ghost" type="button">ยกเลิกและรับหัวใจคืน</button>
+        </article>
+
+        <article class="f-card">
+          <div class="head">
+            <span class="face" style="background:rgba(142,123,166,.16)">✨</span>
+            <span style="min-width:0;flex:1">
+              <span class="nm">arm_cookie@gmail.com</span>
+              <span class="sub">ฟาร์มล่าสุด 14:38</span>
+            </span>
+            <span class="f-badge idle">ว่าง</span>
+          </div>
+          <div class="f-gauge"><i style="width:100%;background:#3A2752"></i></div>
+          <div class="foot"><span>400 / 400 ♥ · เสร็จแล้ว</span><span>เพื่อน 92</span></div>
+          <button class="act" type="button">ส่งฟาร์มอีกรอบ</button>
+        </article>
+
+        <article class="f-card">
+          <div class="head">
+            <span class="face" style="background:rgba(255,109,109,.14)">⚠️</span>
+            <span style="min-width:0;flex:1">
+              <span class="nm">mook_cr@gmail.com</span>
+              <span class="sub">คืนหัวใจแล้ว 400 ♥</span>
+            </span>
+            <span class="f-badge fail">ติดปัญหา</span>
+          </div>
+          <div class="foot" style="margin-top:.85rem"><span>รหัสผ่านไม่ถูกต้อง</span><span>14:11</span></div>
+          <button class="act" type="button">แก้รหัสผ่านแล้วลองใหม่</button>
+        </article>
+      </div>
+
+      <section class="f-inv">
+        <span class="f-lbl">คลังของ · bee_cookie@gmail.com</span>
+        <div class="f-items">
+          <span class="f-item"><span class="ic">💎</span><span class="n">1,240</span><span class="l">คริสตัล</span></span>
+          <span class="f-item"><span class="ic">🪙</span><span class="n">88,300</span><span class="l">เหรียญ</span></span>
+          <span class="f-item"><span class="ic">🎟️</span><span class="n">14</span><span class="l">ตั๋ว</span></span>
+          <span class="f-item"><span class="ic">👥</span><span class="n">92/100</span><span class="l">เพื่อน</span></span>
+        </div>
+        <p class="f-note">ข้อมูลคลังของดึงสด ๆ ตอนกดดู ไม่ตัดหัวใจ · ไม่มีกล่องสุ่ม ไม่มีนับถอยหลังเร่งให้ซื้อ — ตัวเลขทุกตัวบนหน้านี้มาจากประวัติจริงของบัญชี</p>
+      </section>
+    </main>
+  </div>
+</div>
+
 <!-- ═════════════════ ตัวสลับจอ ═════════════════ -->
-<div class="switcher" role="tablist" aria-label="เลือกแบบหน้าเว็บ">
-  <span class="lab">ดูแบบ</span>
+<div class="sw-menu" id="sw-menu" role="tablist" aria-label="เลือกแบบหน้าเว็บ">
+  <span class="cap">ดูแบบ</span>
   <button type="button" role="tab" aria-selected="true"  data-scr="a">A · คอนโซล</button>
   <button type="button" role="tab" aria-selected="false" data-scr="b">B · สายพาน</button>
   <button type="button" role="tab" aria-selected="false" data-scr="c">C · สมุดบัญชี</button>
+  <button type="button" role="tab" aria-selected="false" data-scr="d">D · แชท</button>
+  <button type="button" role="tab" aria-selected="false" data-scr="e">E · ตารางเวลา</button>
+  <button type="button" role="tab" aria-selected="false" data-scr="f">F · ฟาร์มของฉัน</button>
 </div>
+<button class="sw-fab" id="sw-fab" type="button" aria-expanded="false" aria-controls="sw-menu" aria-label="สลับแบบหน้าเว็บ">A</button>
 
 <script>
 (function () {
   "use strict";
 
-  /* ── สลับจอ ─────────────────────────────────────────── */
-  var buttons = Array.prototype.slice.call(document.querySelectorAll(".switcher [data-scr]"));
+  var SCREENS = ["a", "b", "c", "d", "e", "f"];
+  var buttons = Array.prototype.slice.call(document.querySelectorAll(".sw-menu [data-scr]"));
+  var fab = document.getElementById("sw-fab");
+  var menu = document.getElementById("sw-menu");
+
+  function closeMenu() {
+    menu.classList.remove("open");
+    fab.setAttribute("aria-expanded", "false");
+  }
 
   function show(key) {
     document.body.setAttribute("data-screen", key);
-    ["a", "b", "c"].forEach(function (k) {
+    SCREENS.forEach(function (k) {
       document.getElementById("scr-" + k).classList.toggle("on", k === key);
     });
     buttons.forEach(function (btn) {
       btn.setAttribute("aria-selected", String(btn.dataset.scr === key));
     });
+    fab.textContent = key.toUpperCase();
     window.scrollTo(0, 0);
   }
+
+  fab.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var open = menu.classList.toggle("open");
+    fab.setAttribute("aria-expanded", String(open));
+  });
+  document.addEventListener("click", function (e) {
+    if (!menu.contains(e.target) && e.target !== fab) closeMenu();
+  });
 
   buttons.forEach(function (btn) {
     btn.addEventListener("click", function () {
       show(btn.dataset.scr);
       history.replaceState(null, "", "#" + btn.dataset.scr);
+      closeMenu();
     });
   });
 
   document.addEventListener("keydown", function (e) {
     if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
-    var i = ["a", "b", "c"].indexOf(document.body.getAttribute("data-screen"));
-    if (e.key === "ArrowRight") show(["a", "b", "c"][(i + 1) % 3]);
-    if (e.key === "ArrowLeft")  show(["a", "b", "c"][(i + 2) % 3]);
+    var i = SCREENS.indexOf(document.body.getAttribute("data-screen"));
+    if (i < 0) return;
+    if (e.key === "Escape") closeMenu();
+    if (e.key === "ArrowRight") show(SCREENS[(i + 1) % SCREENS.length]);
+    if (e.key === "ArrowLeft")  show(SCREENS[(i + SCREENS.length - 1) % SCREENS.length]);
   });
 
   var fromHash = (location.hash || "").replace("#", "");
-  show(["a", "b", "c"].indexOf(fromHash) >= 0 ? fromHash : "a");
+  show(SCREENS.indexOf(fromHash) >= 0 ? fromHash : "a");
 
-  /* ── สลับสวิตช์แจ้งเตือนในจอ B ──────────────────────── */
+  /* สวิตช์แจ้งเตือนในจอ B */
   var sw = document.querySelector(".b-sw");
   if (sw) {
     sw.addEventListener("click", function () {
@@ -795,53 +1393,67 @@ body[data-screen="c"] { background: #F3EEE4; }
   }
 
   /* ── ตัวนับหัวใจที่เดินจริง เลียนแบบสตรีมจาก ws/jobs/{id} ── */
-  var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (still) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-  var small = 248;   /* งาน 400 ♥ ที่โชว์ในจอ A และ C */
+  var small = 248;   /* งาน 400 ♥ ที่โชว์ในจอ A, C, D, E, F */
   var large = 1842;  /* งาน 2,500 ♥ ที่โชว์ในจอ B */
   var clock = 22 * 60 + 27;
-
-  var elASmall = document.getElementById("a-hearts");
-  var elABar   = document.getElementById("a-bar");
-  var elATail  = document.getElementById("a-tail-last");
-  var elBLarge = document.getElementById("b-hearts");
-  var elBBar   = document.getElementById("b-bar");
-  var elCSmall = document.getElementById("c-hearts");
-  var elCBar   = document.getElementById("c-bar");
-
   var friend = 19;
 
+  function el(id) { return document.getElementById(id); }
   function fmt(n) { return n.toLocaleString("en-US"); }
-
   function blocks(pct) {
     var filled = Math.round(pct / 10);
     return "[" + "█".repeat(filled) + "░".repeat(10 - filled) + "]";
   }
-
-  function hhmmss(total) {
-    var h = 14;
-    var m = Math.floor(total / 60);
-    var s = total % 60;
-    return h + ":" + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+  function hhmm(total) {
+    return "14:" + String(Math.floor(total / 60)).padStart(2, "0");
   }
+  function hhmmss(total) {
+    return "14:" + String(Math.floor(total / 60)).padStart(2, "0") + ":" + String(total % 60).padStart(2, "0");
+  }
+  function setText(id, v) { var n = el(id); if (n) n.textContent = v; }
+  function setWidth(id, v) { var n = el(id); if (n) n.style.width = v; }
 
   setInterval(function () {
-    if (small < 400) { small += 3; }
+    if (small < 400)  { small += 3; }
     if (large < 2500) { large += 4; }
     clock += 8;
     friend += 1;
 
     var pctSmall = Math.min(100, small / 400 * 100);
     var pctLarge = Math.min(100, large / 2500 * 100);
+    var smallTxt = fmt(small);
 
-    if (elASmall) elASmall.textContent = fmt(small);
-    if (elABar)   elABar.textContent = blocks(pctSmall);
-    if (elATail)  elATail.textContent = hhmmss(clock) + "  เข้าห้องเพื่อนคนที่ " + friend + " …";
-    if (elBLarge) elBLarge.textContent = fmt(large);
-    if (elBBar)   elBBar.style.width = pctLarge + "%";
-    if (elCSmall) elCSmall.textContent = fmt(small);
-    if (elCBar)   elCBar.style.width = pctSmall + "%";
+    /* A · คอนโซล */
+    setText("a-hearts", smallTxt);
+    setText("a-bar", blocks(pctSmall));
+    setText("a-tail-last", hhmmss(clock) + "  เข้าห้องเพื่อนคนที่ " + friend + " …");
+
+    /* B · สายพาน */
+    setText("b-hearts", fmt(large));
+    setWidth("b-bar", pctLarge + "%");
+
+    /* C · สมุดบัญชี */
+    setText("c-hearts", smallTxt);
+    setWidth("c-bar", pctSmall + "%");
+
+    /* D · แชท */
+    setText("d-hearts", smallTxt);
+    setWidth("d-bar", pctSmall + "%");
+
+    /* E · ตารางเวลา */
+    setText("e-hearts", smallTxt);
+    setWidth("e-fill", pctSmall + "%");
+    setText("e-clock", hhmm(clock));
+
+    /* F · ฟาร์มของฉัน */
+    setText("f-hearts", smallTxt);
+    setWidth("f-gauge", pctSmall + "%");
+    var ring = el("f-ring");
+    if (ring) {
+      ring.style.background = "conic-gradient(var(--mint) 0 " + pctSmall + "%, #3A2752 " + pctSmall + "% 100%)";
+    }
   }, 2600);
 })();
 </script>
