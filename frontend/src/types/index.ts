@@ -55,3 +55,33 @@ export type Topup = {
   error_message?: string | null;
   created_at?: string | null;
 };
+
+export type GameFriend = {
+  player_id: string;
+  nickname: string;
+  level: number;
+  last_seen_at?: string | null;
+  favorite: boolean;
+  gift_count: number;
+  trophy_count: number;
+  looks_like_guest: boolean;
+};
+
+export type FriendListResult = {
+  email: string;
+  mid?: string | null;
+  level?: number | null;
+  friend_cap?: number | null;
+  friend_count: number;
+  friends: GameFriend[];
+};
+
+export type FriendDeleteResult = {
+  ok: boolean;
+  requested: number;
+  removed: number;
+  failed: { player_id: string; error: string }[];
+  skipped_not_friend: number;
+  friend_count: number;
+  friends: GameFriend[];
+};

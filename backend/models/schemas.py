@@ -83,6 +83,19 @@ class CredentialsVerifyRequest(BaseModel):
     password: str
 
 
+class FriendListRequest(BaseModel):
+    email: str
+    password: str
+
+
+class FriendDeleteRequest(BaseModel):
+    email: str
+    password: str
+    # ต้องส่ง id มาเสมอ ไม่มีโหมด "ลบทุกคนโดยไม่ระบุ" ฝั่ง API เพราะการลบเพื่อน
+    # กู้คืนไม่ได้ — หน้าเว็บต้องดึงรายชื่อมาก่อนแล้วส่งกลับมาว่าจะลบใครบ้าง
+    player_ids: list[str] = Field(..., min_length=1, max_length=500)
+
+
 class JobCreateRequest(BaseModel):
     """Single or batch job creation. Each credential becomes one job."""
     credentials: list[CredentialItem] = Field(..., min_length=1, max_length=50)
