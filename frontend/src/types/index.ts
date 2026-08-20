@@ -85,3 +85,57 @@ export type FriendDeleteResult = {
   friend_count: number;
   friends: GameFriend[];
 };
+
+// ── เช็คข้อมูลไอดี (proxy จาก ngmx) ──────────────────────────────────────
+// ตัว item ในคลัง: image เป็น "tag" ที่เอาไปต่อเป็น URL รูปผ่าน backend เรา
+// (materials/tickets/others จะ image เป็น "" เพราะ ngmx ไม่ได้ map รูปให้)
+export type AccountItem = {
+  name: string;
+  image: string;
+  count: number;
+  level: number;
+};
+
+export type AccountWallet = {
+  coin: number;
+  gem: number;
+  life: number;
+  key: number;
+  powder: number;
+  medal: number;
+  shard: number;
+  party_ticket: number;
+};
+
+export type AccountOwned = {
+  cookies: AccountItem[];
+  pets: AccountItem[];
+  treasures: AccountItem[];
+  materials: AccountItem[];
+  tickets: AccountItem[];
+  others: AccountItem[];
+  unknown: number;
+};
+
+export type AccountInspectResult = {
+  mid: string;
+  nickname?: string | null;
+  level: number;
+  exp: number;
+  member_seq?: number | string | null;
+  wallet: AccountWallet;
+  refill?: { life: number; key: number; party_ticket: number } | null;
+  equipped?: {
+    cookies: AccountItem[];
+    pets: AccountItem[];
+    treasures: AccountItem[];
+  } | null;
+  owned: AccountOwned;
+  episodes: number[];
+  current_episode?: number | null;
+  mails: number;
+  friend_invites: number;
+  party_tier: number;
+  trophies: number;
+  points?: { today: number; current: number; gift_count: number } | null;
+};
