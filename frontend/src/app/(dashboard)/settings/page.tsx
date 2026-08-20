@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { SavedAccountsCard } from "@/components/account/SavedAccountsCard";
 
 export default function SettingsPage() {
   const { profile } = useAuth();
@@ -32,6 +33,7 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <h1 className="text-2xl font-bold">ตั้งค่าบัญชี</h1>
+      <SavedAccountsCard />
       <Card className="space-y-2 p-5 text-sm">
         <p>
           <span className="text-dim">ชื่อผู้ใช้:</span> {profile?.nickname || profile?.display_name}

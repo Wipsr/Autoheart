@@ -1,12 +1,19 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, Loader2, Trash2, UserMinus, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSavedAccounts } from "@/hooks/useSavedAccounts";
 import { api, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHead } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
+import {
+  AccountPicker,
+  credPayload,
+  credReady,
+  emptyManual,
+  type CredValue,
+} from "@/components/account/AccountPicker";
 import { EmptyState } from "@/components/ui/States";
 import { cn, formatHearts } from "@/lib/utils";
 import type { FriendDeleteResult, FriendListResult, GameFriend } from "@/types";
@@ -15,8 +22,8 @@ type Phase = "form" | "list";
 
 export default function FriendsPage() {
   const { token } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { accounts } = useSavedAccounts();
+  const [cred, setCred] = useState<CredValue>(emptyManual);
   const [phase, setPhase] = useState<Phase>("form");
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -26,6 +33,19 @@ export default function FriendsPage() {
   const [friends, setFriends] = useState<GameFriend[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [result, setResult] = useState<FriendDeleteResult | null>(null);
+
+  // มีบัญชีที่ save ไว้ → ตั้งต้นเลือกอันแรกให้ (จนกว่าผู้ใช้จะแตะเอง)
+  const touched = useRef(false);
+  useEffect(() => {
+    if (!touched.current && cred.mode === "manual" && !cred.email && accounts.length) {
+      setCred({ mode: "saved", account_id: accounts[0].id });
+    }
+  }, [accounts, cred]);
+
+  const onCredChange = (v: CredValue) => {
+    touched.current = true;
+    setCred(v);
+  };
 
   const guestCount = useMemo(
     () => friends.filter((f) => f.looks_like_guest).length,
@@ -62,7 +82,7 @@ export default function FriendsPage() {
       const data = await api<FriendListResult>("/api/friends/list", {
         method: "POST",
         token,
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify(credPayload(cred)),
       });
       setAccount(data);
       applyFriends(data.friends, true);
@@ -83,8 +103,7 @@ export default function FriendsPage() {
         method: "POST",
         token,
         body: JSON.stringify({
-          email: email.trim(),
-          password,
+          ...credPayload(cred),
           player_ids: Array.from(selected),
         }),
       });
@@ -101,7 +120,8 @@ export default function FriendsPage() {
 
   const reset = () => {
     setPhase("form");
-    setPassword("");
+    // กรอกสด → ล้างรหัสหลังใช้; บัญชีที่ save ไว้คงการเลือกไว้ได้
+    if (cred.mode === "manual") setCred((c) => ({ ...c, password: "" }) as CredValue);
     setAccount(null);
     setFriends([]);
     setSelected(new Set());
@@ -123,27 +143,20 @@ export default function FriendsPage() {
       {phase === "form" && (
         <Card className="p-5">
           <form onSubmit={loadFriends} className="space-y-3">
-            <Input
-              required
-              type="email"
-              autoComplete="off"
-              placeholder="DevPlay Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+            <AccountPicker
+              accounts={accounts}
+              value={cred}
+              onChange={onCredChange}
+              idPrefix="fr"
             />
-            <Input
-              required
-              type="password"
-              autoComplete="new-password"
-              placeholder="DevPlay Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <p className="text-xs text-dim">
-              รหัสผ่านใช้ล็อกอินตอนกดเท่านั้น ไม่ถูกบันทึกลงฐานข้อมูล
-            </p>
+            {cred.mode === "manual" && (
+              <p className="text-xs text-dim">
+                รหัสผ่านใช้ล็อกอินตอนกดเท่านั้น ไม่ถูกบันทึกลงฐานข้อมูล
+                (บันทึกบัญชีไว้ใช้ซ้ำได้ในหน้า ตั้งค่า)
+              </p>
+            )}
             {error && <p className="text-sm text-fail">{error}</p>}
-            <Button type="submit" disabled={loading || !email.trim() || !password}>
+            <Button type="submit" disabled={loading || !credReady(cred)}>
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" /> กำลังล็อกอิน...

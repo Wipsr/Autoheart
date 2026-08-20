@@ -16,6 +16,7 @@ from api.dependencies import check_maintenance, client_meta, get_current_user
 from api.middleware.rate_limiter import rate_limiter
 from models.schemas import AccountInspectRequest
 from services.ngmx_service import ngmx_service
+from services.saved_account_service import saved_account_service
 
 router = APIRouter(prefix="/api/account", tags=["account"])
 
@@ -37,9 +38,14 @@ async def inspect_account(
     rate_limiter.check(f"account_inspect:user:{user['id']}", limit=30, window_seconds=3600)
     rate_limiter.check(f"account_inspect:ip:{meta.get('ip_address')}", limit=60, window_seconds=3600)
 
+    # รับได้ทั้งบัญชีที่ save ไว้ (account_id) หรือกรอกสด (email+password)
+    email, password = await saved_account_service.resolve(
+        user["id"], email=body.email, password=body.password, account_id=body.account_id
+    )
+
     # ngmx_service คืนข้อมูลก้อนเดิม (wallet/owned/…) ส่งต่อตรง ๆ ไม่ต้องแปลง
     # ฟิลด์ image ในแต่ละ item เป็น tag ที่หน้าเว็บเอาไปต่อเป็น /api/account/image/…
-    return await ngmx_service.inspect(body.email, body.password)
+    return await ngmx_service.inspect(email, password)
 
 
 @router.get("/image/{kind}/{tag}")

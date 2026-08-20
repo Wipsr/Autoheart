@@ -72,30 +72,44 @@ class TopupOut(BaseModel):
 
 
 class CredentialItem(BaseModel):
-    email: str
-    password: str
+    # กรอกสด (email+password) หรืออ้างบัญชีที่ save ไว้ (account_id) อย่างใดอย่างหนึ่ง
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
     package_id: Optional[int] = None
     target_hearts: Optional[int] = None
 
 
 class CredentialsVerifyRequest(BaseModel):
-    email: str
-    password: str
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
 
 
 class AccountInspectRequest(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
+
+
+class SavedAccountCreateRequest(BaseModel):
     email: str
     password: str
+    label: Optional[str] = None
+    # ตรวจรหัสกับ DevPlay ก่อนบันทึกไหม (ดีฟอลต์ตรวจ เพื่อกันบันทึกรหัสผิด)
+    verify: bool = True
 
 
 class FriendListRequest(BaseModel):
-    email: str
-    password: str
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
 
 
 class FriendDeleteRequest(BaseModel):
-    email: str
-    password: str
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
     # ต้องส่ง id มาเสมอ ไม่มีโหมด "ลบทุกคนโดยไม่ระบุ" ฝั่ง API เพราะการลบเพื่อน
     # กู้คืนไม่ได้ — หน้าเว็บต้องดึงรายชื่อมาก่อนแล้วส่งกลับมาว่าจะลบใครบ้าง
     player_ids: list[str] = Field(..., min_length=1, max_length=500)
