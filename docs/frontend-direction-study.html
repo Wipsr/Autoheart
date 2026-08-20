@@ -1,0 +1,1160 @@
+<title>Autoheart Frontend Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+
+<style>
+/* ─────────────────────────────────────────────────────────
+   ระบบสี: ตัวเอกสารเป็นขาวดำล้วน (กระดาษ + หมึกกราไฟต์)
+   สีมีเฉพาะ "สีประจำแนวคิด" 3 สีเท่านั้น — A อำพัน, B น้ำเงินสัญญาณ, C หยก
+   ───────────────────────────────────────────────────────── */
+:root {
+  --paper:      #E5E5E1;
+  --sheet:      #F7F7F5;
+  --sheet-2:    #EDEDEA;
+  --ink:        #16181A;
+  --ink-2:      #3C4145;
+  --muted:      #6A7075;
+  --dim:        #8E9498;
+  --rule:       #C9CBC5;
+  --rule-soft:  #DBDCD7;
+  --mark:       #16181A;
+
+  --a: #B57400;   /* อำพัน  — แนวคิด A */
+  --b: #2A5BE0;   /* น้ำเงิน — แนวคิด B */
+  --c: #0C8F7E;   /* หยก    — แนวคิด C */
+  --a-wash: rgba(181,116,0,.10);
+  --b-wash: rgba(42,91,224,.09);
+  --c-wash: rgba(12,143,126,.10);
+
+  --sans: "IBM Plex Sans Thai", "Anuphan", system-ui, sans-serif;
+  --display: "Anuphan", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --max: 74rem;
+  --col: 44rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:     #131414;
+    --sheet:     #1B1D1D;
+    --sheet-2:   #212423;
+    --ink:       #E9E9E4;
+    --ink-2:     #C2C5C2;
+    --muted:     #949A97;
+    --dim:       #6E7472;
+    --rule:      #333736;
+    --rule-soft: #262928;
+    --mark:      #E9E9E4;
+
+    --a: #F0B23C;
+    --b: #7BA0FF;
+    --c: #3ED0B4;
+    --a-wash: rgba(240,178,60,.12);
+    --b-wash: rgba(123,160,255,.12);
+    --c-wash: rgba(62,208,180,.12);
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper:     #131414;
+  --sheet:     #1B1D1D;
+  --sheet-2:   #212423;
+  --ink:       #E9E9E4;
+  --ink-2:     #C2C5C2;
+  --muted:     #949A97;
+  --dim:       #6E7472;
+  --rule:      #333736;
+  --rule-soft: #262928;
+  --mark:      #E9E9E4;
+
+  --a: #F0B23C;
+  --b: #7BA0FF;
+  --c: #3ED0B4;
+  --a-wash: rgba(240,178,60,.12);
+  --b-wash: rgba(123,160,255,.12);
+  --c-wash: rgba(62,208,180,.12);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.72;
+  margin: 0;
+  padding: 0 1.25rem 6rem;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: var(--max); margin: 0 auto; }
+
+/* ── หัวกระดาษ ───────────────────────────────────────── */
+.masthead {
+  border-bottom: 2px solid var(--ink);
+  padding: 3.5rem 0 1.25rem;
+  margin-bottom: 2.5rem;
+}
+.eyebrow {
+  font-family: var(--mono);
+  font-size: .688rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(2.1rem, 6vw, 3.5rem);
+  line-height: 1.08;
+  letter-spacing: -.02em;
+  text-wrap: balance;
+  margin: 0 0 .75rem;
+}
+.standfirst {
+  font-size: 1.06rem;
+  color: var(--ink-2);
+  max-width: 46rem;
+  margin: 0 0 1.75rem;
+}
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem 1.5rem;
+  border-top: 1px solid var(--rule-soft);
+  padding-top: 1.25rem;
+}
+.meta-grid dt {
+  font-family: var(--mono);
+  font-size: .625rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: .15rem;
+}
+.meta-grid dd { margin: 0; font-size: .875rem; color: var(--ink-2); line-height: 1.5; }
+
+/* ── โครงส่วน ────────────────────────────────────────── */
+section { margin: 0 0 4.5rem; scroll-margin-top: 2rem; }
+
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  border-top: 1px solid var(--rule);
+  padding-top: .75rem;
+  margin-bottom: 1.75rem;
+}
+.sec-num {
+  font-family: var(--mono);
+  font-size: .688rem;
+  letter-spacing: .1em;
+  color: var(--dim);
+  flex: none;
+  padding-top: .35rem;
+}
+.sec-head h2 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  letter-spacing: -.01em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+h3 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: -.005em;
+  margin: 2rem 0 .6rem;
+}
+p { margin: 0 0 1rem; max-width: var(--col); }
+.lede { max-width: 46rem; color: var(--ink-2); }
+
+ul, ol { max-width: var(--col); padding-left: 1.15rem; margin: 0 0 1rem; }
+li { margin-bottom: .4rem; }
+li::marker { color: var(--dim); }
+
+code, .m {
+  font-family: var(--mono);
+  font-size: .82em;
+  background: var(--sheet-2);
+  border: 1px solid var(--rule-soft);
+  border-radius: 2px;
+  padding: .06em .34em;
+  white-space: nowrap;
+}
+
+/* ── ข้อเท็จจริงจาก backend ─────────────────────────── */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1px;
+  background: var(--rule-soft);
+  border: 1px solid var(--rule-soft);
+}
+.fact { background: var(--sheet); padding: 1.05rem 1.15rem; }
+.fact .k {
+  font-family: var(--mono);
+  font-size: .625rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--dim);
+  display: block;
+  margin-bottom: .35rem;
+}
+.fact .v { font-size: .9rem; line-height: 1.55; color: var(--ink-2); }
+.fact .v strong { color: var(--ink); font-weight: 600; }
+
+/* ── แผ่นแนวคิด ─────────────────────────────────────── */
+.concept { border-top: 2px solid var(--hue); padding-top: 1.5rem; }
+.concept-a { --hue: var(--a); --wash: var(--a-wash); }
+.concept-b { --hue: var(--b); --wash: var(--b-wash); }
+.concept-c { --hue: var(--c); --wash: var(--c-wash); }
+
+.c-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .75rem 1rem; margin-bottom: .5rem; }
+.c-tag {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: .688rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--hue);
+  border: 1px solid var(--hue);
+  border-radius: 2px;
+  padding: .12rem .5rem;
+}
+.c-head h2 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 4vw, 2.25rem);
+  letter-spacing: -.02em;
+  margin: 0;
+}
+.c-head .en { font-family: var(--mono); font-size: .8rem; color: var(--muted); letter-spacing: .02em; }
+.thesis {
+  font-size: 1.06rem;
+  color: var(--ink);
+  max-width: 44rem;
+  border-left: 3px solid var(--hue);
+  padding-left: 1rem;
+  margin: 0 0 1.5rem;
+}
+.for-who {
+  font-family: var(--mono);
+  font-size: .75rem;
+  color: var(--muted);
+  margin-bottom: 1.75rem;
+}
+.for-who b { color: var(--ink-2); font-weight: 500; }
+
+/* ── รางขั้นตอน (flow) ──────────────────────────────── */
+.flow-shell { overflow-x: auto; padding-bottom: .5rem; margin-bottom: 1.75rem; }
+.flow {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-width: max-content;
+  border: 1px solid var(--rule-soft);
+  background: var(--sheet);
+}
+.step { padding: .8rem 1rem; min-width: 8.5rem; border-right: 1px solid var(--rule-soft); position: relative; }
+.step:last-child { border-right: 0; }
+.step .n {
+  font-family: var(--mono);
+  font-size: .625rem;
+  letter-spacing: .1em;
+  color: var(--hue);
+  display: block;
+  margin-bottom: .2rem;
+}
+.step .t { font-size: .85rem; font-weight: 500; line-height: 1.35; display: block; }
+.step .s { font-family: var(--mono); font-size: .688rem; color: var(--dim); display: block; margin-top: .3rem; line-height: 1.4; }
+.step.term { background: var(--wash); }
+
+/* ── กระดานภาพ (mockups) ───────────────────────────── */
+.board { margin: 0 0 .75rem; }
+.board-frame {
+  border: 1px solid var(--rule);
+  background: var(--sheet-2);
+  padding: 1.25rem;
+  overflow-x: auto;
+}
+.caption {
+  font-family: var(--mono);
+  font-size: .688rem;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 44rem;
+  margin: 0 0 2rem;
+}
+.caption b { color: var(--ink-2); font-weight: 500; }
+
+/* ═══ MOCK A · คอนโซล ═══ */
+.mk-a {
+  background: #0B0B0A;
+  border: 1px solid #2A2622;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.65;
+  color: #C8C2B6;
+  min-width: 40rem;
+}
+.mk-a .bar {
+  display: flex; justify-content: space-between;
+  border-bottom: 1px solid #2A2622;
+  padding: .4rem .75rem;
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #6E675C;
+}
+.mk-a .bar .cr { color: #E8A317; }
+.mk-a .body { padding: .75rem; }
+.mk-a .ln { white-space: pre-wrap; }
+.mk-a .cmd { color: #E8A317; }
+.mk-a .dimx { color: #5E584E; }
+.mk-a .ok { color: #74C476; }
+.mk-a .bad { color: #E06A5C; }
+.mk-a .blk {
+  border: 1px solid #2A2622;
+  border-left: 2px solid #E8A317;
+  padding: .5rem .65rem;
+  margin: .5rem 0;
+  background: #121110;
+}
+.mk-a .live {
+  border: 1px solid #2A2622;
+  border-left: 2px solid #74C476;
+  padding: .5rem .65rem;
+  margin: .5rem 0;
+  background: #101110;
+}
+.mk-a .meter { display: block; height: 3px; background: #22201D; margin: .4rem 0 .25rem; }
+.mk-a .meter i { display: block; height: 100%; background: #74C476; width: 62%; }
+.mk-a .prompt {
+  border-top: 1px solid #2A2622;
+  padding: .5rem .75rem;
+  color: #E8A317;
+  display: flex; gap: .5rem; align-items: center;
+}
+.mk-a .caret { width: 7px; height: 13px; background: #E8A317; display: inline-block; }
+.mk-a .chips { display: flex; gap: .35rem; flex-wrap: wrap; padding: .4rem .75rem .6rem; border-top: 1px dashed #2A2622; }
+.mk-a .chips span { border: 1px solid #33302B; color: #8A8377; padding: .1rem .4rem; font-size: 10px; }
+
+/* ═══ MOCK B · สายพาน ═══ */
+.mk-b {
+  background: #0A0D14;
+  border: 1px solid #1C2536;
+  color: #C7D2E2;
+  font-family: var(--sans);
+  min-width: 42rem;
+  padding: 1rem 1.1rem 1.25rem;
+}
+.mk-b .top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #64769A; }
+.mk-b .top .on { color: #5EE6A8; }
+.mk-b .machine {
+  display: flex; align-items: stretch; gap: 0;
+  border: 1px solid #22304A; background: #0D1220;
+}
+.mk-b .head {
+  padding: .85rem 1.1rem; border-right: 1px solid #22304A;
+  background: linear-gradient(180deg, #12203A, #0D1524);
+  min-width: 13rem;
+}
+.mk-b .head .lbl { font-family: var(--mono); font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: #6C86B8; display: block; }
+.mk-b .head .big { font-family: var(--mono); font-weight: 600; font-size: 30px; letter-spacing: -.02em; color: #FFF; line-height: 1.15; margin-top: .15rem; font-variant-numeric: tabular-nums; }
+.mk-b .head .big i { font-style: normal; font-size: 15px; color: #6C86B8; }
+.mk-b .head .sub { font-family: var(--mono); font-size: 10px; color: #7E93BC; margin-top: .3rem; }
+.mk-b .bar2 { height: 3px; background: #1B2740; margin-top: .5rem; }
+.mk-b .bar2 i { display: block; height: 100%; width: 74%; background: #5EE6A8; }
+.mk-b .lane { display: flex; align-items: center; gap: .5rem; padding: .85rem .8rem; overflow: hidden; flex: 1; }
+.mk-b .card {
+  border: 1px solid #22304A; background: #101828;
+  padding: .45rem .6rem; min-width: 7.1rem; flex: none;
+}
+.mk-b .card .p { font-family: var(--mono); font-size: 9px; color: #5F7398; letter-spacing: .1em; }
+.mk-b .card .who { font-size: 11px; color: #93A6C4; margin-top: .1rem; }
+.mk-b .card .eta { font-family: var(--mono); font-size: 10px; color: #6C86B8; margin-top: .2rem; font-variant-numeric: tabular-nums; }
+.mk-b .card.you { border-color: #4C7DFF; background: #101B33; box-shadow: 0 0 0 1px rgba(76,125,255,.35); }
+.mk-b .card.you .who { color: #C9D9FF; font-weight: 600; }
+.mk-b .card.you .p { color: #7BA0FF; }
+.mk-b .arw { color: #2C3B58; font-size: 12px; flex: none; }
+.mk-b .fade { flex: 1; min-width: 1.5rem; text-align: right; font-family: var(--mono); font-size: 10px; color: #46587C; }
+.mk-b .foot { display: flex; gap: .5rem; margin-top: .8rem; flex-wrap: wrap; }
+.mk-b .pill { border: 1px solid #22304A; padding: .3rem .65rem; font-family: var(--mono); font-size: 10px; color: #8DA2C6; }
+.mk-b .pill.act { border-color: #4C7DFF; color: #C9D9FF; background: #101B33; }
+
+/* ═══ MOCK C · สมุดบัญชี ═══ */
+.mk-c-row { display: flex; gap: 1rem; min-width: 34rem; }
+.phone {
+  width: 16.5rem; flex: none;
+  background: #FBF7F0;
+  border: 1px solid #DFD5C6;
+  border-radius: 18px;
+  padding: .8rem .8rem 0;
+  color: #241F1A;
+  font-family: var(--sans);
+  display: flex; flex-direction: column;
+}
+.phone .st { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9px; color: #9C8F7C; margin-bottom: .7rem; }
+.phone .bal-lbl { font-family: var(--mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: #9C8F7C; }
+.phone .bal {
+  font-family: var(--display); font-weight: 700; font-size: 34px; line-height: 1.1;
+  letter-spacing: -.02em; color: #241F1A; font-variant-numeric: tabular-nums;
+  display: flex; align-items: center; gap: .35rem;
+}
+.phone .bal svg { width: 20px; height: 20px; }
+.phone .acts { display: flex; gap: .4rem; margin: .75rem 0 1rem; }
+.phone .acts b {
+  flex: 1; text-align: center; font-size: 11.5px; font-weight: 600;
+  padding: .5rem 0; border-radius: 10px; background: #0C8F7E; color: #FBF7F0;
+}
+.phone .acts b.alt { background: transparent; color: #3F3830; border: 1px solid #DFD5C6; }
+.phone .lg-h { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #9C8F7C; border-bottom: 1px solid #EAE1D3; padding-bottom: .3rem; margin-bottom: .1rem; }
+.phone .lg { display: flex; justify-content: space-between; align-items: center; padding: .48rem 0; border-bottom: 1px solid #F0E8DB; }
+.phone .lg .l { font-size: 11.5px; line-height: 1.35; }
+.phone .lg .l span { display: block; text-decoration: none; font-family: var(--mono); font-size: 9px; color: #A2967F; margin-top: .05rem; }
+.phone .lg .r { font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; font-weight: 500; }
+.phone .r.up { color: #0C8F7E; }
+.phone .r.dn { color: #7A6F60; }
+.phone .tabs { display: flex; margin: auto -.8rem 0; border-top: 1px solid #EAE1D3; background: #FDFAF5; border-radius: 0 0 17px 17px; }
+.phone .tabs i { flex: 1; text-align: center; padding: .5rem 0 .6rem; font-style: normal; font-size: 9.5px; color: #A2967F; }
+.phone .tabs i.on { color: #0C8F7E; font-weight: 600; box-shadow: inset 0 2px 0 #0C8F7E; }
+
+.phone.track { justify-content: flex-start; }
+.phone .tk-h { font-size: 13px; font-weight: 600; margin-bottom: .1rem; }
+.phone .tk-s { font-family: var(--mono); font-size: 9.5px; color: #A2967F; margin-bottom: .9rem; }
+.tl { border-left: 2px solid #EAE1D3; padding-left: .85rem; margin-left: .3rem; }
+.tl .n { position: relative; padding-bottom: .85rem; }
+.tl .n::before {
+  content: ""; position: absolute; left: -1.19rem; top: .3rem;
+  width: 9px; height: 9px; border-radius: 50%; background: #EAE1D3; border: 2px solid #FBF7F0;
+}
+.tl .n.done::before { background: #0C8F7E; }
+.tl .n.now::before { background: #0C8F7E; box-shadow: 0 0 0 3px rgba(12,143,126,.2); }
+.tl .n .t { font-size: 11.5px; font-weight: 500; }
+.tl .n.wait .t { color: #A2967F; font-weight: 400; }
+.tl .n .d { font-family: var(--mono); font-size: 9px; color: #A2967F; }
+.tl .n.now .d { color: #0C8F7E; }
+.phone .live-box { background: #F3EDE2; border-radius: 10px; padding: .55rem .65rem; margin-top: .2rem; }
+.phone .live-box .q { font-family: var(--mono); font-size: 9px; letter-spacing: .13em; text-transform: uppercase; color: #9C8F7C; }
+.phone .live-box .z { font-family: var(--mono); font-size: 19px; font-weight: 600; color: #241F1A; font-variant-numeric: tabular-nums; }
+.phone .live-box .z i { font-style: normal; font-size: 11px; color: #A2967F; }
+.phone .mtr { height: 4px; background: #E3DACB; border-radius: 99px; margin-top: .4rem; overflow: hidden; }
+.phone .mtr i { display: block; height: 100%; width: 68%; background: #0C8F7E; }
+
+/* ── ตารางฟังก์ชัน ──────────────────────────────────── */
+.tbl-shell { overflow-x: auto; margin: .5rem 0 1.5rem; border: 1px solid var(--rule-soft); }
+table { border-collapse: collapse; width: 100%; min-width: 44rem; background: var(--sheet); font-size: .875rem; }
+th, td { text-align: left; padding: .62rem .8rem; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+thead th {
+  font-family: var(--mono); font-size: .625rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--dim); font-weight: 500;
+  background: var(--sheet-2); border-bottom: 1px solid var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+td .m { white-space: nowrap; }
+td strong { font-weight: 600; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.st {
+  font-family: var(--mono); font-size: .625rem; letter-spacing: .08em;
+  text-transform: uppercase; padding: .1rem .4rem; border-radius: 2px;
+  border: 1px solid currentColor; white-space: nowrap;
+}
+.st-have { color: var(--c); }
+.st-new  { color: var(--a); }
+.st-cli  { color: var(--muted); }
+
+/* ── กล่องเสี่ยง/ได้เสีย ───────────────────────────── */
+.split { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1px; background: var(--rule-soft); border: 1px solid var(--rule-soft); margin-bottom: 1rem; }
+.split > div { background: var(--sheet); padding: .95rem 1.1rem; }
+.split h4 {
+  font-family: var(--mono); font-size: .625rem; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--dim); margin: 0 0 .5rem; font-weight: 500;
+}
+.split ul { margin: 0; max-width: none; font-size: .875rem; }
+.split li { margin-bottom: .3rem; color: var(--ink-2); }
+
+/* ── ข้อเสนอปิดท้าย ─────────────────────────────────── */
+.rec { border: 2px solid var(--ink); background: var(--sheet); padding: 1.5rem 1.6rem; }
+.rec h3 { margin-top: 0; }
+.rec ol { max-width: 44rem; }
+.rec .kicker {
+  font-family: var(--mono); font-size: .625rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: .6rem;
+}
+
+.note {
+  border-left: 3px solid var(--rule);
+  padding: .1rem 0 .1rem 1rem;
+  color: var(--muted);
+  font-size: .875rem;
+  max-width: 44rem;
+  margin: 1.25rem 0;
+}
+
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 4rem; padding-top: 1.25rem;
+  font-family: var(--mono); font-size: .688rem; color: var(--dim);
+  display: flex; flex-wrap: wrap; gap: .4rem 1.5rem;
+}
+
+@media (max-width: 640px) {
+  body { padding: 0 1rem 4rem; font-size: 15.5px; }
+  .masthead { padding-top: 2.25rem; }
+  .sec-head { flex-direction: column; gap: .2rem; }
+  .sec-num { padding-top: 0; }
+  .board-frame { padding: .75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">
+    <span>Autoheart</span>
+    <span>Frontend Direction Study</span>
+    <span>3 ทิศทาง</span>
+    <span>ส.ค. 2026</span>
+  </div>
+  <h1>ถ้ามีแค่ Backend<br>หน้าบ้านควรเป็นอะไรได้บ้าง</h1>
+  <p class="standfirst">
+    เอกสารนี้อ่าน API ที่มีอยู่จริงทั้งชุด แล้วเสนอทิศทางหน้าบ้าน 3 แบบที่ตั้งใจให้
+    <em>คนละสายพันธุ์กัน</em> — คนละโมเดลการโต้ตอบ คนละความหนาแน่น คนละอุปกรณ์หลัก
+    และคนละกลุ่มผู้ใช้ ไม่ใช่ธีมสามสีของหน้าเดิม ทุกฟังก์ชันที่เสนอถูกจับคู่กับ endpoint จริง
+    และระบุชัดว่าอันไหนใช้ของที่มีได้เลย อันไหนต้องเพิ่มฝั่ง backend
+  </p>
+  <dl class="meta-grid">
+    <div>
+      <dt>ขอบเขต</dt>
+      <dd>ออกแบบใหม่ทั้ง IA / flow / ฟังก์ชัน ฝั่งผู้ใช้</dd>
+    </div>
+    <div>
+      <dt>ข้อจำกัดที่รับมา</dt>
+      <dd>ไม่แตะโค้ดเดิม — เอกสารล้วน ไม่มีไฟล์ใน <span class="m">frontend/</span> ถูกแก้</dd>
+    </div>
+    <div>
+      <dt>ฐานข้อมูลที่ใช้ออกแบบ</dt>
+      <dd>อ่านจาก <span class="m">backend/api/routes/</span>, <span class="m">models/schemas.py</span>, <span class="m">services/</span></dd>
+    </div>
+    <div>
+      <dt>สิ่งที่ยังไม่ทำในเอกสารนี้</dt>
+      <dd>หน้า Admin (38 endpoint) — ดูหมายเหตุท้ายเอกสาร</dd>
+    </div>
+  </dl>
+</header>
+
+<!-- ══════════════ 00 ══════════════ -->
+<section id="constraints">
+  <div class="sec-head">
+    <span class="sec-num">00</span>
+    <h2>ความจริง 6 ข้อจาก Backend ที่บังคับรูปร่างหน้าบ้าน</h2>
+  </div>
+  <p class="lede">
+    ก่อนวาดอะไร ต้องยอมรับก่อนว่าระบบนี้มีลักษณะเฉพาะที่ออกแบบหนีไม่ได้ — และหลายข้อ
+    กลับเป็น “ของดี” ที่หน้าบ้านปัจจุบันยังไม่ได้ใช้ประโยชน์
+  </p>
+
+  <div class="facts">
+    <div class="fact">
+      <span class="k">01 · เครื่องเดียว คิวเดียว</span>
+      <span class="v">worker รันที่ <strong>replicas = 1</strong> งานไม่ซ้อนกัน ทุกคนต่อคิวเส้นเดียว มี <span class="m">queue_position</span> และ <span class="m">estimated_wait_minutes</span> จริง → <strong>ความโปร่งใสของคิวคือจุดขาย ไม่ใช่ข้อจำกัดที่ต้องซ่อน</strong></span>
+    </div>
+    <div class="fact">
+      <span class="k">02 · เครดิต = หัวใจ</span>
+      <span class="v">ไม่มีสกุลเงินกลาง เติมด้วยซองแล้วได้ “หัวใจ” มาถือไว้ ตัดตอนสั่งงานผ่าน <span class="m">deduct_user_hearts</span> → <strong>หน้าบ้านควรพูดภาษากระเป๋าเงิน ไม่ใช่ภาษาตะกร้าสินค้า</strong></span>
+    </div>
+    <div class="fact">
+      <span class="k">03 · งานเป็นชุดได้ถึง 50</span>
+      <span class="v"><span class="m">POST /api/jobs/create</span> รับ <span class="m">credentials[]</span> ได้ 1–50 รายการ แต่ละอันกลายเป็น 1 job → <strong>ผู้ใช้ตัวจริงบางกลุ่มคือคนรัน 20 ไอดีต่อรอบ ไม่ใช่คนซื้อทีละแพ็ค</strong></span>
+    </div>
+    <div class="fact">
+      <span class="k">04 · มีเครื่องมือฟรี 3 ตัว</span>
+      <span class="v"><span class="m">/api/account/inspect</span> (ดูของในคลัง), <span class="m">/api/friends/list</span> + <span class="m">delete</span>, <span class="m">/api/credentials/verify</span> — ไม่ตัดเครดิต → <strong>เป็นประตูดึงคนเข้าเว็บได้ฟรี ๆ</strong></span>
+    </div>
+    <div class="fact">
+      <span class="k">05 · สตรีมสดครบ</span>
+      <span class="v"><span class="m">ws/jobs/{id}</span> ส่ง hearts_collected, session x/y, progress %, log ทีละบรรทัด และ <span class="m">ws/queue</span> ส่งความเคลื่อนไหวคิว → <strong>รองรับ UI ที่ “มีชีวิต” ได้เต็มที่</strong></span>
+    </div>
+    <div class="fact">
+      <span class="k">06 · หน้าสาธารณะไม่ต้องล็อกอิน</span>
+      <span class="v"><span class="m">/api/public/queue-stats</span>, <span class="m">/api/public/site-config</span>, <span class="m">/api/promotions/active</span> เปิดโล่ง → <strong>หน้าแรกโชว์ของจริงได้ ไม่ต้องเป็นโบรชัวร์</strong></span>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>ของเดิมทำอะไรอยู่</strong> — sidebar 7 เมนู + การ์ดสถิติ 3 ใบ + wizard ซื้อแบบหลายขั้น
+    บนพื้นกรมท่ากับชมพู เป็นทรง SaaS dashboard มาตรฐาน ทั้งสามทิศทางข้างล่างนี้
+    จงใจไม่กลับไปที่ทรงนั้นเลย — ทั้งเรื่องการนำทาง ความหนาแน่น และวิธีที่ผู้ใช้ “สั่งงาน”
+  </div>
+</section>
+
+<!-- ══════════════ A ══════════════ -->
+<section class="concept concept-a" id="a">
+  <div class="c-head">
+    <span class="c-tag">ทิศทาง A</span>
+    <h2>คอนโซล</h2>
+    <span class="en">Console — command-first</span>
+  </div>
+  <p class="thesis">
+    ทั้งเว็บมีช่องพิมพ์ช่องเดียวกับสตรีมผลลัพธ์หนึ่งเส้น <strong>ไม่มีเมนู ไม่มีหน้า ไม่มี wizard</strong>
+    ทุกอย่างเป็นคำสั่ง และทุกผลลัพธ์เป็นบล็อกที่ต่อลงมาเรื่อย ๆ เลื่อนขึ้นคือย้อนอดีต
+  </p>
+  <p class="for-who">
+    <b>ออกแบบเพื่อ:</b> คนรับจ้างฟาร์ม / ร้าน / ผู้ใช้ที่รัน 5–50 ไอดีต่อรอบ &nbsp;·&nbsp;
+    <b>อุปกรณ์หลัก:</b> เดสก์ท็อป (มือถือมีโหมดชิป) &nbsp;·&nbsp;
+    <b>ความหนาแน่น:</b> สูงสุด
+  </p>
+
+  <div class="board">
+    <div class="board-frame">
+      <div class="mk-a">
+        <div class="bar">
+          <span>autoheart · console</span>
+          <span class="cr">♥ 4,820 · คิวรอ 3 · เครื่องกำลังรัน</span>
+        </div>
+        <div class="body">
+<div class="ln dimx">// วางอีเมล:รหัส หลายบรรทัดได้เลย ไม่ต้องกดปุ่มไหน</div>
+<div class="ln"><span class="cmd">▸</span> <span class="cmd">run</span> --paste  <span class="dimx">(12 บรรทัด)</span></div>
+<div class="blk">
+<div class="ln dimx">ตรวจไอดีขนาน 12 รายการ … เสร็จใน 4.1 วิ</div>
+<div class="ln"><span class="ok">✓ 10 ผ่าน</span>  ·  <span class="bad">✗ 2 ไม่ผ่าน</span></div>
+<div class="ln bad">  ✗ mook_cr@gmail.com   รหัสผ่านไม่ถูกต้อง</div>
+<div class="ln bad">  ✗ arm2547@hotmail.com  บัญชีถูกล็อกชั่วคราว</div>
+<div class="ln dimx">────────────────────────────────</div>
+<div class="ln">  แพ็ค <span class="cmd">500 ♥</span> × 10 ไอดี  =  <span class="cmd">5,000 ♥</span></div>
+<div class="ln">  เครดิตคงเหลือหลังตัด  =  <span class="bad">-180 ♥</span> <span class="dimx">← ไม่พอ</span></div>
+<div class="ln dimx">  เติมก่อน:  <span class="cmd">topup 500x10 --coupon NEWYEAR</span></div>
+</div>
+<div class="ln"><span class="cmd">▸</span> <span class="cmd">run</span> --only-valid --hearts 400 <span class="dimx">↵</span></div>
+<div class="ln ok">✓ สร้าง 10 งาน · ตัด 4,000 ♥ · คิวที่ 4–13 <span class="dimx">· undo ได้อีก 8 วิ</span></div>
+<div class="live">
+<div class="ln"><span class="ok">●</span> กำลังรัน · <span class="dimx">bee_cookie@gmail.com</span> <span class="dimx">· job 7f2a</span></div>
+<div class="ln">248<span class="dimx">/400 ♥</span>   รอบ 3/5   <span class="dimx">เหลือ ~6 นาที</span></div>
+<span class="meter"><i></i></span>
+<div class="ln dimx">14:22:07  เข้าห้องเพื่อนคนที่ 18 …</div>
+<div class="ln dimx">14:22:11  เก็บหัวใจ +3</div>
+</div>
+<div class="ln"><span class="cmd">▸</span> <span class="cmd">check</span> bee_cookie@gmail.com <span class="dimx">↵</span></div>
+<div class="blk">
+<div class="ln dimx">คลังของ · ฟรี ไม่ตัดเครดิต</div>
+<div class="ln">คริสตัล 1,240  ·  เหรียญ 88,300  ·  เพื่อน 92/100</div>
+</div>
+        </div>
+        <div class="prompt"><span class="caret"></span><span class="dimx">พิมพ์คำสั่ง หรือวางรายการไอดี…</span></div>
+        <div class="chips"><span>run</span><span>topup</span><span>queue</span><span>check</span><span>friends</span><span>cancel</span><span>?</span></div>
+      </div>
+    </div>
+  </div>
+  <p class="caption">
+    <b>อ่านภาพ:</b> ทุกอย่างอยู่ในเส้นเดียว — วางรายการไอดี → ระบบตรวจให้ก่อนขนาน → การ์ดสรุป
+    ราคาและไอดีที่ตกก่อนจ่าย → กด ↵ → บล็อกงานสดฝังอยู่ในสตรีมและอัปเดตตัวเองอยู่กับที่
+    แถวชิปล่างคือทางลงมือถือ: แตะแทนพิมพ์
+  </p>
+
+  <h3>Flow หลัก · ซื้อและสั่งรัน 10 ไอดี</h3>
+  <div class="flow-shell">
+    <div class="flow">
+      <div class="step"><span class="n">01</span><span class="t">วางข้อความ</span><span class="s">email:pass<br>หลายบรรทัด / CSV</span></div>
+      <div class="step"><span class="n">02</span><span class="t">ระบบแยกเอง</span><span class="s">parse ฝั่ง client<br>ไม่ต้องกรอกทีละช่อง</span></div>
+      <div class="step"><span class="n">03</span><span class="t">ตรวจไอดีขนาน</span><span class="s">credentials/verify<br>×N พร้อมกัน</span></div>
+      <div class="step"><span class="n">04</span><span class="t">การ์ดยืนยัน</span><span class="s">ยอดตัด + ตัวที่ตก<br>ก่อนเสียเงิน</span></div>
+      <div class="step"><span class="n">05</span><span class="t">กด ↵ ครั้งเดียว</span><span class="s">jobs/create<br>ทั้งชุด</span></div>
+      <div class="step term"><span class="n">06</span><span class="t">บล็อกสดในสตรีม</span><span class="s">ws/jobs/{id}<br>+ undo 10 วิ</span></div>
+    </div>
+  </div>
+
+  <h3>ฟังก์ชันที่ทิศทางนี้เปิดใหม่</h3>
+  <div class="tbl-shell">
+  <table>
+    <thead><tr><th style="width:20%">ฟังก์ชัน</th><th style="width:40%">ทำอะไร</th><th style="width:25%">ต่อกับอะไร</th><th style="width:15%">สถานะ</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>วางแล้วแตกเป็นงาน</strong></td>
+        <td>วาง <span class="m">email:pass</span> หลายบรรทัด, CSV หรือแม้แต่ข้อความจากแชท ระบบแยกเป็นตารางงานให้เอง แก้รายบรรทัดได้</td>
+        <td>parse ฝั่ง client → <span class="m">/api/jobs/create</span></td>
+        <td><span class="st st-cli">ฝั่งหน้าเว็บ</span></td>
+      </tr>
+      <tr>
+        <td><strong>ตรวจก่อนตัดเงิน</strong></td>
+        <td>โชว์ยอดหัวใจที่จะถูกตัด + ไอดีที่ล็อกอินไม่ผ่าน <em>ก่อน</em> กดยืนยัน ไม่ใช่รู้ตอนงานเด้ง</td>
+        <td><span class="m">/api/credentials/verify</span> ยิงขนาน</td>
+        <td><span class="st st-have">มีแล้ว</span></td>
+      </tr>
+      <tr>
+        <td><strong>สตรีมคือประวัติ</strong></td>
+        <td>ยกเลิกหน้า “ประวัติ” ทิ้ง — เลื่อนขึ้นคือย้อนอดีต ค้นด้วย <span class="m">/</span> เหมือน terminal</td>
+        <td><span class="m">/api/jobs/mine</span> + <span class="m">/api/topup/history</span></td>
+        <td><span class="st st-have">มีแล้ว</span></td>
+      </tr>
+      <tr>
+        <td><strong>เครื่องมือฟรีเป็นคำสั่ง</strong></td>
+        <td><span class="m">check &lt;อีเมล&gt;</span> ดูคลังของ, <span class="m">friends &lt;อีเมล&gt;</span> เลือกลบเพื่อนได้ในบล็อกเดียวกัน</td>
+        <td><span class="m">/api/account/inspect</span>, <span class="m">/api/friends/*</span></td>
+        <td><span class="st st-have">มีแล้ว</span></td>
+      </tr>
+      <tr>
+        <td><strong>undo 10 วินาที</strong></td>
+        <td>หลังสั่งงานมีหน้าต่างถอยได้ ปิดจุดเจ็บ “กดพลาดแล้วเครดิตหาย”</td>
+        <td><span class="m">/api/jobs/{id}/cancel</span> — ต้องยืนยันว่าคืนเครดิตในสถานะ queued</td>
+        <td><span class="st st-new">ตรวจฝั่ง BE</span></td>
+      </tr>
+      <tr>
+        <td><strong>ลองก่อนจ่าย (dry-run)</strong></td>
+        <td>ให้ตัวเลขยอดตัดจากฝั่งเซิร์ฟเวอร์ ไม่ใช่คำนวณเดาฝั่ง client</td>
+        <td>เสนอ <span class="m">POST /api/jobs/create?dry_run=true</span></td>
+        <td><span class="st st-new">ต้องเพิ่ม</span></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="split">
+    <div>
+      <h4>ได้อะไร</h4>
+      <ul>
+        <li>งาน 20 ไอดีจบใน ~15 วินาที เทียบกับ wizard เดิมที่ต้องวนหลายรอบ</li>
+        <li>โค้ดหน้าบ้านน้อยมาก — ไม่มี route ไม่มี layout ซ้อน</li>
+        <li>เป็นเอกลักษณ์ จำได้ทันที ไม่เหมือนคู่แข่งเจ้าไหน</li>
+        <li>ล้อกับธรรมชาติของระบบ (สั่งงาน → ดู log) ตรง ๆ</li>
+      </ul>
+    </div>
+    <div>
+      <h4>เสียอะไร / เสี่ยงตรงไหน</h4>
+      <ul>
+        <li>ลูกค้าใหม่ที่ไม่คุ้น terminal จะกลัวจอ — ต้องมีโหมดชิปและตัวอย่างพร้อมแตะ</li>
+        <li>มือถือคือจุดอ่อน แม้จะแก้ด้วยชิปแล้วก็ยังฝืด</li>
+        <li>Accessibility ต้องทำจริงจัง (aria-live กับสตรีมที่วิ่ง)</li>
+        <li>ถ้าฐานลูกค้าคือคนซื้อทีละแพ็ค ทิศทางนี้จะเกินความจำเป็น</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ B ══════════════ -->
+<section class="concept concept-b" id="b">
+  <div class="c-head">
+    <span class="c-tag">ทิศทาง B</span>
+    <h2>สายพาน</h2>
+    <span class="en">The Line — spatial live board</span>
+  </div>
+  <p class="thesis">
+    มีเครื่องเดียว คิวเดียว — งั้นทำให้คิวเป็น<strong>ของที่มองเห็นได้จริง</strong>
+    ทั้งเว็บคือกระดานเดียวที่ไม่เปลี่ยนหน้า งานทุกคน (ปิดชื่อ) เรียงเข้าหาหัวเครื่อง
+    ของคุณเรืองสี ทุกแผงเลื่อนทับกระดานแทนการพาไปหน้าใหม่
+  </p>
+  <p class="for-who">
+    <b>ออกแบบเพื่อ:</b> คนที่ “รอ” แล้วอยากรู้ว่าอีกนานแค่ไหน + คนที่ยังไม่กล้าซื้อ &nbsp;·&nbsp;
+    <b>อุปกรณ์หลัก:</b> เดสก์ท็อป / จอเปิดค้าง (มือถือพับสายพานเป็นแนวตั้ง) &nbsp;·&nbsp;
+    <b>ความหนาแน่น:</b> กลาง เน้นตัวเลขใหญ่
+  </p>
+
+  <div class="board">
+    <div class="board-frame">
+      <div class="mk-b">
+        <div class="top">
+          <span>สายการผลิต · เครื่อง #1</span>
+          <span class="on">● กำลังทำงาน · คิวรวม 14 งาน</span>
+        </div>
+        <div class="machine">
+          <div class="head">
+            <span class="lbl">กำลังเก็บอยู่ตอนนี้</span>
+            <span class="big">1,842<i> / 2,500 ♥</i></span>
+            <span class="sub">รอบ 4/6 · เร็ว 51 ♥/นาที</span>
+            <span class="bar2"><i></i></span>
+            <span class="sub">เหลือ ~13 นาที</span>
+          </div>
+          <div class="lane">
+            <div class="card"><span class="p">คิว 1</span><span class="who">ผู้ใช้ ·  bee***</span><span class="eta">เริ่มใน ~13 น.</span></div>
+            <span class="arw">◀</span>
+            <div class="card"><span class="p">คิว 2</span><span class="who">ผู้ใช้ ·  nut***</span><span class="eta">~24 น.</span></div>
+            <span class="arw">◀</span>
+            <div class="card you"><span class="p">คิว 3 · ของคุณ</span><span class="who">arm_cookie@…</span><span class="eta">~38 น.</span></div>
+            <span class="arw">◀</span>
+            <div class="card"><span class="p">คิว 4</span><span class="who">ผู้ใช้ ·  fai***</span><span class="eta">~46 น.</span></div>
+            <span class="fade">+10 →</span>
+          </div>
+        </div>
+        <div class="foot">
+          <span class="pill act">งานของฉัน 3</span>
+          <span class="pill">ดูเต็มจอ</span>
+          <span class="pill">เติมหัวใจ · ♥ 4,820</span>
+          <span class="pill">ส่งงานใหม่</span>
+          <span class="pill">เครื่องมือฟรี</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="caption">
+    <b>อ่านภาพ:</b> หัวเครื่องซ้ายมือคือ <span class="m">ws/jobs/{id}</span> — ตัวเลขหัวใจวิ่งสดจริง
+    สายพานขวาคือ <span class="m">queue_position</span> ของทุกคนแบบปิดชื่อ การ์ดขยับซ้ายจริงเมื่อคิวเดิน
+    ตัวเลข ETA เดินถอยหลังทุกวินาทีฝั่ง client ไม่ใช่ตัวเลขนิ่งที่รอ refresh
+  </p>
+
+  <h3>Flow หลัก · จากคนแปลกหน้าถึงงานเข้าคิว</h3>
+  <div class="flow-shell">
+    <div class="flow">
+      <div class="step"><span class="n">01</span><span class="t">เห็นสายพานก่อนสมัคร</span><span class="s">public/queue-stats<br>ไม่ต้องล็อกอิน</span></div>
+      <div class="step"><span class="n">02</span><span class="t">กด “ส่งงานใหม่”</span><span class="s">แผงเลื่อนทับ<br>ไม่เปลี่ยนหน้า</span></div>
+      <div class="step"><span class="n">03</span><span class="t">สมัคร / เข้าสู่ระบบ</span><span class="s">auth/register<br>ในแผงเดียวกัน</span></div>
+      <div class="step"><span class="n">04</span><span class="t">เติมด้วยซอง</span><span class="s">topup/redeem<br>+ คูปอง</span></div>
+      <div class="step"><span class="n">05</span><span class="t">ใส่ไอดี · ตรวจสด</span><span class="s">credentials/verify<br>ติ๊กเขียวทันที</span></div>
+      <div class="step term"><span class="n">06</span><span class="t">การ์ดหล่นเข้าสายพาน</span><span class="s">เห็นตำแหน่งตัวเอง<br>ทันทีที่กด</span></div>
+    </div>
+  </div>
+
+  <h3>ฟังก์ชันที่ทิศทางนี้เปิดใหม่</h3>
+  <div class="tbl-shell">
+  <table>
+    <thead><tr><th style="width:20%">ฟังก์ชัน</th><th style="width:40%">ทำอะไร</th><th style="width:25%">ต่อกับอะไร</th><th style="width:15%">สถานะ</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>คิวสาธารณะ</strong></td>
+        <td>คนที่ยังไม่สมัครเห็นคิวจริงเคลื่อนไหว = หลักฐานว่าระบบทำงานอยู่ แทนหน้า landing ที่โม้อย่างเดียว</td>
+        <td><span class="m">/api/public/queue-stats</span></td>
+        <td><span class="st st-have">มีแล้ว</span></td>
+      </tr>
+      <tr>
+        <td><strong>ETA เดินจริง</strong></td>
+        <td>นาฬิกาถอยหลังต่อเนื่อง ปรับตัวเมื่อคิวหน้าเสร็จเร็ว/ช้ากว่าคาด ไม่ใช่ตัวเลขค้าง</td>
+        <td><span class="m">estimated_wait_minutes</span> + tick ฝั่ง client</td>
+        <td><span class="st st-have">มีแล้ว</span></td>
+      </tr>
+      <tr>
+        <td><strong>โหมดดูเต็มจอ</strong></td>
+        <td>จอเดียวโชว์ตัวนับหัวใจตัวใหญ่ + log วิ่ง เปิดค้างไว้ดูเพลิน ๆ ได้ (คนกลุ่มนี้มีจริง)</td>
+        <td><span class="m">ws/jobs/{id}</span></td>
+        <td><span class="st st-have">มีแล้ว</span></td>
+      </tr>
+      <tr>
+        <td><strong>สลับลำดับงานตัวเอง</strong></td>
+        <td>มี 5 งานในคิว อยากให้ไอดีนี้ขึ้นก่อน — ลากสลับได้เฉพาะในกลุ่มงานของตัวเอง ไม่กระทบคนอื่น</td>
+        <td>เสนอ <span class="m">PATCH /api/jobs/reorder</span> (มี resequence ฝั่ง admin อยู่แล้ว)</td>
+        <td><span class="st st-new">ต้องเพิ่ม</span></td>
+      </tr>
+      <tr>
+        <td><strong>เตือนเมื่อใกล้ถึงคิว</strong></td>
+        <td>ปิดแท็บไปทำอย่างอื่นได้ ระบบเตือนตอนเหลือ 5 นาที</td>
+        <td>Web Push / Notification API + <span class="m">ws/queue</span></td>
+        <td><span class="st st-cli">ฝั่งหน้าเว็บ</span></td>
+      </tr>
+      <tr>
+        <td><strong>ปิดชื่อเสมอ</strong></td>
+        <td>การ์ดคนอื่นโชว์แค่ 3 ตัวแรกของอีเมล — โปร่งใสได้โดยไม่แลกความเป็นส่วนตัว</td>
+        <td>ต้องปิดฝั่ง server ไม่ใช่ปิดด้วย CSS</td>
+        <td><span class="st st-new">ต้องเพิ่ม</span></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="split">
+    <div>
+      <h4>ได้อะไร</h4>
+      <ul>
+        <li>เปลี่ยนข้อจำกัด “เครื่องเดียว” ให้กลายเป็นจุดขายเรื่องความโปร่งใส</li>
+        <li>ลดคำถาม “คิวถึงเมื่อไหร่” ที่กินเวลาแอดมินมากที่สุด</li>
+        <li>หน้าแรกกับหน้าใช้งานเป็นหน้าเดียวกัน — ไม่ต้องดูแลสองโลก</li>
+        <li>เป็นภาพจำที่แคปหน้าจอไปโพสต์ต่อได้</li>
+      </ul>
+    </div>
+    <div>
+      <h4>เสียอะไร / เสี่ยงตรงไหน</h4>
+      <ul>
+        <li>ความเป็นส่วนตัว — ต้องปิดชื่อฝั่ง server ให้แน่นก่อนปล่อย</li>
+        <li>คิวยาว 40 งานจะรก ต้องออกแบบการยุบกลุ่มให้ดี</li>
+        <li>Motion เยอะ = งาน perf จริง และต้องเคารพ <span class="m">prefers-reduced-motion</span></li>
+        <li>มือถือต้องออกแบบซ้ำอีกรอบ ไม่ใช่แค่ย่อ</li>
+        <li>วันที่คิวว่างเปล่า หน้าจะดูเหงา — ต้องมีสถานะว่างที่ดูดี</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ C ══════════════ -->
+<section class="concept concept-c" id="c">
+  <div class="c-head">
+    <span class="c-tag">ทิศทาง C</span>
+    <h2>สมุดบัญชีหัวใจ</h2>
+    <span class="en">Heart Wallet — mobile-first</span>
+  </div>
+  <p class="thesis">
+    ลูกค้าจ่ายด้วยซองอั่งเปาบนมือถืออยู่แล้ว — โมเดลในหัวเขาคือ<strong>แอปกระเป๋าเงิน ไม่ใช่แดชบอร์ด</strong>
+    หน้าแรกคือยอดหัวใจกับสมุดรายการเดินบัญชี สั่งงานเหมือน “โอน” ให้ไอดีหนึ่ง
+    และติดตามงานเหมือนติดตามพัสดุ
+  </p>
+  <p class="for-who">
+    <b>ออกแบบเพื่อ:</b> ลูกค้าทั่วไปที่ซื้อ 1–3 ไอดี เล่นบนมือถือ 100% &nbsp;·&nbsp;
+    <b>อุปกรณ์หลัก:</b> มือถือ (เดสก์ท็อปคือมือถือกางออกสองคอลัมน์) &nbsp;·&nbsp;
+    <b>ความหนาแน่น:</b> ต่ำ ตัวใหญ่ นิ้วโป้งถึงหมด
+  </p>
+
+  <div class="board">
+    <div class="board-frame">
+      <div class="mk-c-row">
+        <!-- หน้าแรก -->
+        <div class="phone">
+          <div class="st"><span>9:41</span><span>▮▮▮ ▲ ▮</span></div>
+          <span class="bal-lbl">หัวใจคงเหลือ</span>
+          <div class="bal">
+            <svg viewBox="0 0 24 24" fill="#E0486E" aria-hidden="true"><path d="M12 21s-8-5.1-8-10.4C4 7.5 6.2 5.5 8.8 5.5c1.7 0 2.7.8 3.2 1.6.5-.8 1.5-1.6 3.2-1.6 2.6 0 4.8 2 4.8 5.1C20 15.9 12 21 12 21z"/></svg>
+            4,820
+          </div>
+          <div class="acts"><b>เติมหัวใจ</b><b class="alt">ส่งงาน</b></div>
+          <div class="lg-h">รายการเดินบัญชี</div>
+          <div class="lg"><span class="l">bee_cookie@gmail.com<span>ฟาร์มเสร็จ · 14:38</span></span><span class="r dn">−400</span></div>
+          <div class="lg"><span class="l">เติมด้วยซองอั่งเปา<span>แพ็ค 500 × 4 · คูปอง −10%</span></span><span class="r up">+2,000</span></div>
+          <div class="lg"><span class="l">arm_cookie@gmail.com<span>ยกเลิกงาน · คืนหัวใจ</span></span><span class="r up">+400</span></div>
+          <div class="lg"><span class="l">nut_cr@hotmail.com<span>กำลังฟาร์ม · รอบ 4/6</span></span><span class="r dn">−400</span></div>
+          <div class="lg"><span class="l">ของขวัญทดลองใช้<span>รับครั้งแรก</span></span><span class="r up">+100</span></div>
+          <div class="tabs"><i class="on">บัญชี</i><i>งาน</i><i>บริการ</i><i>ฉัน</i></div>
+        </div>
+
+        <!-- หน้าติดตามงาน -->
+        <div class="phone track">
+          <div class="st"><span>9:41</span><span>▮▮▮ ▲ ▮</span></div>
+          <div class="tk-h">nut_cr@hotmail.com</div>
+          <div class="tk-s">งาน #7f2a · เป้าหมาย 400 ♥</div>
+
+          <div class="live-box">
+            <span class="q">เก็บได้แล้ว</span>
+            <div class="z">272<i> / 400 ♥</i></div>
+            <span class="mtr"><i></i></span>
+          </div>
+
+          <div class="tl" style="margin-top:1rem">
+            <div class="n done"><span class="t">รับงานแล้ว</span><span class="d">14:02</span></div>
+            <div class="n done"><span class="t">ตรวจไอดีผ่าน</span><span class="d">14:02</span></div>
+            <div class="n done"><span class="t">เข้าคิว · ลำดับ 3</span><span class="d">14:03</span></div>
+            <div class="n now"><span class="t">กำลังฟาร์ม · รอบ 4/6</span><span class="d">เหลืออีกประมาณ 6 นาที</span></div>
+            <div class="n wait"><span class="t">เสร็จสมบูรณ์</span><span class="d">—</span></div>
+          </div>
+
+          <div class="tabs"><i>บัญชี</i><i class="on">งาน</i><i>บริการ</i><i>ฉัน</i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="caption">
+    <b>อ่านภาพ:</b> ซ้ายคือสมุดบัญชีเล่มเดียวที่รวม “เติม / ตัด / คืน” ไว้ในเส้นเวลาเดียว
+    (ปัจจุบันข้อมูลนี้กระจายอยู่คนละหน้า) ขวาคือหน้าติดตามที่ยืมภาษาการส่งพัสดุมาใช้ —
+    ห้าสถานะนี้ตรงกับ <span class="m">JobStatus</span> จริงในระบบ ไม่ได้แต่งขึ้น
+  </p>
+
+  <h3>Flow หลัก · เติมแล้วสั่งรัน ภายใน 6 แตะ</h3>
+  <div class="flow-shell">
+    <div class="flow">
+      <div class="step"><span class="n">01</span><span class="t">แตะ “เติมหัวใจ”</span><span class="s">bottom sheet<br>ไม่ออกจากหน้า</span></div>
+      <div class="step"><span class="n">02</span><span class="t">เลือกแพ็ค + จำนวน</span><span class="s">packages<br>คูปองอยู่ในนี้</span></div>
+      <div class="step"><span class="n">03</span><span class="t">วางลิงก์ซอง</span><span class="s">topup/redeem<br>อ่านจากคลิปบอร์ด</span></div>
+      <div class="step"><span class="n">04</span><span class="t">แตะ “ส่งงาน”</span><span class="s">เลือกไอดีที่<br>บันทึกไว้</span></div>
+      <div class="step"><span class="n">05</span><span class="t">ยืนยันยอดตัด</span><span class="s">credentials/verify<br>ตรวจให้ก่อน</span></div>
+      <div class="step term"><span class="n">06</span><span class="t">ไปหน้าติดตามทันที</span><span class="s">ws/jobs/{id}<br>ปิดแอปได้</span></div>
+    </div>
+  </div>
+
+  <h3>ฟังก์ชันที่ทิศทางนี้เปิดใหม่</h3>
+  <div class="tbl-shell">
+  <table>
+    <thead><tr><th style="width:20%">ฟังก์ชัน</th><th style="width:40%">ทำอะไร</th><th style="width:25%">ต่อกับอะไร</th><th style="width:15%">สถานะ</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>สมุดบัญชีเล่มเดียว</strong></td>
+        <td>รวมเติมเงิน ตัดหัวใจ และคืนหัวใจ ไว้ในเส้นเวลาเดียว ตอบคำถาม “หัวใจหายไปไหน” ได้ในหน้าจอเดียว</td>
+        <td>รวม <span class="m">/api/topup/history</span> + <span class="m">/api/jobs/mine</span> ฝั่ง client</td>
+        <td><span class="st st-cli">ฝั่งหน้าเว็บ</span></td>
+      </tr>
+      <tr>
+        <td><strong>ติดตามแบบพัสดุ</strong></td>
+        <td>ห้าสถานะที่คนไทยอ่านออกทันที map ตรงกับ queued / validating / processing / completed / failed</td>
+        <td><span class="m">JobStatus</span> + <span class="m">ws/jobs/{id}</span></td>
+        <td><span class="st st-have">มีแล้ว</span></td>
+      </tr>
+      <tr>
+        <td><strong>สลิปงานเสร็จ</strong></td>
+        <td>งานจบแล้วได้การ์ดสรุป เซฟเป็นรูปหรือแชร์ต่อได้ — ลูกค้าใช้ยืนยันกับตัวเอง ร้านใช้ส่งให้ลูกค้าต่อ</td>
+        <td>วาดด้วย Canvas ฝั่ง client จาก <span class="m">/api/jobs/{id}</span></td>
+        <td><span class="st st-cli">ฝั่งหน้าเว็บ</span></td>
+      </tr>
+      <tr>
+        <td><strong>ไอดีที่บันทึกไว้</strong></td>
+        <td>เก็บเฉพาะอีเมล/ชื่อเล่นไว้ในเครื่อง เพื่อไม่ต้องพิมพ์ซ้ำ — <strong>ไม่เก็บรหัสผ่าน</strong> ทั้งในเครื่องและบนเซิร์ฟเวอร์</td>
+        <td>localStorage เท่านั้น (backend ไม่มีที่เก็บ และไม่ควรมี)</td>
+        <td><span class="st st-cli">ฝั่งหน้าเว็บ</span></td>
+      </tr>
+      <tr>
+        <td><strong>แท็บ “บริการ”</strong></td>
+        <td>ยกเครื่องมือฟรีขึ้นเป็นแท็บหลัก: เช็คของในไอดี · จัดการเพื่อน — เป็นเหตุผลให้เปิดแอปแม้วันที่ไม่ซื้อ</td>
+        <td><span class="m">/api/account/inspect</span>, <span class="m">/api/friends/*</span></td>
+        <td><span class="st st-have">มีแล้ว</span></td>
+      </tr>
+      <tr>
+        <td><strong>รายการเดินบัญชีจากเซิร์ฟเวอร์</strong></td>
+        <td>ระยะยาวควรมี endpoint เดียวที่เรียงมาให้แล้ว แทนการต่อสองแหล่งฝั่ง client</td>
+        <td>เสนอ <span class="m">GET /api/ledger</span></td>
+        <td><span class="st st-new">ต้องเพิ่ม</span></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="split">
+    <div>
+      <h4>ได้อะไร</h4>
+      <ul>
+        <li>ตรงกับพฤติกรรมจริง — คนจ่ายซองอั่งเปาอยู่บนมือถืออยู่แล้ว</li>
+        <li>เส้นทางซื้อสั้นที่สุดในสามทิศทาง แปลงเป็นยอดขายได้ดีที่สุด</li>
+        <li>ธีมสว่างทำให้ต่างจากเว็บฟาร์มเจ้าอื่นที่มืดเหมือนกันหมด</li>
+        <li>สลิปแชร์ได้ = การตลาดฟรีจากลูกค้า</li>
+      </ul>
+    </div>
+    <div>
+      <h4>เสียอะไร / เสี่ยงตรงไหน</h4>
+      <ul>
+        <li>คนรัน 20 ไอดีต่อรอบจะอึดอัด — ต้องมีโหมดชุดแยกต่างหาก</li>
+        <li>เดสก์ท็อปกลายเป็นพลเมืองชั้นสอง ต้องออกแบบเพิ่ม ไม่ใช่ยืดให้เต็มจอ</li>
+        <li>ภาษากระเป๋าเงินอาจทำให้เข้าใจผิดว่าถอนเป็นเงินคืนได้ — ต้องเขียนให้ชัด</li>
+        <li>หน้า Admin ไม่เข้ากับแนวนี้เลย ต้องใช้ภาษางานออกแบบคนละชุด</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ เทียบ ══════════════ -->
+<section id="compare">
+  <div class="sec-head">
+    <span class="sec-num">04</span>
+    <h2>เทียบสามทิศทาง</h2>
+  </div>
+  <div class="tbl-shell">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:22%">ประเด็น</th>
+        <th style="width:26%">A · คอนโซล</th>
+        <th style="width:26%">B · สายพาน</th>
+        <th style="width:26%">C · สมุดบัญชี</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>โมเดลการโต้ตอบ</strong></td><td>พิมพ์คำสั่ง</td><td>มองกระดานแล้วแตะ</td><td>แตะตามลำดับในแผ่นเลื่อน</td></tr>
+      <tr><td><strong>จำนวนหน้า</strong></td><td class="num">1</td><td class="num">1 + แผงซ้อน</td><td class="num">4 แท็บ</td></tr>
+      <tr><td><strong>อุปกรณ์ที่ชนะ</strong></td><td>เดสก์ท็อป</td><td>จอใหญ่ / เปิดค้าง</td><td>มือถือ</td></tr>
+      <tr><td><strong>ผู้ใช้ที่ชนะ</strong></td><td>ร้าน / รับจ้างฟาร์ม</td><td>คนรอคิว + คนที่ยังไม่ซื้อ</td><td>ลูกค้าทั่วไป</td></tr>
+      <tr><td><strong>งานชุด 20 ไอดี</strong></td><td>ดีที่สุด</td><td>พอได้</td><td>ฝืด</td></tr>
+      <tr><td><strong>ดึงคนใหม่</strong></td><td>อ่อน</td><td>แข็งที่สุด</td><td>ปานกลาง</td></tr>
+      <tr><td><strong>เปลี่ยนเป็นยอดขาย</strong></td><td>ปานกลาง</td><td>ปานกลาง</td><td>แข็งที่สุด</td></tr>
+      <tr><td><strong>ต้องแก้ backend</strong></td><td>น้อย (dry-run, ยืนยันการคืนเครดิต)</td><td>ปานกลาง (reorder, ปิดชื่อ)</td><td>น้อย (ledger ทีหลังได้)</td></tr>
+      <tr><td><strong>แรงงานออกแบบ</strong></td><td>ต่ำ</td><td>สูง (motion + สถานะว่าง)</td><td>กลาง (ต้องทำเดสก์ท็อปเพิ่ม)</td></tr>
+      <tr><td><strong>ความเสี่ยงหลัก</strong></td><td>ลูกค้าใหม่กลัวจอ</td><td>ความเป็นส่วนตัว + perf</td><td>ผู้ใช้หนักอึดอัด</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ══════════════ ช่องว่าง ══════════════ -->
+<section id="gaps">
+  <div class="sec-head">
+    <span class="sec-num">05</span>
+    <h2>สิ่งที่ backend ยังไม่มี ถ้าเลือกทิศทางนั้น</h2>
+  </div>
+  <p class="lede">
+    ทุกอย่างที่เหลือใช้ของที่มีอยู่ได้เลย รายการนี้คือส่วนที่ต้องคุยกับฝั่ง backend ก่อน
+    เรียงจากคุ้มที่สุดลงไป
+  </p>
+  <div class="tbl-shell">
+  <table>
+    <thead><tr><th style="width:26%">สิ่งที่ต้องเพิ่ม</th><th style="width:34%">ทำไมถึงต้องมี</th><th style="width:22%">จำเป็นกับ</th><th style="width:18%">ขนาดงาน</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="m">POST /api/jobs/create?dry_run=true</span></td>
+        <td>ตอนนี้การตรวจไอดีกับการตัดเครดิตอยู่ในคำสั่งเดียวกัน ทำให้หน้าบ้านโชว์ยอดจริงก่อนผู้ใช้ยืนยันไม่ได้ ต้องเดาเอง</td>
+        <td>A · C (และดีกับ B)</td>
+        <td>เล็ก</td>
+      </tr>
+      <tr>
+        <td>ยืนยันพฤติกรรมการคืนเครดิต</td>
+        <td>ต้องรู้ชัดว่ายกเลิกงานสถานะ <span class="m">queued</span> แล้วคืนหัวใจครบหรือไม่ ก่อนจะสัญญาปุ่ม “ยกเลิก / ถอย” กับผู้ใช้</td>
+        <td>ทั้งสาม</td>
+        <td>ตรวจอย่างเดียว</td>
+      </tr>
+      <tr>
+        <td>ปิดชื่อในข้อมูลคิวสาธารณะ</td>
+        <td>จะโชว์คิวคนอื่นได้ ต้องมั่นใจว่า payload ไม่มีอีเมลเต็มหลุดออกมา — ปิดด้วย CSS ไม่นับ</td>
+        <td>B</td>
+        <td>เล็ก</td>
+      </tr>
+      <tr>
+        <td><span class="m">PATCH /api/jobs/reorder</span></td>
+        <td>ให้ผู้ใช้สลับลำดับเฉพาะงานของตัวเอง โดยไม่แซงคิวคนอื่น (ฝั่ง admin มี resequence อยู่แล้ว)</td>
+        <td>B</td>
+        <td>กลาง</td>
+      </tr>
+      <tr>
+        <td><span class="m">GET /api/ledger</span></td>
+        <td>รวมเติม/ตัด/คืน เรียงเวลามาให้ในครั้งเดียว แทนที่หน้าบ้านจะต่อสองแหล่งแล้วเรียงเอง</td>
+        <td>C</td>
+        <td>กลาง</td>
+      </tr>
+      <tr>
+        <td>สรุปสถิติของผู้ใช้</td>
+        <td>หัวใจที่เก็บได้รวม / งานสำเร็จ / เวลารอเฉลี่ย — ใช้ทำหน้า “ฉัน” และสลิปให้มีน้ำหนัก</td>
+        <td>C (ทางเลือกของ A · B)</td>
+        <td>เล็ก</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ══════════════ ข้อเสนอ ══════════════ -->
+<section id="rec">
+  <div class="sec-head">
+    <span class="sec-num">06</span>
+    <h2>ถ้าให้เลือกให้</h2>
+  </div>
+
+  <div class="rec">
+    <div class="kicker">ข้อเสนอของผม</div>
+    <p style="max-width:44rem">
+      สามทิศทางนี้ไม่ได้ตั้งใจให้เลือกมาหนึ่งแล้วทิ้งสอง — เพราะแต่ละอันชนะคนละสนาม
+      ทางที่คุ้มที่สุดคือ <strong>ใช้ C เป็นฐาน แล้วยืม B มาทำหน้าสาธารณะ และเก็บ A ไว้เป็นโหมดขั้นสูง</strong>
+    </p>
+    <ol>
+      <li><strong>ฐานคือ C</strong> — ลูกค้าส่วนใหญ่อยู่บนมือถือและจ่ายด้วยซองอยู่แล้ว เส้นทางซื้อสั้นที่สุดคือสิ่งที่กระทบรายได้ตรงที่สุด</li>
+      <li><strong>หน้าแรกคือ B</strong> — เอาสายพานสดไปเป็นหน้าที่คนยังไม่ล็อกอินเห็น ใช้ endpoint สาธารณะที่มีอยู่แล้ว ไม่ต้องรออะไร และแก้ปัญหา “จะเชื่อได้ยังไงว่าไม่โกง” ได้ดีกว่าข้อความโฆษณาใด ๆ</li>
+      <li><strong>A เป็นโหมด ไม่ใช่เว็บทั้งเว็บ</strong> — เปิดด้วย <span class="m">⌘K</span> หรือปุ่มเดียวสำหรับคนรันหลายไอดี ได้ประโยชน์ของ A โดยไม่ผลักลูกค้าใหม่ทิ้ง</li>
+      <li><strong>Admin แยกโลก</strong> — 38 endpoint ฝั่ง admin ต้องการความหนาแน่นสูงและตารางล้วน ไม่ควรใช้ภาษาการออกแบบเดียวกับหน้าลูกค้า ควรทำเป็นสตัดดี้แยกอีกฉบับ</li>
+    </ol>
+    <p style="max-width:44rem;margin-bottom:0">
+      ถ้าอยากได้อันไหนลงลึกต่อ — wireframe ทุกหน้าจอ, ระบบดีไซน์โทเคน, หรือสเปกส่งต่อให้ dev —
+      บอกได้ว่าเอาทิศทางไหน แล้วผมทำต่อให้เต็มฉบับ
+    </p>
+  </div>
+
+  <div class="note">
+    <strong>หมายเหตุเรื่องขอบเขต</strong> — เอกสารนี้ไม่มีการแก้ไฟล์ใด ๆ ใน <span class="m">frontend/</span> หรือ
+    <span class="m">backend/</span> ตามที่ตกลงกันไว้ ทุกอย่างที่เห็นเป็นภาพจำลองที่วาดขึ้นในเอกสาร
+    ไม่ใช่โค้ดที่รันได้ และ endpoint ทุกตัวที่อ้างถึงมาจากการอ่านซอร์สจริงของ backend
+  </div>
+</section>
+
+<footer>
+  <span>Autoheart · Frontend Direction Study</span>
+  <span>3 ทิศทาง · 6 ข้อจำกัดจริง · 6 ช่องว่างฝั่ง backend</span>
+  <span>ส.ค. 2026</span>
+</footer>
+
+</div>
