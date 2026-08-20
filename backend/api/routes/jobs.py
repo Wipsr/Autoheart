@@ -9,6 +9,7 @@ from core.supabase_client import get_supabase_admin
 from models.schemas import JobCreateRequest, JobOut
 from services.devplay_auth_service import devplay_auth_service
 from services.queue_service import queue_service
+from services.saved_account_service import saved_account_service
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
 
@@ -82,10 +83,14 @@ async def create_jobs(
             target = int(packages_cache[package_id]["hearts"])
         if not target:
             raise InsufficientCreditsError("ต้องระบุ package_id หรือ target_hearts")
+        # รับได้ทั้งบัญชีที่ save ไว้ (account_id) หรือกรอกสด (email+password)
+        email, password = await saved_account_service.resolve(
+            user["id"], email=cred.email, password=cred.password, account_id=cred.account_id
+        )
         planned.append(
             {
-                "email": cred.email.strip(),
-                "password": cred.password,
+                "email": email,
+                "password": password,
                 "package_id": package_id,
                 "target_hearts": int(target),
             }

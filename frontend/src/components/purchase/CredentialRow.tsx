@@ -1,9 +1,10 @@
 "use client";
 
-import { Check, Loader2, RotateCw, X } from "lucide-react";
+import { Check, Loader2, RotateCw, UserRound, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
+import type { SavedAccount } from "@/types";
 
 export type CredStatus = "idle" | "checking" | "valid" | "invalid";
 
@@ -12,6 +13,9 @@ export type Cred = {
   password: string;
   status: CredStatus;
   message?: string;
+  // ถ้ามาจากบัญชีที่ save ไว้: ใช้ account_id แทน email/password (email เก็บไว้โชว์)
+  account_id?: string;
+  label?: string;
 };
 
 export function CredentialRow({
@@ -20,14 +24,20 @@ export function CredentialRow({
   showIndex,
   onChange,
   onVerify,
+  savedAccounts = [],
+  onPickSaved,
 }: {
   cred: Cred;
   index: number;
   showIndex: boolean;
   onChange: (patch: Partial<Cred>) => void;
   onVerify: () => void;
+  savedAccounts?: SavedAccount[];
+  onPickSaved?: (account: SavedAccount | null) => void;
 }) {
-  const filled = cred.email.trim().length > 0 && cred.password.length > 0;
+  const isSaved = Boolean(cred.account_id);
+  const hasSaved = savedAccounts.length > 0 && Boolean(onPickSaved);
+  const filled = isSaved || (cred.email.trim().length > 0 && cred.password.length > 0);
 
   return (
     <div
@@ -63,22 +73,54 @@ export function CredentialRow({
         </div>
       </div>
 
-      <Input
-        required
-        type="email"
-        autoComplete="off"
-        placeholder="DevPlay Email"
-        value={cred.email}
-        onChange={(e) => onChange({ email: e.target.value, status: "idle", message: undefined })}
-      />
-      <Input
-        required
-        type="password"
-        autoComplete="new-password"
-        placeholder="DevPlay Password"
-        value={cred.password}
-        onChange={(e) => onChange({ password: e.target.value, status: "idle", message: undefined })}
-      />
+      {hasSaved && (
+        <select
+          className="w-full rounded-md border border-line bg-ink/70 px-3 py-2 text-sm text-foreground outline-none transition focus:border-heart/60"
+          value={cred.account_id || "__manual__"}
+          onChange={(e) => {
+            const v = e.target.value;
+            onPickSaved?.(v === "__manual__" ? null : savedAccounts.find((a) => a.id === v) || null);
+          }}
+        >
+          {savedAccounts.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.label?.trim() || a.nickname || a.email}
+              {a.label?.trim() ? ` · ${a.email}` : ""}
+            </option>
+          ))}
+          <option value="__manual__">＋ กรอกบัญชีใหม่</option>
+        </select>
+      )}
+
+      {isSaved ? (
+        <div className="flex items-center gap-2 rounded-md border border-lineSoft bg-panel2 px-3 py-2">
+          <UserRound className="h-4 w-4 shrink-0 text-dim" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm text-foreground">{cred.label || cred.email}</p>
+            <p className="truncate text-xs text-muted">{cred.email}</p>
+          </div>
+          <span className="text-[11px] text-dim">บัญชีที่บันทึกไว้</span>
+        </div>
+      ) : (
+        <>
+          <Input
+            required
+            type="email"
+            autoComplete="off"
+            placeholder="DevPlay Email"
+            value={cred.email}
+            onChange={(e) => onChange({ email: e.target.value, status: "idle", message: undefined })}
+          />
+          <Input
+            required
+            type="password"
+            autoComplete="new-password"
+            placeholder="DevPlay Password"
+            value={cred.password}
+            onChange={(e) => onChange({ password: e.target.value, status: "idle", message: undefined })}
+          />
+        </>
+      )}
 
       {cred.status === "invalid" && (
         <p className="text-xs text-fail">

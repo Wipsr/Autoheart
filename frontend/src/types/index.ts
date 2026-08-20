@@ -86,6 +86,16 @@ export type FriendDeleteResult = {
   friends: GameFriend[];
 };
 
+// ── บัญชีเกมที่ save ไว้ (ไม่มีรหัสผ่านส่งกลับมา) ──────────────────────────
+export type SavedAccount = {
+  id: string;
+  label: string;
+  email: string;
+  mid?: string | null;
+  nickname?: string | null;
+  created_at?: string | null;
+};
+
 // ── เช็คข้อมูลไอดี (proxy จาก ngmx) ──────────────────────────────────────
 // ตัว item ในคลัง: image เป็น "tag" ที่เอาไปต่อเป็น URL รูปผ่าน backend เรา
 // (materials/tickets/others จะ image เป็น "" เพราะ ngmx ไม่ได้ map รูปให้)

@@ -1,14 +1,21 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Eye, Loader2, RotateCcw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSavedAccounts } from "@/hooks/useSavedAccounts";
 import { api, ApiError } from "@/lib/api";
 import { API_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHead } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
+import {
+  AccountPicker,
+  credPayload,
+  credReady,
+  emptyManual,
+  type CredValue,
+} from "@/components/account/AccountPicker";
 import { EmptyState } from "@/components/ui/States";
 import type { AccountInspectResult, AccountItem } from "@/types";
 
@@ -102,26 +109,39 @@ function TextItems({ title, items }: { title: string; items: AccountItem[] }) {
 
 export default function AccountPage() {
   const { token } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { accounts } = useSavedAccounts();
+  const [cred, setCred] = useState<CredValue>(emptyManual);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState<AccountInspectResult | null>(null);
 
+  // มีบัญชีที่ save ไว้ → ตั้งต้นเลือกอันแรกให้เลย (ยังไม่เคยเลือกเอง)
+  const touched = useRef(false);
+  useEffect(() => {
+    if (!touched.current && cred.mode === "manual" && !cred.email && accounts.length) {
+      setCred({ mode: "saved", account_id: accounts[0].id });
+    }
+  }, [accounts, cred]);
+
+  const onCredChange = (v: CredValue) => {
+    touched.current = true;
+    setCred(v);
+  };
+
   const inspect = async (e: FormEvent) => {
     e.preventDefault();
-    if (loading || !email.trim() || !password) return;
+    if (loading || !credReady(cred)) return;
     setLoading(true);
     setError("");
     try {
       const res = await api<AccountInspectResult>("/api/account/inspect", {
         method: "POST",
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify(credPayload(cred)),
         token,
       });
       setData(res);
-      // ทิ้งรหัสทันทีหลังใช้ — ไม่เก็บค้างในหน้า
-      setPassword("");
+      // กรอกสด → ทิ้งรหัสทันทีหลังใช้ ไม่เก็บค้างในหน้า
+      if (cred.mode === "manual") setCred((c) => ({ ...c, password: "" }) as CredValue);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "เกิดข้อผิดพลาด กรุณาลองใหม่");
     } finally {
@@ -140,35 +160,18 @@ export default function AccountPage() {
         </div>
         <Card>
           <form onSubmit={inspect} className="space-y-4 p-4">
-            <div className="space-y-1.5">
-              <label htmlFor="ac-email" className="text-sm text-muted">
-                อีเมล
-              </label>
-              <Input
-                id="ac-email"
-                type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                autoComplete="off"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="ac-password" className="text-sm text-muted">
-                รหัสผ่าน
-              </label>
-              <Input
-                id="ac-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                autoComplete="off"
-              />
-            </div>
-            <p className="text-xs text-dim">
-              รหัสผ่านใช้เข้าสู่ระบบครั้งเดียวเพื่อดึงข้อมูล แล้วทิ้งทันที ไม่ถูกเก็บไว้ในเบราว์เซอร์
-            </p>
+            <AccountPicker
+              accounts={accounts}
+              value={cred}
+              onChange={onCredChange}
+              idPrefix="ac"
+            />
+            {cred.mode === "manual" && (
+              <p className="text-xs text-dim">
+                รหัสผ่านใช้เข้าสู่ระบบครั้งเดียวเพื่อดึงข้อมูล แล้วทิ้งทันที ไม่ถูกเก็บไว้ในเบราว์เซอร์
+                (บันทึกบัญชีไว้ใช้ซ้ำได้ในหน้า ตั้งค่า)
+              </p>
+            )}
             {error && (
               <p className="rounded-md border border-heart/40 bg-heart/10 px-3 py-2 text-sm text-heart">
                 {error}
@@ -207,10 +210,7 @@ export default function AccountPage() {
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => {
-            setData(null);
-            setEmail("");
-          }}
+          onClick={() => setData(null)}
         >
           <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> เช็คไอดีอื่น
         </Button>

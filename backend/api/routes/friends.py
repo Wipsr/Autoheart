@@ -11,6 +11,7 @@ from api.dependencies import check_maintenance, client_meta, get_current_user
 from api.middleware.rate_limiter import rate_limiter
 from models.schemas import FriendDeleteRequest, FriendListRequest
 from services.friend_service import friend_service
+from services.saved_account_service import saved_account_service
 
 router = APIRouter(prefix="/api/friends", tags=["friends"])
 
@@ -28,9 +29,12 @@ async def list_friends(
     rate_limiter.check(f"friends_list:user:{user['id']}", limit=30, window_seconds=3600)
     rate_limiter.check(f"friends_list:ip:{meta.get('ip_address')}", limit=60, window_seconds=3600)
 
-    result = await friend_service.list_friends(body.email, body.password)
+    email, password = await saved_account_service.resolve(
+        user["id"], email=body.email, password=body.password, account_id=body.account_id
+    )
+    result = await friend_service.list_friends(email, password)
     return {
-        "email": body.email,
+        "email": email,
         "mid": result.get("mid"),
         "level": result.get("level"),
         "friend_cap": result.get("friend_cap"),
@@ -50,7 +54,10 @@ async def delete_friends(
     rate_limiter.check(f"friends_delete:user:{user['id']}", limit=20, window_seconds=3600)
     rate_limiter.check(f"friends_delete:ip:{meta.get('ip_address')}", limit=40, window_seconds=3600)
 
-    result = await friend_service.delete_friends(body.email, body.password, body.player_ids)
+    email, password = await saved_account_service.resolve(
+        user["id"], email=body.email, password=body.password, account_id=body.account_id
+    )
+    result = await friend_service.delete_friends(email, password, body.player_ids)
     return {
         "ok": result.get("ok", False),
         "requested": result.get("requested", len(body.player_ids)),
