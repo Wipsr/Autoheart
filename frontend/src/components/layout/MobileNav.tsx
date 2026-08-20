@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   ListOrdered,
   Package,
+  ScanEye,
   Settings,
   Shield,
   UserMinus,
@@ -19,9 +20,17 @@ const tabs = [
   { href: "/dashboard", label: "ภาพรวม", icon: LayoutDashboard },
   { href: "/packages", label: "ซื้อ", icon: Package },
   { href: "/history", label: "ประวัติ", icon: History },
+  { href: "/account", label: "ไอดี", icon: ScanEye },
   { href: "/friends", label: "เพื่อน", icon: UserMinus },
   { href: "/settings", label: "ตั้งค่า", icon: Settings },
 ];
+
+// แถบล่างมือถือขยายตามจำนวนแท็บ (ปกติ 7, แอดมินสลับ "ตั้งค่า" เป็น "Admin" คงที่ 7)
+const GRID_COLS: Record<number, string> = {
+  5: "grid-cols-5",
+  6: "grid-cols-6",
+  7: "grid-cols-7",
+};
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -37,10 +46,7 @@ export function MobileNav() {
       className="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-ink/90 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <ul
-        className={cn(
-          "mx-auto grid max-w-lg",
-          items.length === 6 ? "grid-cols-6" : "grid-cols-5"
-        )}
+        className={cn("mx-auto grid max-w-lg", GRID_COLS[items.length] ?? "grid-cols-6")}
       >
         {items.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);

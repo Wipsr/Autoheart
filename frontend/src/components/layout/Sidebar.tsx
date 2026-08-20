@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   ListOrdered,
   Package,
+  ScanEye,
   Settings,
   Shield,
   UserMinus,
@@ -20,6 +21,7 @@ const links = [
   { href: "/dashboard", label: "ภาพรวม", icon: LayoutDashboard },
   { href: "/packages", label: "ซื้อแพ็คเกจ", icon: Package },
   { href: "/history", label: "ประวัติ", icon: History },
+  { href: "/account", label: "เช็คข้อมูลไอดี", icon: ScanEye },
   { href: "/friends", label: "ลบเพื่อน", icon: UserMinus },
   { href: "/settings", label: "ตั้งค่า", icon: Settings },
 ];

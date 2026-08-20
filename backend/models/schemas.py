@@ -83,6 +83,11 @@ class CredentialsVerifyRequest(BaseModel):
     password: str
 
 
+class AccountInspectRequest(BaseModel):
+    email: str
+    password: str
+
+
 class FriendListRequest(BaseModel):
     email: str
     password: str
