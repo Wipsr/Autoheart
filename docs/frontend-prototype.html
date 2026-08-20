@@ -1,0 +1,847 @@
+<meta charset="utf-8">
+<title>Autoheart Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   ต้นแบบหน้าเว็บ Autoheart — หน้าแรกหลังล็อกอิน 3 แบบ ขนาดจริง
+   แต่ละจอมีโลกสีของตัวเอง (จงใจ ไม่ตามธีมของเบราว์เซอร์)
+   ═══════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "IBM Plex Sans Thai", "Anuphan", system-ui, sans-serif;
+  background: #0B0B0A;
+  transition: background .25s;
+}
+body[data-screen="b"] { background: #080B11; }
+body[data-screen="c"] { background: #F3EEE4; }
+
+.screen { display: none; min-height: 100vh; }
+.screen.on { display: flex; flex-direction: column; }
+
+:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+@keyframes blink { 0%, 49% { opacity: 1 } 50%, 100% { opacity: 0 } }
+@keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: .35 } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ═══════════ ตัวสลับจอ (ลอยอยู่นอกตัวงานออกแบบ) ═══════════ */
+.switcher {
+  position: fixed;
+  bottom: 1.1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .3rem .32rem;
+  border-radius: 999px;
+  background: rgba(22, 24, 26, .88);
+  border: 1px solid rgba(255, 255, 255, .14);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, .42);
+  font-family: "IBM Plex Sans Thai", system-ui, sans-serif;
+}
+.switcher .lab {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: .625rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .42);
+  padding: 0 .5rem 0 .65rem;
+  white-space: nowrap;
+}
+.switcher button {
+  font: inherit;
+  font-size: .8125rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, .62);
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  padding: .4rem .95rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, color .15s;
+}
+.switcher button:hover { color: #fff; background: rgba(255, 255, 255, .09); }
+.switcher button[aria-selected="true"] { color: #16181A; background: #EDEDE8; font-weight: 600; }
+@media (min-width: 760px) {
+  .switcher { left: auto; right: 1.25rem; transform: none; }
+}
+@media (max-width: 560px) {
+  .switcher .lab { display: none; }
+  .switcher button { padding: .4rem .7rem; font-size: .75rem; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   จอ A · คอนโซล
+   ══════════════════════════════════════════════════════════ */
+.a {
+  --amber: #E8A317;
+  --green: #74C476;
+  --red:   #E06A5C;
+  --gold:  #D2A24C;
+  --dim:   #5E584E;
+  --mid:   #8A8377;
+  --fg:    #C8C2B6;
+  --edge:  #2A2622;
+  background: #0B0B0A;
+  color: var(--fg);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+.a-top {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: .35rem 1.5rem;
+  padding: .7rem 1.15rem;
+  border-bottom: 1px solid var(--edge);
+  font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--dim);
+  position: sticky; top: 0; background: #0B0B0A; z-index: 5;
+}
+.a-top b { color: var(--amber); font-weight: 500; }
+.a-top .run { color: var(--green); }
+.a-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 1.9s infinite; }
+.a-notice {
+  padding: .5rem 1.15rem;
+  border-bottom: 1px solid var(--edge);
+  background: #161310;
+  color: #B99A55;
+  font-size: 12px;
+}
+.a-body { flex: 1; padding: 1.15rem 1.15rem 2rem; overflow-x: auto; max-width: 90rem; }
+.a-cmd { color: var(--amber); }
+.a-dim { color: var(--dim); }
+.a-ok  { color: var(--green); }
+.a-bad { color: var(--red); }
+.a-wait{ color: var(--gold); }
+.a-grp {
+  font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--dim); margin: 1.5rem 0 .5rem;
+}
+.a-grp:first-of-type { margin-top: 1.1rem; }
+.a-kv { display: flex; flex-wrap: wrap; gap: .1rem 2.4rem; }
+.a-kv span { color: var(--dim); }
+.a-kv b { color: var(--fg); font-weight: 500; }
+.a-kv b.hi { color: var(--amber); }
+
+.a-tbl { width: auto; border-collapse: collapse; }
+.a-tbl th {
+  text-align: left; font-weight: 400; font-size: 11px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--dim); padding: 0 1.6rem .35rem 0;
+}
+.a-tbl td { padding: .18rem 1.6rem .18rem 0; white-space: nowrap; }
+.a-tbl tbody tr { cursor: default; }
+.a-tbl tbody tr:hover td { background: #131210; }
+.a-tbl td:first-child { color: var(--dim); }
+.a-scroll { overflow-x: auto; }
+
+.a-map { color: var(--dim); white-space: nowrap; }
+.a-map b { color: var(--amber); font-weight: 500; }
+.a-map em { font-style: normal; color: var(--fg); }
+
+.a-tail {
+  border: 1px solid var(--edge);
+  border-left: 2px solid var(--green);
+  background: #101110;
+  padding: .7rem .85rem;
+  margin-top: .9rem;
+  max-width: 46rem;
+}
+.a-hr { border: 0; border-top: 1px dashed var(--edge); margin: 1.4rem 0 .9rem; }
+.a-hint { color: var(--dim); }
+.a-hint b { color: var(--amber); font-weight: 500; }
+
+.a-prompt {
+  position: sticky; bottom: 0;
+  background: #0B0B0A;
+  border-top: 1px solid var(--edge);
+}
+.a-inp { display: flex; align-items: center; gap: .6rem; padding: .75rem 1.15rem; }
+.a-caret { width: 8px; height: 15px; background: var(--amber); flex: none; animation: blink 1.15s step-end infinite; }
+.a-inp span { color: var(--dim); }
+.a-chips { display: flex; gap: .35rem; flex-wrap: wrap; padding: 0 1.15rem .8rem; }
+@media (max-width: 759px) { .a-chips { padding-bottom: 4rem; } }
+.a-chips button {
+  font: inherit; font-size: 11px;
+  color: var(--mid); background: transparent;
+  border: 1px solid #33302B; border-radius: 0;
+  padding: .16rem .55rem; cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.a-chips button:hover { color: var(--amber); border-color: var(--amber); }
+
+/* ══════════════════════════════════════════════════════════
+   จอ B · สายพาน
+   ══════════════════════════════════════════════════════════ */
+.b {
+  --line:  #1C2536;
+  --line2: #22304A;
+  --panel: #0D1220;
+  --deep:  #0A0D14;
+  --rail:  #0B1019;
+  --fg:    #C7D2E2;
+  --fg2:   #93A6C4;
+  --lbl:   #64769A;
+  --lbl2:  #5F7398;
+  --blue:  #4C7DFF;
+  --blue2: #7BA0FF;
+  --mint:  #5EE6A8;
+  --pink:  #FF7E9E;
+  --gold:  #D3A44E;
+  --red:   #E0705F;
+  background: var(--deep);
+  color: var(--fg);
+  font-family: "IBM Plex Sans Thai", system-ui, sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+}
+.b-top {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: .5rem 1.5rem;
+  padding: .8rem 1.4rem;
+  border-bottom: 1px solid var(--line);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px; letter-spacing: .13em; text-transform: uppercase; color: var(--lbl);
+  position: sticky; top: 0; background: var(--deep); z-index: 5;
+}
+.b-top .on { color: var(--mint); }
+.b-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--mint); animation: pulse 1.9s infinite; }
+.b-top .hearts { color: var(--pink); }
+
+.b-grid { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 20rem; }
+.b-main { padding: 1.4rem; min-width: 0; }
+.b-rail { border-left: 1px solid var(--line); background: var(--rail); padding: 1.25rem 1.15rem 5rem; }
+
+.b-hero {
+  border: 1px solid var(--line2);
+  background: linear-gradient(155deg, #13223E 0%, #0C1220 68%);
+  padding: 1.5rem 1.6rem 1.35rem;
+}
+.b-hero-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; }
+.b-lbl { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6C86B8; display: block; }
+.b-big {
+  font-family: "IBM Plex Mono", monospace; font-weight: 600;
+  font-size: clamp(2.6rem, 6vw, 4rem); letter-spacing: -.035em; color: #FFF;
+  line-height: 1.02; margin-top: .25rem; font-variant-numeric: tabular-nums;
+}
+.b-big i { font-style: normal; font-size: .38em; color: #6C86B8; letter-spacing: -.01em; }
+.b-who { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: #8DA2C6; margin-top: .5rem; }
+.b-who em { font-style: normal; color: var(--blue2); }
+.b-rt { text-align: right; font-family: "IBM Plex Mono", monospace; font-size: 12px; color: #8DA2C6; line-height: 2; }
+.b-rt b { color: #D6E2FA; font-weight: 500; }
+.b-bar { height: 5px; background: #1B2740; margin-top: 1.15rem; }
+.b-bar i { display: block; height: 100%; background: var(--mint); transition: width .6s; }
+
+.b-lane-h {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: .3rem 1rem;
+  font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--lbl2); margin: 1.6rem 0 .55rem;
+}
+.b-lane {
+  display: flex; align-items: stretch; gap: .5rem;
+  border: 1px solid var(--line); background: var(--panel);
+  padding: .85rem .9rem; overflow-x: auto;
+}
+.b-mach {
+  font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .1em;
+  color: var(--mint); border: 1px solid #234B3E; background: #0C1A17;
+  padding: .55rem .6rem; text-align: center; line-height: 1.55; flex: none;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.b-card {
+  border: 1px solid var(--line2); background: #101828;
+  padding: .5rem .68rem; min-width: 8.5rem; flex: none;
+  transition: border-color .15s, transform .15s;
+}
+.b-card:hover { border-color: #35486B; transform: translateY(-1px); }
+.b-card .p { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: var(--lbl2); letter-spacing: .09em; }
+.b-card .nm { font-size: 12.5px; color: var(--fg2); margin-top: .12rem; }
+.b-card .eta { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: #6C86B8; margin-top: .28rem; font-variant-numeric: tabular-nums; }
+.b-card.you { border-color: var(--blue); background: #101B33; box-shadow: 0 0 0 1px rgba(76, 125, 255, .3); }
+.b-card.you .nm { color: #D3E0FF; font-weight: 600; }
+.b-card.you .p { color: var(--blue2); }
+.b-arw { color: #2C3B58; font-size: 12px; flex: none; align-self: center; }
+.b-more { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: #46587C; align-self: center; padding-left: .35rem; flex: none; }
+
+.b-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 1.4rem; }
+.b-tile { background: var(--panel); padding: .85rem 1rem; }
+.b-tile .t { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--lbl2); display: block; }
+.b-tile .v { font-family: "IBM Plex Mono", monospace; font-size: 1.5rem; font-weight: 600; color: #DCE6F7; font-variant-numeric: tabular-nums; margin-top: .15rem; line-height: 1.2; }
+.b-tile .v i { font-style: normal; font-size: .55em; color: var(--lbl2); }
+.b-tile .v.pink { color: var(--pink); }
+
+.b-rail h2 { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--lbl2); margin: 0 0 .7rem; font-weight: 400; }
+.b-job { border: 1px solid var(--line); background: var(--panel); padding: .65rem .75rem; margin-bottom: .5rem; transition: border-color .15s; }
+.b-job:hover { border-color: #2B3C5C; }
+.b-job .r1 { display: flex; justify-content: space-between; gap: .55rem; align-items: baseline; }
+.b-job .em { font-size: 12.5px; color: #A8BAD6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-job .stt { font-family: "IBM Plex Mono", monospace; font-size: 10px; flex: none; }
+.b-job .stt.run { color: var(--mint); }
+.b-job .stt.q { color: var(--gold); }
+.b-job .stt.done { color: var(--lbl2); }
+.b-job .stt.fail { color: var(--red); }
+.b-job .mtr { height: 3px; background: #1B2740; margin-top: .5rem; }
+.b-job .mtr i { display: block; height: 100%; background: var(--mint); }
+.b-job .sub { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--lbl2); margin-top: .35rem; font-variant-numeric: tabular-nums; }
+
+.b-cta {
+  display: block; width: 100%; text-align: center;
+  font: inherit; font-size: 13px; font-weight: 600;
+  background: var(--blue); color: #EEF3FF;
+  border: 0; padding: .68rem; margin-top: .85rem; cursor: pointer;
+  transition: filter .15s;
+}
+.b-cta:hover { filter: brightness(1.12); }
+.b-cta.alt { background: transparent; border: 1px solid var(--line2); color: #9BB0D2; font-weight: 400; margin-top: .45rem; }
+.b-cta.alt:hover { border-color: #35486B; color: #C7D2E2; filter: none; }
+.b-tgl {
+  display: flex; justify-content: space-between; align-items: center; gap: .75rem;
+  font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: #6C86B8;
+  margin-top: 1.1rem; padding-top: .9rem; border-top: 1px solid var(--line);
+}
+.b-sw { width: 26px; height: 14px; border-radius: 99px; background: var(--blue); position: relative; flex: none; border: 0; cursor: pointer; padding: 0; }
+.b-sw::after { content: ""; position: absolute; right: 2px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: #EEF3FF; transition: right .18s; }
+.b-sw[aria-checked="false"] { background: #22304A; }
+.b-sw[aria-checked="false"]::after { right: 14px; }
+
+@media (max-width: 900px) {
+  .b-grid { grid-template-columns: minmax(0, 1fr); }
+  .b-rail { border-left: 0; border-top: 1px solid var(--line); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   จอ C · สมุดบัญชี
+   ══════════════════════════════════════════════════════════ */
+.c {
+  --paper:  #F3EEE4;
+  --card:   #FBF8F2;
+  --sunk:   #EFE8DB;
+  --ink:    #241F1A;
+  --ink2:   #574E44;
+  --soft:   #978975;
+  --hair:   #E4DACA;
+  --hair2:  #EFE7D9;
+  --jade:   #0C8F7E;
+  --jade-d: #0A7767;
+  --rose:   #DC4468;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans Thai", system-ui, sans-serif;
+  font-size: 15px;
+  min-height: 100vh;
+}
+.c-nav {
+  display: flex; align-items: center; justify-content: space-between; gap: 1.25rem;
+  padding: .85rem 1.75rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--hair);
+  position: sticky; top: 0; z-index: 5;
+}
+.c-brand { font-family: "Anuphan", system-ui, sans-serif; font-weight: 700; font-size: 1.05rem; letter-spacing: -.015em; }
+.c-brand span { color: var(--jade); }
+.c-links { display: flex; gap: .35rem; }
+.c-links a {
+  font-size: .875rem; color: var(--ink2); text-decoration: none;
+  padding: .35rem .8rem; border-radius: 8px; transition: background .15s, color .15s;
+}
+.c-links a:hover { background: var(--sunk); }
+.c-links a[aria-current="page"] { color: var(--jade); font-weight: 600; background: rgba(12, 143, 126, .09); }
+.c-me { display: flex; align-items: center; gap: .6rem; font-family: "IBM Plex Mono", monospace; font-size: .8125rem; color: var(--ink2); }
+.c-me .h { color: var(--rose); }
+.c-av { width: 32px; height: 32px; border-radius: 50%; background: var(--sunk); color: var(--soft); font-size: .75rem; font-weight: 600; display: flex; align-items: center; justify-content: center; font-family: inherit; }
+
+.c-wrap { flex: 1; width: 100%; max-width: 72rem; margin: 0 auto; padding: 1.75rem 1.75rem 6rem; display: grid; grid-template-columns: minmax(0, 1fr) 22rem; gap: 1.5rem; align-items: start; }
+
+.c-lbl { font-family: "IBM Plex Mono", monospace; font-size: .625rem; letter-spacing: .17em; text-transform: uppercase; color: var(--soft); display: block; }
+
+.c-bal-card { background: var(--card); border: 1px solid var(--hair); border-radius: 16px; padding: 1.4rem 1.5rem; }
+.c-bal { font-family: "Anuphan", system-ui, sans-serif; font-weight: 700; font-size: clamp(2.5rem, 6vw, 3.4rem); letter-spacing: -.03em; line-height: 1.05; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: .6rem; margin-top: .3rem; }
+.c-bal svg { width: .62em; height: .62em; flex: none; }
+.c-bal-sub { font-size: .875rem; color: var(--soft); margin-top: .35rem; }
+.c-acts { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1.25rem; }
+.c-btn {
+  font: inherit; font-size: .9375rem; font-weight: 600;
+  background: var(--jade); color: #FBF8F2;
+  border: 0; border-radius: 11px; padding: .7rem 1.5rem; cursor: pointer;
+  transition: background .15s;
+}
+.c-btn:hover { background: var(--jade-d); }
+.c-btn.ghost { background: transparent; color: var(--ink2); border: 1px solid var(--hair); font-weight: 500; }
+.c-btn.ghost:hover { background: var(--sunk); }
+
+.c-sec-h { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin: 2rem 0 .55rem; }
+.c-sec-h a { font-size: .8125rem; color: var(--jade); text-decoration: none; }
+.c-sec-h a:hover { text-decoration: underline; }
+
+.c-ledger { background: var(--card); border: 1px solid var(--hair); border-radius: 16px; overflow: hidden; }
+.c-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem 1.25rem; border-bottom: 1px solid var(--hair2); transition: background .15s; }
+.c-row:last-child { border-bottom: 0; }
+.c-row:hover { background: var(--sunk); }
+.c-row .l { min-width: 0; }
+.c-row .l b { font-weight: 500; font-size: .9375rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.c-row .l span { font-family: "IBM Plex Mono", monospace; font-size: .6875rem; color: var(--soft); }
+.c-row .r { font-family: "IBM Plex Mono", monospace; font-size: 1rem; font-weight: 500; font-variant-numeric: tabular-nums; flex: none; }
+.c-row .r.up { color: var(--jade); }
+.c-row .r.dn { color: var(--ink2); }
+
+.c-side { display: flex; flex-direction: column; gap: 1.25rem; position: sticky; top: 5rem; }
+.c-panel { background: var(--card); border: 1px solid var(--hair); border-radius: 16px; padding: 1.15rem 1.25rem; }
+.c-live { background: var(--sunk); border-radius: 12px; padding: .85rem .95rem; margin-top: .55rem; }
+.c-live .em { font-weight: 600; font-size: .9375rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.c-live .z { font-family: "IBM Plex Mono", monospace; font-size: 1.65rem; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: .1rem; line-height: 1.2; }
+.c-live .z i { font-style: normal; font-size: .5em; color: var(--soft); }
+.c-mtr { height: 5px; background: #E0D5C2; border-radius: 99px; margin-top: .5rem; overflow: hidden; }
+.c-mtr i { display: block; height: 100%; background: var(--jade); transition: width .6s; }
+.c-live .fin { font-family: "IBM Plex Mono", monospace; font-size: .6875rem; color: var(--soft); margin-top: .45rem; }
+
+.c-tl { border-left: 2px solid var(--hair); padding-left: 1rem; margin: 1.15rem 0 .25rem .35rem; }
+.c-tl .n { position: relative; padding-bottom: .75rem; }
+.c-tl .n:last-child { padding-bottom: 0; }
+.c-tl .n::before { content: ""; position: absolute; left: -1.34rem; top: .38rem; width: 10px; height: 10px; border-radius: 50%; background: var(--hair); border: 2px solid var(--card); }
+.c-tl .n.done::before { background: var(--jade); }
+.c-tl .n.now::before { background: var(--jade); box-shadow: 0 0 0 4px rgba(12, 143, 126, .18); }
+.c-tl .t { font-size: .875rem; font-weight: 500; }
+.c-tl .n.wait .t { color: var(--soft); font-weight: 400; }
+.c-tl .d { font-family: "IBM Plex Mono", monospace; font-size: .6875rem; color: var(--soft); }
+.c-tl .n.now .d { color: var(--jade); }
+
+.c-sv { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .55rem 0; border-bottom: 1px solid var(--hair2); }
+.c-sv:last-child { border-bottom: 0; padding-bottom: 0; }
+.c-sv .n { font-size: .875rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.c-sv .n span { font-family: "IBM Plex Mono", monospace; font-size: .6875rem; color: var(--soft); }
+.c-sv button {
+  font: inherit; font-size: .75rem; font-weight: 500; color: var(--jade);
+  background: transparent; border: 1px solid #CFE3DE; border-radius: 8px;
+  padding: .22rem .7rem; cursor: pointer; flex: none; transition: background .15s;
+}
+.c-sv button:hover { background: rgba(12, 143, 126, .09); }
+
+.c-tabs { display: none; }
+
+@media (max-width: 900px) {
+  .c-wrap { grid-template-columns: minmax(0, 1fr); padding: 1.15rem 1.15rem 7rem; }
+  .c-side { position: static; }
+  .c-links { display: none; }
+  .c-tabs {
+    display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
+    background: var(--card); border-top: 1px solid var(--hair);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .c-tabs button {
+    flex: 1; font: inherit; font-size: .6875rem; color: var(--soft);
+    background: transparent; border: 0; padding: .65rem 0 .75rem; cursor: pointer;
+  }
+  .c-tabs button[aria-current="page"] { color: var(--jade); font-weight: 600; box-shadow: inset 0 2px 0 var(--jade); }
+  .switcher { bottom: 4.4rem; }
+}
+</style>
+
+<!-- ═════════════════ จอ A · คอนโซล ═════════════════ -->
+<div class="screen a on" id="scr-a">
+  <header class="a-top">
+    <span>autoheart · console — <b>arm_wipsr</b></span>
+    <span>
+      <b>♥ 4,820</b> · คิวรอ 3 · <span class="run"><span class="a-dot"></span> เครื่องกำลังทำงาน</span> · 51 ♥/นาที
+    </span>
+  </header>
+
+  <div class="a-notice">▲ ประกาศ · ระบบจะปิดปรับปรุง 03:00–04:00 คืนนี้ งานที่ค้างอยู่จะถูกคืนหัวใจอัตโนมัติ</div>
+
+  <main class="a-body">
+    <div><span class="a-cmd">▸</span> <span class="a-cmd">status</span></div>
+
+    <div class="a-grp">กระเป๋า</div>
+    <div class="a-kv">
+      <span>คงเหลือ <b class="hi">4,820 ♥</b></span>
+      <span>ใช้เดือนนี้ <b>12,400 ♥</b></span>
+      <span>จ่ายสะสม <b>1,240 ฿</b></span>
+      <span>งานทั้งหมด <b>38</b> <span class="a-dim">(สำเร็จ 35 · ล้ม 2 · ยกเลิก 1)</span></span>
+    </div>
+
+    <div class="a-grp">งานของคุณ · 4 รายการ</div>
+    <div class="a-scroll">
+      <table class="a-tbl">
+        <thead>
+          <tr><th>id</th><th>ไอดี</th><th>สถานะ</th><th>ความคืบหน้า</th><th>หัวใจ</th><th>เหลือ</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>7f2a</td><td>bee_cookie@gmail.com</td>
+            <td class="a-ok">● กำลังรัน</td>
+            <td class="a-ok" id="a-bar">[████████░░]</td>
+            <td><span id="a-hearts">248</span>/400</td>
+            <td class="a-dim">~6 น. · รอบ 4/6</td>
+          </tr>
+          <tr>
+            <td>9c31</td><td>nut_cr@hotmail.com</td>
+            <td class="a-wait">○ คิวที่ 3</td>
+            <td class="a-dim">[░░░░░░░░░░]</td>
+            <td>0/400</td>
+            <td class="a-dim">~38 น.</td>
+          </tr>
+          <tr>
+            <td>4b8e</td><td>arm_cookie@gmail.com</td>
+            <td class="a-ok">✓ เสร็จแล้ว</td>
+            <td class="a-ok">[██████████]</td>
+            <td>400/400</td>
+            <td class="a-dim">14:38</td>
+          </tr>
+          <tr>
+            <td>1d90</td><td>mook_cr@gmail.com</td>
+            <td class="a-bad">✗ ล้มเหลว</td>
+            <td class="a-bad">รหัสผ่านไม่ถูกต้อง</td>
+            <td class="a-dim">คืนแล้ว</td>
+            <td class="a-dim">+400 ♥</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="a-grp">แผนที่คิวรวม · 14 งาน</div>
+    <div class="a-scroll">
+      <div class="a-map">
+        [<b>เครื่อง</b>]◀ <em>①bee</em><b>*</b> ◀ <em>②nut</em><b>*</b> ◀ ③fai ◀ ④pim ◀ ⑤tar ◀ +9 …
+        &nbsp;&nbsp;&nbsp;<b>*</b> = ของคุณ
+      </div>
+    </div>
+
+    <div class="a-tail">
+      <div><span class="a-ok">●</span> <span class="a-dim">tail · 7f2a</span></div>
+      <div class="a-dim">14:22:07&nbsp; เข้าห้องเพื่อนคนที่ 18 …</div>
+      <div class="a-dim">14:22:11&nbsp; เก็บหัวใจ <span class="a-ok">+3</span></div>
+      <div class="a-dim">14:22:19&nbsp; รอ cooldown 8 วิ …</div>
+      <div class="a-dim" id="a-tail-last">14:22:27&nbsp; เข้าห้องเพื่อนคนที่ 19 …</div>
+    </div>
+
+    <hr class="a-hr">
+    <div class="a-hint">
+      แนะนำ: <b>run</b> เพิ่มงาน · <b>topup</b> เติมหัวใจ · <b>cancel 9c31</b> ยกเลิกและรับคืน · <b>?</b> ดูคำสั่งทั้งหมด
+    </div>
+  </main>
+
+  <div class="a-prompt">
+    <div class="a-inp">
+      <span class="a-caret"></span>
+      <span>พิมพ์คำสั่ง หรือวางรายการไอดีหลายบรรทัด…</span>
+    </div>
+    <div class="a-chips">
+      <button type="button">status</button>
+      <button type="button">run</button>
+      <button type="button">topup</button>
+      <button type="button">queue</button>
+      <button type="button">check</button>
+      <button type="button">friends</button>
+      <button type="button">cancel</button>
+      <button type="button">?</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════════ จอ B · สายพาน ═════════════════ -->
+<div class="screen b" id="scr-b">
+  <header class="b-top">
+    <span>สายการผลิต · เครื่อง #1</span>
+    <span class="on"><span class="b-dot"></span> กำลังทำงาน · คิวรวม 14 งาน · 51 ♥/นาที</span>
+    <span><span class="hearts">♥ 4,820</span> · arm_wipsr</span>
+  </header>
+
+  <div class="b-grid">
+    <main class="b-main">
+      <section class="b-hero">
+        <div class="b-hero-row">
+          <div>
+            <span class="b-lbl">กำลังเก็บอยู่ตอนนี้</span>
+            <div class="b-big"><span id="b-hearts">1,842</span><i> / 2,500 ♥</i></div>
+            <div class="b-who">bee_cookie@gmail.com · งาน 7f2a · <em>ของคุณ</em></div>
+          </div>
+          <div class="b-rt">
+            รอบ <b>4 / 6</b><br>
+            เหลืออีก <b>13 นาที</b><br>
+            เริ่มเมื่อ <b>14:02</b>
+          </div>
+        </div>
+        <div class="b-bar"><i id="b-bar" style="width:73.7%"></i></div>
+      </section>
+
+      <div class="b-lane-h">
+        <span>คิวถัดไป · เรียงตามลำดับจริง</span>
+        <span>ปิดชื่อผู้ใช้อื่นทั้งหมด</span>
+      </div>
+      <div class="b-lane">
+        <div class="b-mach">เครื่อง<br>#1</div>
+        <span class="b-arw">◀</span>
+        <div class="b-card"><div class="p">คิว 1</div><div class="nm">ผู้ใช้ · nut···</div><div class="eta">เริ่มใน ~13 น.</div></div>
+        <span class="b-arw">◀</span>
+        <div class="b-card you"><div class="p">คิว 2 · ของคุณ</div><div class="nm">nut_cr@hotmail···</div><div class="eta">~24 น.</div></div>
+        <span class="b-arw">◀</span>
+        <div class="b-card"><div class="p">คิว 3</div><div class="nm">ผู้ใช้ · fai···</div><div class="eta">~38 น.</div></div>
+        <span class="b-arw">◀</span>
+        <div class="b-card"><div class="p">คิว 4</div><div class="nm">ผู้ใช้ · pim···</div><div class="eta">~46 น.</div></div>
+        <span class="b-arw">◀</span>
+        <div class="b-card"><div class="p">คิว 5</div><div class="nm">ผู้ใช้ · tar···</div><div class="eta">~53 น.</div></div>
+        <span class="b-more">+9 →</span>
+      </div>
+
+      <div class="b-tiles">
+        <div class="b-tile"><span class="t">หัวใจคงเหลือ</span><div class="v pink">4,820</div></div>
+        <div class="b-tile"><span class="t">เก็บได้วันนี้</span><div class="v">1,248<i> ♥</i></div></div>
+        <div class="b-tile"><span class="t">งานสำเร็จ</span><div class="v">35<i> / 38</i></div></div>
+        <div class="b-tile"><span class="t">รอเฉลี่ย 7 วัน</span><div class="v">22<i> นาที</i></div></div>
+      </div>
+    </main>
+
+    <aside class="b-rail">
+      <h2>งานของฉัน · 4</h2>
+
+      <div class="b-job">
+        <div class="r1"><span class="em">bee_cookie@gmail.com</span><span class="stt run">● รัน</span></div>
+        <div class="mtr"><i style="width:62%"></i></div>
+        <div class="sub">248 / 400 ♥ · เหลือ ~6 น.</div>
+      </div>
+      <div class="b-job">
+        <div class="r1"><span class="em">nut_cr@hotmail.com</span><span class="stt q">○ คิว 2</span></div>
+        <div class="mtr"><i style="width:0"></i></div>
+        <div class="sub">0 / 400 ♥ · เริ่มใน ~24 น.</div>
+      </div>
+      <div class="b-job">
+        <div class="r1"><span class="em">arm_cookie@gmail.com</span><span class="stt done">✓ เสร็จ</span></div>
+        <div class="mtr"><i style="width:100%;background:#3B4A66"></i></div>
+        <div class="sub">400 / 400 ♥ · 14:38</div>
+      </div>
+      <div class="b-job">
+        <div class="r1"><span class="em">mook_cr@gmail.com</span><span class="stt fail">✗ ล้ม</span></div>
+        <div class="sub" style="color:#C08277">รหัสผ่านไม่ถูกต้อง · คืน 400 ♥</div>
+      </div>
+
+      <button class="b-cta" type="button">ส่งงานใหม่</button>
+      <button class="b-cta alt" type="button">เติมหัวใจ</button>
+
+      <div class="b-tgl">
+        <span>เตือนตอนเหลือ 5 นาที</span>
+        <button class="b-sw" type="button" role="switch" aria-checked="true" aria-label="เตือนตอนเหลือ 5 นาที"></button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ═════════════════ จอ C · สมุดบัญชี ═════════════════ -->
+<div class="screen c" id="scr-c">
+  <header class="c-nav">
+    <span class="c-brand">Auto<span>heart</span></span>
+    <nav class="c-links">
+      <a href="#" aria-current="page">บัญชี</a>
+      <a href="#">งาน</a>
+      <a href="#">บริการ</a>
+      <a href="#">ฉัน</a>
+    </nav>
+    <span class="c-me"><span class="h">♥ 4,820</span><span class="c-av">AW</span></span>
+  </header>
+
+  <div class="c-wrap">
+    <main>
+      <section class="c-bal-card">
+        <span class="c-lbl">หัวใจคงเหลือ</span>
+        <div class="c-bal">
+          <svg viewBox="0 0 24 24" fill="#DC4468" aria-hidden="true"><path d="M12 21s-8-5.1-8-10.4C4 7.5 6.2 5.5 8.8 5.5c1.7 0 2.7.8 3.2 1.6.5-.8 1.5-1.6 3.2-1.6 2.6 0 4.8 2 4.8 5.1C20 15.9 12 21 12 21z"/></svg>
+          4,820
+        </div>
+        <p class="c-bal-sub" style="margin:0">พอสำหรับอีกประมาณ 12 งาน · เติมล่าสุดเมื่อวาน</p>
+        <div class="c-acts">
+          <button class="c-btn" type="button">เติมหัวใจ</button>
+          <button class="c-btn ghost" type="button">ส่งงาน</button>
+        </div>
+      </section>
+
+      <div class="c-sec-h">
+        <span class="c-lbl">รายการเดินบัญชี</span>
+        <a href="#">ดูทั้งหมด →</a>
+      </div>
+
+      <section class="c-ledger">
+        <div class="c-row">
+          <span class="l"><b>arm_cookie@gmail.com</b><span>ฟาร์มเสร็จ · วันนี้ 14:38</span></span>
+          <span class="r dn">−400</span>
+        </div>
+        <div class="c-row">
+          <span class="l"><b>mook_cr@gmail.com</b><span>ล้มเหลว · คืนหัวใจอัตโนมัติ</span></span>
+          <span class="r up">+400</span>
+        </div>
+        <div class="c-row">
+          <span class="l"><b>เติมด้วยซองอั่งเปา</b><span>แพ็ค 500 × 4 · คูปอง NEWYEAR −10%</span></span>
+          <span class="r up">+2,000</span>
+        </div>
+        <div class="c-row">
+          <span class="l"><b>nut_cr@hotmail.com</b><span>รอคิวที่ 2 · ตัดไว้ล่วงหน้า</span></span>
+          <span class="r dn">−400</span>
+        </div>
+        <div class="c-row">
+          <span class="l"><b>bee_cookie@gmail.com</b><span>กำลังฟาร์ม · รอบ 4/6</span></span>
+          <span class="r dn">−400</span>
+        </div>
+        <div class="c-row">
+          <span class="l"><b>ของขวัญทดลองใช้</b><span>รับครั้งแรก · เมื่อวาน 09:12</span></span>
+          <span class="r up">+100</span>
+        </div>
+      </section>
+    </main>
+
+    <aside class="c-side">
+      <section class="c-panel">
+        <span class="c-lbl">งานที่กำลังทำ</span>
+        <div class="c-live">
+          <div class="em">bee_cookie@gmail.com</div>
+          <div class="z"><span id="c-hearts">248</span><i> / 400 ♥</i></div>
+          <div class="c-mtr"><i id="c-bar" style="width:62%"></i></div>
+          <div class="fin">รอบ 4/6 · น่าจะเสร็จ 14:44</div>
+        </div>
+
+        <div class="c-tl">
+          <div class="n done"><div class="t">รับงานแล้ว</div><div class="d">14:02</div></div>
+          <div class="n done"><div class="t">ตรวจไอดีผ่าน</div><div class="d">14:02</div></div>
+          <div class="n done"><div class="t">เข้าคิว · ลำดับ 3</div><div class="d">14:03</div></div>
+          <div class="n now"><div class="t">กำลังฟาร์ม · รอบ 4/6</div><div class="d">เหลืออีกประมาณ 6 นาที</div></div>
+          <div class="n wait"><div class="t">เสร็จสมบูรณ์</div><div class="d">—</div></div>
+        </div>
+      </section>
+
+      <section class="c-panel">
+        <span class="c-lbl" style="margin-bottom:.7rem">ไอดีที่บันทึกไว้</span>
+        <div class="c-sv">
+          <span class="n">nut_cr@hotmail.com <span>· รอคิวที่ 2</span></span>
+          <button type="button">ดูงาน</button>
+        </div>
+        <div class="c-sv">
+          <span class="n">arm_cookie@gmail.com</span>
+          <button type="button">ส่งงาน</button>
+        </div>
+        <div class="c-sv">
+          <span class="n">mook_cr@gmail.com</span>
+          <button type="button">ส่งงาน</button>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <nav class="c-tabs">
+    <button type="button" aria-current="page">บัญชี</button>
+    <button type="button">งาน</button>
+    <button type="button">บริการ</button>
+    <button type="button">ฉัน</button>
+  </nav>
+</div>
+
+<!-- ═════════════════ ตัวสลับจอ ═════════════════ -->
+<div class="switcher" role="tablist" aria-label="เลือกแบบหน้าเว็บ">
+  <span class="lab">ดูแบบ</span>
+  <button type="button" role="tab" aria-selected="true"  data-scr="a">A · คอนโซล</button>
+  <button type="button" role="tab" aria-selected="false" data-scr="b">B · สายพาน</button>
+  <button type="button" role="tab" aria-selected="false" data-scr="c">C · สมุดบัญชี</button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ── สลับจอ ─────────────────────────────────────────── */
+  var buttons = Array.prototype.slice.call(document.querySelectorAll(".switcher [data-scr]"));
+
+  function show(key) {
+    document.body.setAttribute("data-screen", key);
+    ["a", "b", "c"].forEach(function (k) {
+      document.getElementById("scr-" + k).classList.toggle("on", k === key);
+    });
+    buttons.forEach(function (btn) {
+      btn.setAttribute("aria-selected", String(btn.dataset.scr === key));
+    });
+    window.scrollTo(0, 0);
+  }
+
+  buttons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      show(btn.dataset.scr);
+      history.replaceState(null, "", "#" + btn.dataset.scr);
+    });
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+    var i = ["a", "b", "c"].indexOf(document.body.getAttribute("data-screen"));
+    if (e.key === "ArrowRight") show(["a", "b", "c"][(i + 1) % 3]);
+    if (e.key === "ArrowLeft")  show(["a", "b", "c"][(i + 2) % 3]);
+  });
+
+  var fromHash = (location.hash || "").replace("#", "");
+  show(["a", "b", "c"].indexOf(fromHash) >= 0 ? fromHash : "a");
+
+  /* ── สลับสวิตช์แจ้งเตือนในจอ B ──────────────────────── */
+  var sw = document.querySelector(".b-sw");
+  if (sw) {
+    sw.addEventListener("click", function () {
+      sw.setAttribute("aria-checked", sw.getAttribute("aria-checked") === "true" ? "false" : "true");
+    });
+  }
+
+  /* ── ตัวนับหัวใจที่เดินจริง เลียนแบบสตรีมจาก ws/jobs/{id} ── */
+  var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (still) return;
+
+  var small = 248;   /* งาน 400 ♥ ที่โชว์ในจอ A และ C */
+  var large = 1842;  /* งาน 2,500 ♥ ที่โชว์ในจอ B */
+  var clock = 22 * 60 + 27;
+
+  var elASmall = document.getElementById("a-hearts");
+  var elABar   = document.getElementById("a-bar");
+  var elATail  = document.getElementById("a-tail-last");
+  var elBLarge = document.getElementById("b-hearts");
+  var elBBar   = document.getElementById("b-bar");
+  var elCSmall = document.getElementById("c-hearts");
+  var elCBar   = document.getElementById("c-bar");
+
+  var friend = 19;
+
+  function fmt(n) { return n.toLocaleString("en-US"); }
+
+  function blocks(pct) {
+    var filled = Math.round(pct / 10);
+    return "[" + "█".repeat(filled) + "░".repeat(10 - filled) + "]";
+  }
+
+  function hhmmss(total) {
+    var h = 14;
+    var m = Math.floor(total / 60);
+    var s = total % 60;
+    return h + ":" + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+  }
+
+  setInterval(function () {
+    if (small < 400) { small += 3; }
+    if (large < 2500) { large += 4; }
+    clock += 8;
+    friend += 1;
+
+    var pctSmall = Math.min(100, small / 400 * 100);
+    var pctLarge = Math.min(100, large / 2500 * 100);
+
+    if (elASmall) elASmall.textContent = fmt(small);
+    if (elABar)   elABar.textContent = blocks(pctSmall);
+    if (elATail)  elATail.textContent = hhmmss(clock) + "  เข้าห้องเพื่อนคนที่ " + friend + " …";
+    if (elBLarge) elBLarge.textContent = fmt(large);
+    if (elBBar)   elBBar.style.width = pctLarge + "%";
+    if (elCSmall) elCSmall.textContent = fmt(small);
+    if (elCBar)   elCBar.style.width = pctSmall + "%";
+  }, 2600);
+})();
+</script>
