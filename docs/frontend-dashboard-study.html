@@ -1,0 +1,660 @@
+<title>Autoheart Dashboards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+
+<style>
+/* ระบบเดียวกับเอกสารทิศทาง: กระดาษ+หมึกกราไฟต์ สีมีเฉพาะสีประจำแนวคิด */
+:root {
+  --paper:#E5E5E1; --sheet:#F7F7F5; --sheet-2:#EDEDEA;
+  --ink:#16181A; --ink-2:#3C4145; --muted:#6A7075; --dim:#8E9498;
+  --rule:#C9CBC5; --rule-soft:#DBDCD7;
+  --a:#B57400; --b:#2A5BE0; --c:#0C8F7E;
+  --a-wash:rgba(181,116,0,.10); --b-wash:rgba(42,91,224,.09); --c-wash:rgba(12,143,126,.10);
+  --sans:"IBM Plex Sans Thai","Anuphan",system-ui,sans-serif;
+  --display:"Anuphan","IBM Plex Sans Thai",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --max:78rem; --col:44rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#131414; --sheet:#1B1D1D; --sheet-2:#212423;
+    --ink:#E9E9E4; --ink-2:#C2C5C2; --muted:#949A97; --dim:#6E7472;
+    --rule:#333736; --rule-soft:#262928;
+    --a:#F0B23C; --b:#7BA0FF; --c:#3ED0B4;
+    --a-wash:rgba(240,178,60,.12); --b-wash:rgba(123,160,255,.12); --c-wash:rgba(62,208,180,.12);
+  }
+}
+:root[data-theme="dark"] {
+  --paper:#131414; --sheet:#1B1D1D; --sheet-2:#212423;
+  --ink:#E9E9E4; --ink-2:#C2C5C2; --muted:#949A97; --dim:#6E7472;
+  --rule:#333736; --rule-soft:#262928;
+  --a:#F0B23C; --b:#7BA0FF; --c:#3ED0B4;
+  --a-wash:rgba(240,178,60,.12); --b-wash:rgba(123,160,255,.12); --c-wash:rgba(62,208,180,.12);
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.72;margin:0;padding:0 1.25rem 6rem;-webkit-font-smoothing:antialiased}
+.wrap{max-width:var(--max);margin:0 auto}
+
+.masthead{border-bottom:2px solid var(--ink);padding:3.5rem 0 1.25rem;margin-bottom:2.5rem}
+.eyebrow{font-family:var(--mono);font-size:.688rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:.5rem 1.25rem;margin-bottom:1.5rem}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(2rem,5.5vw,3.25rem);line-height:1.08;letter-spacing:-.02em;text-wrap:balance;margin:0 0 .85rem}
+.standfirst{font-size:1.06rem;color:var(--ink-2);max-width:46rem;margin:0 0 1.75rem}
+
+.qs{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:1px;background:var(--rule-soft);border:1px solid var(--rule-soft)}
+.qs div{background:var(--sheet);padding:.9rem 1.05rem}
+.qs .n{font-family:var(--mono);font-size:.625rem;letter-spacing:.14em;color:var(--dim);display:block;margin-bottom:.2rem}
+.qs .q{font-size:.925rem;font-weight:500;line-height:1.4}
+
+section{margin:0 0 4.5rem}
+.sec-head{display:flex;align-items:baseline;gap:1rem;border-top:1px solid var(--rule);padding-top:.75rem;margin-bottom:1.5rem}
+.sec-num{font-family:var(--mono);font-size:.688rem;letter-spacing:.1em;color:var(--dim);flex:none;padding-top:.35rem}
+.sec-head h2{font-family:var(--display);font-weight:600;font-size:clamp(1.3rem,3vw,1.7rem);letter-spacing:-.01em;margin:0}
+h3{font-family:var(--display);font-weight:600;font-size:1.02rem;margin:2rem 0 .55rem}
+p{margin:0 0 1rem;max-width:var(--col)}
+.lede{max-width:46rem;color:var(--ink-2)}
+ul{max-width:var(--col);padding-left:1.15rem;margin:0 0 1rem}
+li{margin-bottom:.35rem}
+li::marker{color:var(--dim)}
+code,.m{font-family:var(--mono);font-size:.82em;background:var(--sheet-2);border:1px solid var(--rule-soft);border-radius:2px;padding:.06em .34em;white-space:nowrap}
+
+.screen{border-top:2px solid var(--hue);padding-top:1.5rem}
+.scr-a{--hue:var(--a);--wash:var(--a-wash)}
+.scr-b{--hue:var(--b);--wash:var(--b-wash)}
+.scr-c{--hue:var(--c);--wash:var(--c-wash)}
+.c-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:.7rem 1rem;margin-bottom:.5rem}
+.c-tag{font-family:var(--mono);font-weight:600;font-size:.688rem;letter-spacing:.12em;text-transform:uppercase;color:var(--hue);border:1px solid var(--hue);border-radius:2px;padding:.12rem .5rem}
+.c-head h2{font-family:var(--display);font-weight:700;font-size:clamp(1.5rem,3.6vw,2.1rem);letter-spacing:-.02em;margin:0}
+.c-head .en{font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+.thesis{font-size:1.02rem;max-width:44rem;border-left:3px solid var(--hue);padding-left:1rem;margin:0 0 1.5rem}
+
+.board-frame{border:1px solid var(--rule);background:var(--sheet-2);padding:1.25rem;overflow-x:auto;margin-bottom:.75rem}
+.caption{font-family:var(--mono);font-size:.688rem;color:var(--muted);line-height:1.6;max-width:46rem;margin:0 0 1.75rem}
+.caption b{color:var(--ink-2);font-weight:500}
+
+.tbl-shell{overflow-x:auto;margin:.5rem 0 1.5rem;border:1px solid var(--rule-soft)}
+table{border-collapse:collapse;width:100%;min-width:42rem;background:var(--sheet);font-size:.875rem}
+th,td{text-align:left;padding:.6rem .8rem;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+thead th{font-family:var(--mono);font-size:.625rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:500;background:var(--sheet-2);border-bottom:1px solid var(--rule)}
+tbody tr:last-child td{border-bottom:0}
+td strong{font-weight:600}
+
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(17rem,1fr));gap:1px;background:var(--rule-soft);border:1px solid var(--rule-soft);margin-bottom:1rem}
+.split>div{background:var(--sheet);padding:.95rem 1.1rem}
+.split h4{font-family:var(--mono);font-size:.625rem;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);margin:0 0 .5rem;font-weight:500}
+.split ul{margin:0;max-width:none;font-size:.875rem}
+.split li{color:var(--ink-2)}
+
+.note{border-left:3px solid var(--rule);padding:.1rem 0 .1rem 1rem;color:var(--muted);font-size:.875rem;max-width:46rem;margin:1.25rem 0}
+footer{border-top:1px solid var(--rule);margin-top:4rem;padding-top:1.25rem;font-family:var(--mono);font-size:.688rem;color:var(--dim);display:flex;flex-wrap:wrap;gap:.4rem 1.5rem}
+
+/* ══════════ จอ A · คอนโซล ══════════ */
+.mk-a{background:#0B0B0A;border:1px solid #2A2622;font-family:var(--mono);font-size:12px;line-height:1.6;color:#C8C2B6;min-width:53rem}
+.mk-a .bar{display:flex;justify-content:space-between;gap:1rem;border-bottom:1px solid #2A2622;padding:.45rem .85rem;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#6E675C}
+.mk-a .bar b{color:#E8A317;font-weight:500}
+.mk-a .bar .ok{color:#74C476}
+.mk-a .notice{background:#161310;border-bottom:1px solid #2A2622;padding:.35rem .85rem;font-size:11px;color:#B99A55}
+.mk-a .body{padding:.85rem}
+.mk-a .cmd{color:#E8A317}
+.mk-a .dimx{color:#5E584E}
+.mk-a .ok{color:#74C476}
+.mk-a .bad{color:#E06A5C}
+.mk-a .wait{color:#D2A24C}
+.mk-a hr{border:0;border-top:1px dashed #2A2622;margin:.7rem 0}
+.mk-a .grp{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6E675C;margin:.85rem 0 .35rem}
+.mk-a .kv{display:flex;flex-wrap:wrap;gap:.15rem 2.2rem}
+.mk-a .kv span{color:#5E584E}
+.mk-a .kv b{color:#C8C2B6;font-weight:500}
+.mk-a .kv b.hi{color:#E8A317}
+.mk-a table{min-width:0;width:100%;background:transparent;border:0;font-size:12px;font-family:var(--mono)}
+.mk-a th,.mk-a td{border:0;padding:.13rem .7rem .13rem 0;color:#C8C2B6;background:transparent;font-family:var(--mono);white-space:nowrap}
+.mk-a th{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#5E584E;font-weight:400;padding-bottom:.3rem}
+.mk-a .map{color:#5E584E}
+.mk-a .map b{color:#E8A317;font-weight:500}
+.mk-a .live{border:1px solid #2A2622;border-left:2px solid #74C476;padding:.5rem .65rem;margin:.6rem 0 0;background:#101110}
+.mk-a .prompt{border-top:1px solid #2A2622;padding:.5rem .85rem;display:flex;gap:.5rem;align-items:center}
+.mk-a .caret{width:7px;height:13px;background:#E8A317;display:inline-block}
+.mk-a .chips{display:flex;gap:.35rem;flex-wrap:wrap;padding:.4rem .85rem .6rem;border-top:1px dashed #2A2622}
+.mk-a .chips span{border:1px solid #33302B;color:#8A8377;padding:.08rem .42rem;font-size:10px}
+
+/* ══════════ จอ B · สายพาน ══════════ */
+.mk-b{background:#0A0D14;border:1px solid #1C2536;color:#C7D2E2;font-family:var(--sans);min-width:53rem;padding:0}
+.mk-b .top{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.6rem 1rem;border-bottom:1px solid #1C2536;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#64769A}
+.mk-b .top .on{color:#5EE6A8}
+.mk-b .top .hearts{color:#FF6E93}
+.mk-b .grid{display:grid;grid-template-columns:1fr 16rem;gap:1px;background:#1C2536}
+.mk-b .main{background:#0A0D14;padding:1rem}
+.mk-b .rail{background:#0B1019;padding:1rem .9rem}
+.mk-b .hero{border:1px solid #22304A;background:linear-gradient(160deg,#12203A,#0C1220);padding:1rem 1.15rem;display:flex;flex-wrap:wrap;gap:1.5rem;align-items:flex-end;justify-content:space-between}
+.mk-b .lbl{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#6C86B8;display:block}
+.mk-b .big{font-family:var(--mono);font-weight:600;font-size:44px;letter-spacing:-.03em;color:#FFF;line-height:1.05;margin-top:.1rem;font-variant-numeric:tabular-nums}
+.mk-b .big i{font-style:normal;font-size:18px;color:#6C86B8}
+.mk-b .who{font-family:var(--mono);font-size:11px;color:#8DA2C6;margin-top:.35rem}
+.mk-b .rt{text-align:right;font-family:var(--mono);font-size:11px;color:#8DA2C6;line-height:1.9}
+.mk-b .rt b{color:#C9D9FF;font-weight:500}
+.mk-b .bar2{height:4px;background:#1B2740;margin-top:.85rem;flex:1 0 100%}
+.mk-b .bar2 i{display:block;height:100%;width:73.7%;background:#5EE6A8}
+.mk-b .lane-h{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#5F7398;margin:1.1rem 0 .45rem}
+.mk-b .lane{display:flex;align-items:center;gap:.45rem;border:1px solid #1C2536;background:#0D1220;padding:.7rem .75rem;overflow:hidden}
+.mk-b .mach{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:#5EE6A8;border:1px solid #234B3E;background:#0C1A17;padding:.5rem .5rem;text-align:center;flex:none;line-height:1.5}
+.mk-b .card{border:1px solid #22304A;background:#101828;padding:.42rem .58rem;min-width:7rem;flex:none}
+.mk-b .card .p{font-family:var(--mono);font-size:9px;color:#5F7398;letter-spacing:.09em}
+.mk-b .card .nm{font-size:11px;color:#93A6C4;margin-top:.08rem}
+.mk-b .card .eta{font-family:var(--mono);font-size:10px;color:#6C86B8;margin-top:.18rem;font-variant-numeric:tabular-nums}
+.mk-b .card.you{border-color:#4C7DFF;background:#101B33;box-shadow:0 0 0 1px rgba(76,125,255,.35)}
+.mk-b .card.you .nm{color:#C9D9FF;font-weight:600}
+.mk-b .card.you .p{color:#7BA0FF}
+.mk-b .arw{color:#2C3B58;font-size:11px;flex:none}
+.mk-b .more{font-family:var(--mono);font-size:10px;color:#46587C;padding-left:.3rem}
+.mk-b .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#1C2536;border:1px solid #1C2536;margin-top:1rem}
+.mk-b .tile{background:#0D1220;padding:.65rem .8rem}
+.mk-b .tile .t{font-family:var(--mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#5F7398;display:block}
+.mk-b .tile .v{font-family:var(--mono);font-size:19px;font-weight:600;color:#DCE6F7;font-variant-numeric:tabular-nums;margin-top:.1rem}
+.mk-b .tile .v i{font-style:normal;font-size:11px;color:#5F7398}
+.mk-b .tile .v.pink{color:#FF8FAB}
+.mk-b .rail h5{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#5F7398;margin:0 0 .55rem;font-weight:400}
+.mk-b .jb{border:1px solid #1C2536;background:#0D1220;padding:.5rem .6rem;margin-bottom:.4rem}
+.mk-b .jb .r1{display:flex;justify-content:space-between;gap:.5rem;align-items:baseline}
+.mk-b .jb .em{font-size:11px;color:#A8BAD6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mk-b .jb .stt{font-family:var(--mono);font-size:9px;letter-spacing:.06em;flex:none}
+.mk-b .jb .stt.run{color:#5EE6A8}
+.mk-b .jb .stt.q{color:#D3A44E}
+.mk-b .jb .stt.done{color:#5F7398}
+.mk-b .jb .mtr{height:3px;background:#1B2740;margin-top:.4rem}
+.mk-b .jb .mtr i{display:block;height:100%;background:#5EE6A8}
+.mk-b .jb .sub{font-family:var(--mono);font-size:9px;color:#5F7398;margin-top:.28rem;font-variant-numeric:tabular-nums}
+.mk-b .cta{display:block;text-align:center;background:#2A5BE0;color:#EAF0FF;font-size:12px;font-weight:600;padding:.55rem;margin-top:.7rem}
+.mk-b .cta.alt{background:transparent;border:1px solid #22304A;color:#8DA2C6;font-weight:400;margin-top:.4rem}
+.mk-b .tgl{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:9.5px;color:#6C86B8;margin-top:.85rem;padding-top:.7rem;border-top:1px solid #1C2536}
+.mk-b .tgl u{text-decoration:none;width:22px;height:12px;border-radius:99px;background:#2A5BE0;position:relative;flex:none}
+.mk-b .tgl u::after{content:"";position:absolute;right:1px;top:1px;width:10px;height:10px;border-radius:50%;background:#EAF0FF}
+
+/* ══════════ จอ C · สมุดบัญชี ══════════ */
+.mk-c{display:flex;gap:1.1rem;align-items:flex-start;min-width:53rem}
+.ph{width:17rem;flex:none;background:#FBF7F0;border:1px solid #DFD5C6;border-radius:20px;padding:.85rem .85rem 0;color:#241F1A;display:flex;flex-direction:column;min-height:33rem}
+.ph .st{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:#9C8F7C;margin-bottom:.7rem}
+.ph .hi-row{display:flex;justify-content:space-between;align-items:flex-start}
+.ph .lbl{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#9C8F7C}
+.ph .bal{font-family:var(--display);font-weight:700;font-size:37px;line-height:1.08;letter-spacing:-.025em;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:.35rem}
+.ph .bal svg{width:21px;height:21px}
+.ph .sub{font-family:var(--mono);font-size:9.5px;color:#A2967F;margin-top:.15rem}
+.ph .av{width:30px;height:30px;border-radius:50%;background:#E8DFCF;color:#7A6F60;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none}
+.ph .acts{display:flex;gap:.4rem;margin:.8rem 0 .9rem}
+.ph .acts b{flex:1;text-align:center;font-size:11.5px;font-weight:600;padding:.55rem 0;border-radius:11px;background:#0C8F7E;color:#FBF7F0}
+.ph .acts b.alt{background:transparent;color:#3F3830;border:1px solid #DFD5C6}
+.ph .now{background:#F3EDE2;border-radius:13px;padding:.6rem .7rem;margin-bottom:.9rem}
+.ph .now .r1{display:flex;justify-content:space-between;align-items:baseline;gap:.4rem}
+.ph .now .em{font-size:11.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ph .now .tag{font-family:var(--mono);font-size:8.5px;letter-spacing:.09em;color:#0C8F7E;flex:none}
+.ph .now .z{font-family:var(--mono);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:.15rem}
+.ph .now .z i{font-style:normal;font-size:11px;color:#A2967F}
+.ph .mtr{height:4px;background:#E3DACB;border-radius:99px;margin-top:.4rem;overflow:hidden}
+.ph .mtr i{display:block;height:100%;background:#0C8F7E}
+.ph .now .fin{font-family:var(--mono);font-size:9px;color:#A2967F;margin-top:.35rem}
+.ph .lg-h{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#9C8F7C;border-bottom:1px solid #EAE1D3;padding-bottom:.3rem}
+.ph .lg{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.46rem 0;border-bottom:1px solid #F0E8DB}
+.ph .lg .l{font-size:11.5px;line-height:1.32;min-width:0}
+.ph .lg .l span{display:block;font-family:var(--mono);font-size:9px;color:#A2967F;margin-top:.04rem}
+.ph .lg .r{font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;font-weight:500;flex:none}
+.ph .r.up{color:#0C8F7E}
+.ph .r.dn{color:#7A6F60}
+.ph .tabs{display:flex;margin:auto -.85rem 0;border-top:1px solid #EAE1D3;background:#FDFAF5;border-radius:0 0 19px 19px}
+.ph .tabs i{flex:1;text-align:center;padding:.5rem 0 .65rem;font-style:normal;font-size:9.5px;color:#A2967F}
+.ph .tabs i.on{color:#0C8F7E;font-weight:600;box-shadow:inset 0 2px 0 #0C8F7E}
+
+.desk{flex:1;min-width:31rem;background:#FBF7F0;border:1px solid #DFD5C6;border-radius:12px;color:#241F1A;overflow:hidden}
+.desk .dtop{display:flex;justify-content:space-between;align-items:center;padding:.6rem .95rem;border-bottom:1px solid #EAE1D3;background:#FDFAF5}
+.desk .brand{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:-.01em}
+.desk .dnav{display:flex;gap:1.1rem;font-size:11px;color:#7A6F60}
+.desk .dnav b{color:#0C8F7E;font-weight:600}
+.desk .dbal{font-family:var(--mono);font-size:11.5px;color:#241F1A;font-variant-numeric:tabular-nums}
+.desk .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.desk .dcol{padding:.95rem 1rem}
+.desk .dcol+.dcol{border-left:1px solid #EAE1D3}
+.desk .lbl{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#9C8F7C;display:block;margin-bottom:.4rem}
+.desk .bigbal{font-family:var(--display);font-weight:700;font-size:32px;letter-spacing:-.025em;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:.35rem;line-height:1.1}
+.desk .bigbal svg{width:19px;height:19px}
+.desk .acts{display:flex;gap:.4rem;margin:.7rem 0 1rem}
+.desk .acts b{font-size:11.5px;font-weight:600;padding:.45rem .9rem;border-radius:9px;background:#0C8F7E;color:#FBF7F0}
+.desk .acts b.alt{background:transparent;color:#3F3830;border:1px solid #DFD5C6}
+.desk .lg{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.42rem 0;border-bottom:1px solid #F0E8DB}
+.desk .lg .l{font-size:11.5px;line-height:1.3;min-width:0}
+.desk .lg .l span{display:block;font-family:var(--mono);font-size:9px;color:#A2967F}
+.desk .lg .r{font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;font-weight:500;flex:none}
+.desk .tk{background:#F3EDE2;border-radius:11px;padding:.7rem .8rem;margin-bottom:.9rem}
+.desk .tk .em{font-size:12px;font-weight:600}
+.desk .tk .z{font-family:var(--mono);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:.1rem}
+.desk .tk .z i{font-style:normal;font-size:11px;color:#A2967F}
+.desk .tk .fin{font-family:var(--mono);font-size:9.5px;color:#A2967F;margin-top:.35rem}
+.tl{border-left:2px solid #EAE1D3;padding-left:.8rem;margin:.2rem 0 1rem .3rem}
+.tl .n{position:relative;padding-bottom:.6rem}
+.tl .n::before{content:"";position:absolute;left:-1.14rem;top:.3rem;width:9px;height:9px;border-radius:50%;background:#EAE1D3;border:2px solid #FBF7F0}
+.tl .n.done::before{background:#0C8F7E}
+.tl .n.now::before{background:#0C8F7E;box-shadow:0 0 0 3px rgba(12,143,126,.2)}
+.tl .n .t{font-size:11.5px;font-weight:500}
+.tl .n.wait .t{color:#A2967F;font-weight:400}
+.tl .n .d{font-family:var(--mono);font-size:9px;color:#A2967F}
+.tl .n.now .d{color:#0C8F7E}
+.desk .sv{display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid #F0E8DB;font-size:11.5px}
+.desk .sv u{text-decoration:none;font-family:var(--mono);font-size:9.5px;color:#0C8F7E;border:1px solid #CDE3DE;border-radius:6px;padding:.1rem .45rem}
+
+@media (max-width:640px){
+  body{padding:0 1rem 4rem;font-size:15.5px}
+  .masthead{padding-top:2.25rem}
+  .sec-head{flex-direction:column;gap:.2rem}
+  .sec-num{padding-top:0}
+  .board-frame{padding:.7rem}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">
+    <span>Autoheart</span><span>Dashboard Study</span><span>ต่อจากเอกสารทิศทาง</span><span>ส.ค. 2026</span>
+  </div>
+  <h1>หน้าแรกหลังล็อกอิน<br>สามแบบ จากข้อมูลชุดเดียวกัน</h1>
+  <p class="standfirst">
+    ทั้งสามจอนี้คือหน้าเดียวกัน ดึงข้อมูลชุดเดียวกัน ตอบคำถามเดียวกัน 4 ข้อ —
+    ต่างกันแค่ <em>วิธีตอบ</em> ลองอ่านทั้งสามจอโดยถามตัวเองว่าตอบ 4 ข้อนี้ได้เร็วแค่ไหน
+  </p>
+  <div class="qs">
+    <div><span class="n">คำถาม 01</span><span class="q">ตอนนี้ผมมีหัวใจเท่าไหร่</span></div>
+    <div><span class="n">คำถาม 02</span><span class="q">งานที่สั่งไปถึงไหนแล้ว</span></div>
+    <div><span class="n">คำถาม 03</span><span class="q">คิวจะถึงผมอีกนานแค่ไหน</span></div>
+    <div><span class="n">คำถาม 04</span><span class="q">แล้วผมควรกดอะไรต่อ</span></div>
+  </div>
+</header>
+
+<!-- ══════════════ A ══════════════ -->
+<section class="screen scr-a">
+  <div class="c-head">
+    <span class="c-tag">จอ A</span>
+    <h2>คอนโซล · <span style="font-weight:600">status</span></h2>
+    <span class="en">Console — dense readout</span>
+  </div>
+  <p class="thesis">
+    ไม่มีหน้า dashboard — มีแต่คำสั่ง <span class="m">status</span> ที่พ่นทุกอย่างออกมาในจอเดียว
+    <strong>ตอบครบ 4 ข้อโดยไม่ต้องเลื่อนและไม่ต้องคลิกอะไรเลย</strong> แลกกับความหนาแน่นที่สูงมาก
+  </p>
+
+  <div class="board-frame">
+    <div class="mk-a">
+      <div class="bar">
+        <span>autoheart · console — <b>arm_wipsr</b></span>
+        <span><b>♥ 4,820</b> · คิวรอ 3 · <span class="ok">เครื่อง: กำลังทำงาน</span> · 51 ♥/นาที</span>
+      </div>
+      <div class="notice">▲ ประกาศ · ระบบจะปิดปรับปรุง 03:00–04:00 คืนนี้ งานที่ค้างจะถูกคืนหัวใจอัตโนมัติ</div>
+      <div class="body">
+        <div><span class="cmd">▸</span> <span class="cmd">status</span></div>
+
+        <div class="grp">กระเป๋า</div>
+        <div class="kv">
+          <span>คงเหลือ <b class="hi">4,820 ♥</b></span>
+          <span>ใช้เดือนนี้ <b>12,400 ♥</b></span>
+          <span>จ่ายสะสม <b>1,240 ฿</b></span>
+          <span>งานทั้งหมด <b>38</b> <span class="dimx">(สำเร็จ 35 · ล้ม 2 · ยกเลิก 1)</span></span>
+        </div>
+
+        <div class="grp">งานของคุณ · 4 รายการ</div>
+        <table>
+          <thead><tr><th>id</th><th>ไอดี</th><th>สถานะ</th><th>ความคืบหน้า</th><th>หัวใจ</th><th>เหลือ</th></tr></thead>
+          <tbody>
+            <tr><td class="dimx">7f2a</td><td>bee_cookie@gmail.com</td><td class="ok">● กำลังรัน</td><td class="ok">[████████░░]</td><td>248/400</td><td class="dimx">~6 น. · รอบ 4/6</td></tr>
+            <tr><td class="dimx">9c31</td><td>nut_cr@hotmail.com</td><td class="wait">○ คิวที่ 3</td><td class="dimx">[░░░░░░░░░░]</td><td>0/400</td><td class="dimx">~38 น.</td></tr>
+            <tr><td class="dimx">4b8e</td><td>arm_cookie@gmail.com</td><td class="ok">✓ เสร็จแล้ว</td><td class="ok">[██████████]</td><td>400/400</td><td class="dimx">14:38</td></tr>
+            <tr><td class="dimx">1d90</td><td>mook_cr@gmail.com</td><td class="bad">✗ ล้มเหลว</td><td class="bad">รหัสผ่านไม่ถูกต้อง</td><td class="dimx">คืนแล้ว</td><td class="dimx">+400 ♥</td></tr>
+          </tbody>
+        </table>
+
+        <div class="grp">แผนที่คิวรวม · 14 งาน</div>
+        <div class="map">
+          [<b>เครื่อง</b>]◀ ①bee<b>*</b> ◀ ②nut<b>*</b> ◀ ③fai ◀ ④pim ◀ ⑤tar ◀ <span class="dimx">+9 …</span>
+          &nbsp;&nbsp;<span class="dimx"><b>*</b> = ของคุณ</span>
+        </div>
+
+        <div class="live">
+          <div><span class="ok">●</span> <span class="dimx">tail · 7f2a</span></div>
+          <div class="dimx">14:22:07  เข้าห้องเพื่อนคนที่ 18 …</div>
+          <div class="dimx">14:22:11  เก็บหัวใจ <span class="ok">+3</span> <span class="dimx">(248/400)</span></div>
+          <div class="dimx">14:22:19  รอ cooldown 8 วิ …</div>
+        </div>
+
+        <hr>
+        <div class="dimx">แนะนำ: <span class="cmd">run</span> เพิ่มงาน · <span class="cmd">topup</span> เติมหัวใจ · <span class="cmd">cancel 9c31</span> ยกเลิกและรับคืน · <span class="cmd">?</span> ดูคำสั่งทั้งหมด</div>
+      </div>
+      <div class="prompt"><span class="caret"></span><span class="dimx">พิมพ์คำสั่ง หรือวางรายการไอดี…</span></div>
+      <div class="chips"><span>status</span><span>run</span><span>topup</span><span>queue</span><span>check</span><span>friends</span><span>cancel</span><span>?</span></div>
+    </div>
+  </div>
+  <p class="caption">
+    <b>อ่านภาพ:</b> แถบบนสุดคือคำตอบข้อ 1+3 ที่ติดอยู่ตลอดเวลาไม่ว่าจะพิมพ์อะไรอยู่ ·
+    ตารางงานคือข้อ 2 · บรรทัด “แนะนำ” ล่างสุดคือข้อ 4 ที่เขียนเป็นคำสั่งพร้อมก๊อป ·
+    แผนที่คิวเป็นวิธีย่อ <span class="m">queue_position</span> ของทั้งระบบให้จบในบรรทัดเดียว
+  </p>
+
+  <h3>แต่ละส่วนดึงมาจากไหน</h3>
+  <div class="tbl-shell">
+    <table>
+      <thead><tr><th style="width:26%">ส่วนบนจอ</th><th style="width:38%">ข้อมูล</th><th style="width:36%">แหล่ง</th></tr></thead>
+      <tbody>
+        <tr><td><strong>แถบบน</strong></td><td>ยอดหัวใจ · จำนวนคิวรอ · สถานะเครื่อง · อัตราเก็บ</td><td><span class="m">/api/queue/status</span> + <span class="m">/api/public/queue-stats</span></td></tr>
+        <tr><td><strong>แถบประกาศ</strong></td><td>ประกาศ · แจ้งปิดปรับปรุง</td><td><span class="m">/api/public/site-config</span></td></tr>
+        <tr><td><strong>กระเป๋า</strong></td><td>credits · total_spent_baht · total_jobs</td><td>โปรไฟล์ผู้ใช้ (สถิติแยกสำเร็จ/ล้ม ต้องนับเองจาก jobs)</td></tr>
+        <tr><td><strong>ตารางงาน</strong></td><td>status · progress · hearts · session x/y · เวลาที่เหลือ</td><td><span class="m">/api/jobs/mine</span></td></tr>
+        <tr><td><strong>แผนที่คิว</strong></td><td>ลำดับของทุกงานในระบบ พร้อมทำเครื่องหมายของเรา</td><td><span class="m">/api/queue/status</span> — <strong>ต้องปิดชื่อฝั่ง server</strong></td></tr>
+        <tr><td><strong>บล็อก tail</strong></td><td>log ทีละบรรทัดของงานที่กำลังรัน</td><td><span class="m">ws/jobs/{id}</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="split">
+    <div><h4>เด่นตรงไหน</h4><ul>
+      <li>ความหนาแน่นสูงสุด — 4 คำตอบจบในจอเดียว ไม่ต้องเลื่อน</li>
+      <li>ข้อ 4 เป็นคำสั่งที่ก๊อปวางได้เลย ไม่ใช่ปุ่มลอย ๆ</li>
+      <li>ทำง่ายที่สุด ไม่มี layout ซ้อน ไม่มี route</li>
+    </ul></div>
+    <div><h4>จุดที่ต้องระวัง</h4><ul>
+      <li>ลูกค้าใหม่เห็นครั้งแรกจะตกใจ — ต้องมีโหมด “อธิบาย” เปิดค้างได้</li>
+      <li>ตารางแบบนี้ตัดลงมือถือไม่ได้ตรง ๆ ต้องพับเป็นการ์ด</li>
+      <li>ต้องคุมความกว้างคอลัมน์เอง อีเมลยาวจะพัง</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ══════════════ B ══════════════ -->
+<section class="screen scr-b">
+  <div class="c-head">
+    <span class="c-tag">จอ B</span>
+    <h2>สายพาน · กระดานคุม</h2>
+    <span class="en">The Line — mission control</span>
+  </div>
+  <p class="thesis">
+    dashboard คือ<strong>ตัวสายพานเอง</strong> ไม่มีการ์ดสถิติวางเรียงแบบ dashboard ทั่วไป
+    สิ่งที่ใหญ่ที่สุดบนจอคือหัวใจที่กำลังวิ่งอยู่จริงในวินาทีนี้ ทุกอย่างที่เหลือหลบให้มัน
+  </p>
+
+  <div class="board-frame">
+    <div class="mk-b">
+      <div class="top">
+        <span>สายการผลิต · เครื่อง #1</span>
+        <span class="on">● กำลังทำงาน · คิวรวม 14 งาน · 51 ♥/นาที</span>
+        <span><span class="hearts">♥ 4,820</span> · arm_wipsr</span>
+      </div>
+
+      <div class="grid">
+        <div class="main">
+          <div class="hero">
+            <div>
+              <span class="lbl">กำลังเก็บอยู่ตอนนี้</span>
+              <div class="big">1,842<i> / 2,500 ♥</i></div>
+              <div class="who">bee_cookie@gmail.com · งาน 7f2a · <span style="color:#7BA0FF">ของคุณ</span></div>
+            </div>
+            <div class="rt">
+              รอบ <b>4 / 6</b><br>
+              เหลืออีก <b>13 นาที</b><br>
+              เริ่มเมื่อ <b>14:02</b>
+            </div>
+            <span class="bar2"><i></i></span>
+          </div>
+
+          <div class="lane-h"><span>คิวถัดไป · เรียงตามลำดับจริง</span><span>ปิดชื่อผู้ใช้อื่นทั้งหมด</span></div>
+          <div class="lane">
+            <span class="mach">เครื่อง<br>#1</span>
+            <span class="arw">◀</span>
+            <div class="card"><span class="p">คิว 1</span><span class="nm">ผู้ใช้ · nut***</span><span class="eta">เริ่มใน ~13 น.</span></div>
+            <span class="arw">◀</span>
+            <div class="card you"><span class="p">คิว 2 · ของคุณ</span><span class="nm">nut_cr@hotmail…</span><span class="eta">~24 น.</span></div>
+            <span class="arw">◀</span>
+            <div class="card"><span class="p">คิว 3</span><span class="nm">ผู้ใช้ · fai***</span><span class="eta">~38 น.</span></div>
+            <span class="arw">◀</span>
+            <div class="card"><span class="p">คิว 4</span><span class="nm">ผู้ใช้ · pim***</span><span class="eta">~46 น.</span></div>
+            <span class="more">+9 →</span>
+          </div>
+
+          <div class="tiles">
+            <div class="tile"><span class="t">หัวใจคงเหลือ</span><div class="v pink">4,820</div></div>
+            <div class="tile"><span class="t">เก็บได้วันนี้</span><div class="v">1,248<i> ♥</i></div></div>
+            <div class="tile"><span class="t">งานสำเร็จ</span><div class="v">35<i> / 38</i></div></div>
+            <div class="tile"><span class="t">รอเฉลี่ย 7 วัน</span><div class="v">22<i> นาที</i></div></div>
+          </div>
+        </div>
+
+        <div class="rail">
+          <h5>งานของฉัน · 4</h5>
+
+          <div class="jb">
+            <div class="r1"><span class="em">bee_cookie@gmail.com</span><span class="stt run">● รัน</span></div>
+            <span class="mtr"><i style="width:62%"></i></span>
+            <div class="sub">248 / 400 ♥ · เหลือ ~6 น.</div>
+          </div>
+          <div class="jb">
+            <div class="r1"><span class="em">nut_cr@hotmail.com</span><span class="stt q">○ คิว 2</span></div>
+            <span class="mtr"><i style="width:0%"></i></span>
+            <div class="sub">0 / 400 ♥ · เริ่มใน ~24 น.</div>
+          </div>
+          <div class="jb">
+            <div class="r1"><span class="em">arm_cookie@gmail.com</span><span class="stt done">✓ เสร็จ</span></div>
+            <span class="mtr"><i style="width:100%;background:#3B4A66"></i></span>
+            <div class="sub">400 / 400 ♥ · 14:38</div>
+          </div>
+          <div class="jb">
+            <div class="r1"><span class="em">mook_cr@gmail.com</span><span class="stt" style="color:#E0705F">✗ ล้ม</span></div>
+            <div class="sub" style="color:#C08277">รหัสผ่านไม่ถูกต้อง · คืน 400 ♥</div>
+          </div>
+
+          <span class="cta">ส่งงานใหม่</span>
+          <span class="cta alt">เติมหัวใจ</span>
+
+          <div class="tgl"><span>เตือนตอนเหลือ 5 นาที</span><u></u></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="caption">
+    <b>อ่านภาพ:</b> ข้อ 2+3 ถูกรวบเป็นภาพเดียว — เห็นทั้งงานที่กำลังทำและตำแหน่งตัวเองในเส้นเดียวกัน
+    โดยไม่ต้องอ่านตัวเลข · ข้อ 1 อยู่ในไทล์ล่างและมุมขวาบน · ข้อ 4 คือปุ่มสองปุ่มในรางขวาที่ไม่เคยหายไปไหน ·
+    <b>สังเกต:</b> ไทล์สถิติถูกลดลงมาอยู่ล่างสุด เพราะมันไม่ใช่คำถามที่คนเปิดหน้านี้มาถาม
+  </p>
+
+  <h3>แต่ละส่วนดึงมาจากไหน</h3>
+  <div class="tbl-shell">
+    <table>
+      <thead><tr><th style="width:26%">ส่วนบนจอ</th><th style="width:38%">ข้อมูล</th><th style="width:36%">แหล่ง</th></tr></thead>
+      <tbody>
+        <tr><td><strong>แผงฮีโร่</strong></td><td>hearts_collected / target · รอบ x/y · % · เวลาที่เหลือ</td><td><span class="m">ws/jobs/{id}</span> (fallback <span class="m">/api/jobs/{id}</span>)</td></tr>
+        <tr><td><strong>สายพาน</strong></td><td>ลำดับคิวทั้งระบบ · ETA รายใบ</td><td><span class="m">/api/queue/status</span> + <span class="m">ws/queue</span> — <strong>ต้องปิดชื่อฝั่ง server</strong></td></tr>
+        <tr><td><strong>ไทล์ 4 ช่อง</strong></td><td>คงเหลือ · เก็บวันนี้ · อัตราสำเร็จ · เวลารอเฉลี่ย</td><td>โปรไฟล์ + <span class="m">/api/jobs/mine</span> — <strong>2 ช่องหลังควรมี endpoint สรุป</strong></td></tr>
+        <tr><td><strong>รางขวา</strong></td><td>งานของเราทุกใบ พร้อมแถบความคืบหน้า</td><td><span class="m">/api/jobs/mine</span> + <span class="m">ws/queue</span></td></tr>
+        <tr><td><strong>ปุ่มเตือน</strong></td><td>แจ้งเตือนตอนใกล้ถึงคิว</td><td>Notification API ฝั่ง browser + <span class="m">ws/queue</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="split">
+    <div><h4>เด่นตรงไหน</h4><ul>
+      <li>ตอบข้อ 3 ได้โดยไม่ต้องอ่านตัวเลขเลย — เห็นตำแหน่งเป็นภาพ</li>
+      <li>เปิดค้างไว้ทั้งวันได้ ข้อมูลไหลเข้ามาเอง</li>
+      <li>สวยพอที่ลูกค้าจะแคปไปโพสต์ต่อ = โฆษณาฟรี</li>
+    </ul></div>
+    <div><h4>จุดที่ต้องระวัง</h4><ul>
+      <li>ต้องมีสถานะ “คิวว่าง / เครื่องหยุด” ที่ออกแบบมาดี ไม่งั้นจอจะโล่งน่ากลัว</li>
+      <li>ถ้าไม่มีงานของตัวเองเลย จอนี้จะไม่มีอะไรเป็นของเรา — ต้องมีเวอร์ชันชวนเริ่ม</li>
+      <li>รางขวาบวกสายพาน = สองที่ที่พูดเรื่องเดียวกัน ต้องระวังไม่ให้ขัดกันเอง</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ══════════════ C ══════════════ -->
+<section class="screen scr-c">
+  <div class="c-head">
+    <span class="c-tag">จอ C</span>
+    <h2>สมุดบัญชี · หน้าแรก</h2>
+    <span class="en">Heart Wallet — mobile first, desktop second</span>
+  </div>
+  <p class="thesis">
+    dashboard คือ<strong>ยอดคงเหลือกับรายการเดินบัญชี</strong> เหมือนเปิดแอปธนาคาร
+    งานที่กำลังทำถูกยกขึ้นมาเป็นการ์ดใบเดียวเหนือรายการ — เพราะนั่นคือสิ่งที่คนเปิดแอปมาดู
+  </p>
+
+  <div class="board-frame">
+    <div class="mk-c">
+      <!-- มือถือ -->
+      <div class="ph">
+        <div class="st"><span>9:41</span><span>▮▮▮ ▲ ▮</span></div>
+        <div class="hi-row">
+          <div>
+            <span class="lbl">หัวใจคงเหลือ</span>
+            <div class="bal">
+              <svg viewBox="0 0 24 24" fill="#E0486E" aria-hidden="true"><path d="M12 21s-8-5.1-8-10.4C4 7.5 6.2 5.5 8.8 5.5c1.7 0 2.7.8 3.2 1.6.5-.8 1.5-1.6 3.2-1.6 2.6 0 4.8 2 4.8 5.1C20 15.9 12 21 12 21z"/></svg>
+              4,820
+            </div>
+            <div class="sub">พอสำหรับอีก 12 งาน</div>
+          </div>
+          <span class="av">AW</span>
+        </div>
+
+        <div class="acts"><b>เติมหัวใจ</b><b class="alt">ส่งงาน</b></div>
+
+        <div class="now">
+          <div class="r1"><span class="em">bee_cookie@gmail.com</span><span class="tag">กำลังฟาร์ม</span></div>
+          <div class="z">248<i> / 400 ♥</i></div>
+          <span class="mtr"><i style="width:62%"></i></span>
+          <div class="fin">รอบ 4/6 · น่าจะเสร็จ 14:44 · แตะเพื่อดูสด</div>
+        </div>
+
+        <div class="lg-h"><span>รายการเดินบัญชี</span><span>ทั้งหมด →</span></div>
+        <div class="lg"><span class="l">arm_cookie@gmail.com<span>ฟาร์มเสร็จ · 14:38</span></span><span class="r dn">−400</span></div>
+        <div class="lg"><span class="l">mook_cr@gmail.com<span>ล้มเหลว · คืนหัวใจ</span></span><span class="r up">+400</span></div>
+        <div class="lg"><span class="l">เติมด้วยซองอั่งเปา<span>แพ็ค 500 × 4 · คูปอง −10%</span></span><span class="r up">+2,000</span></div>
+        <div class="lg"><span class="l">nut_cr@hotmail.com<span>รอคิวที่ 2</span></span><span class="r dn">−400</span></div>
+        <div class="lg"><span class="l">ของขวัญทดลองใช้<span>รับครั้งแรก</span></span><span class="r up">+100</span></div>
+
+        <div class="tabs"><i class="on">บัญชี</i><i>งาน</i><i>บริการ</i><i>ฉัน</i></div>
+      </div>
+
+      <!-- เดสก์ท็อป -->
+      <div class="desk">
+        <div class="dtop">
+          <span class="brand">Autoheart</span>
+          <span class="dnav"><b>บัญชี</b><span>งาน</span><span>บริการ</span><span>ฉัน</span></span>
+          <span class="dbal">♥ 4,820 · arm_wipsr</span>
+        </div>
+        <div class="dgrid">
+          <div class="dcol">
+            <span class="lbl">หัวใจคงเหลือ</span>
+            <div class="bigbal">
+              <svg viewBox="0 0 24 24" fill="#E0486E" aria-hidden="true"><path d="M12 21s-8-5.1-8-10.4C4 7.5 6.2 5.5 8.8 5.5c1.7 0 2.7.8 3.2 1.6.5-.8 1.5-1.6 3.2-1.6 2.6 0 4.8 2 4.8 5.1C20 15.9 12 21 12 21z"/></svg>
+              4,820
+            </div>
+            <div class="acts"><b>เติมหัวใจ</b><b class="alt">ส่งงาน</b></div>
+
+            <span class="lbl">รายการเดินบัญชี</span>
+            <div class="lg"><span class="l">arm_cookie@gmail.com<span>ฟาร์มเสร็จ · 14:38</span></span><span class="r" style="color:#7A6F60">−400</span></div>
+            <div class="lg"><span class="l">mook_cr@gmail.com<span>ล้มเหลว · คืนหัวใจ</span></span><span class="r" style="color:#0C8F7E">+400</span></div>
+            <div class="lg"><span class="l">เติมด้วยซองอั่งเปา<span>แพ็ค 500 × 4 · คูปอง −10%</span></span><span class="r" style="color:#0C8F7E">+2,000</span></div>
+            <div class="lg"><span class="l">nut_cr@hotmail.com<span>รอคิวที่ 2</span></span><span class="r" style="color:#7A6F60">−400</span></div>
+            <div class="lg" style="border:0"><span class="l">ของขวัญทดลองใช้<span>รับครั้งแรก</span></span><span class="r" style="color:#0C8F7E">+100</span></div>
+          </div>
+
+          <div class="dcol">
+            <span class="lbl">งานที่กำลังทำ</span>
+            <div class="tk">
+              <div class="em">bee_cookie@gmail.com</div>
+              <div class="z">248<i> / 400 ♥</i></div>
+              <span class="mtr" style="height:4px;background:#E3DACB;border-radius:99px;margin-top:.4rem;display:block;overflow:hidden"><i style="display:block;height:100%;width:62%;background:#0C8F7E"></i></span>
+              <div class="fin">รอบ 4/6 · น่าจะเสร็จ 14:44</div>
+            </div>
+
+            <div class="tl">
+              <div class="n done"><span class="t">รับงานแล้ว</span><span class="d">14:02</span></div>
+              <div class="n done"><span class="t">ตรวจไอดีผ่าน</span><span class="d">14:02</span></div>
+              <div class="n done"><span class="t">เข้าคิว · ลำดับ 3</span><span class="d">14:03</span></div>
+              <div class="n now"><span class="t">กำลังฟาร์ม · รอบ 4/6</span><span class="d">เหลืออีกประมาณ 6 นาที</span></div>
+              <div class="n wait"><span class="t">เสร็จสมบูรณ์</span><span class="d">—</span></div>
+            </div>
+
+            <span class="lbl">ไอดีที่บันทึกไว้</span>
+            <div class="sv"><span>nut_cr@hotmail.com <span style="font-family:var(--mono);font-size:9.5px;color:#A2967F">· รอคิวที่ 2</span></span><u>ดูงาน</u></div>
+            <div class="sv"><span>arm_cookie@gmail.com</span><u>ส่งงาน</u></div>
+            <div class="sv" style="border:0"><span>mook_cr@gmail.com</span><u>ส่งงาน</u></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="caption">
+    <b>อ่านภาพ:</b> ข้อ 1 คือสิ่งที่ใหญ่ที่สุดบนจอ และมีบรรทัด “พอสำหรับอีก 12 งาน” แปลตัวเลขให้เป็นภาษาคน ·
+    ข้อ 2 คือการ์ดเดียวเหนือรายการ · ข้อ 3 อยู่ในไทม์ไลน์ (เดสก์ท็อป) หรือแตะการ์ดเข้าไปดู (มือถือ) ·
+    ข้อ 4 คือปุ่มเขียวสองปุ่มที่อยู่ในระยะนิ้วโป้งเสมอ · <b>สังเกต:</b> รายการเดินบัญชีรวมทั้งเติม ตัด และคืน
+    ไว้เส้นเดียว — ตอนนี้ข้อมูลนี้อยู่คนละหน้ากัน
+  </p>
+
+  <h3>แต่ละส่วนดึงมาจากไหน</h3>
+  <div class="tbl-shell">
+    <table>
+      <thead><tr><th style="width:26%">ส่วนบนจอ</th><th style="width:38%">ข้อมูล</th><th style="width:36%">แหล่ง</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ยอดคงเหลือ</strong></td><td>credits + คำนวณว่า “พอสำหรับอีกกี่งาน”</td><td>โปรไฟล์ + <span class="m">/api/packages</span></td></tr>
+        <tr><td><strong>การ์ดงานที่ทำอยู่</strong></td><td>หัวใจสด · รอบ x/y · เวลาที่คาดว่าเสร็จ</td><td><span class="m">ws/jobs/{id}</span></td></tr>
+        <tr><td><strong>รายการเดินบัญชี</strong></td><td>เติม / ตัด / คืน เรียงเวลาเดียวกัน</td><td>รวม <span class="m">/api/topup/history</span> + <span class="m">/api/jobs/mine</span> — <strong>ควรมี <span class="m">/api/ledger</span></strong></td></tr>
+        <tr><td><strong>ไทม์ไลน์ 5 ขั้น</strong></td><td>queued → validating → processing → completed / failed</td><td><span class="m">JobStatus</span> ตรง ๆ ไม่ต้องแปลง</td></tr>
+        <tr><td><strong>ไอดีที่บันทึกไว้</strong></td><td>ชื่ออีเมลเพื่อไม่ต้องพิมพ์ซ้ำ — <strong>ไม่เก็บรหัสผ่าน</strong></td><td>localStorage ฝั่งเครื่องเท่านั้น</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="split">
+    <div><h4>เด่นตรงไหน</h4><ul>
+      <li>ตอบข้อ 1 ได้ในครึ่งวินาที และแปลเป็นภาษาคนให้ด้วย</li>
+      <li>รายการเดินบัญชีเล่มเดียวตอบคำถาม “หัวใจหายไปไหน” ที่แอดมินต้องตอบซ้ำ ๆ</li>
+      <li>เดสก์ท็อปไม่ใช่มือถือยืด — เป็นสองคอลัมน์ที่ออกแบบมาต่างหาก</li>
+    </ul></div>
+    <div><h4>จุดที่ต้องระวัง</h4><ul>
+      <li>มีงานเยอะ ๆ พร้อมกันแล้วการ์ดใบเดียวจะไม่พอ ต้องมีแบบซ้อน</li>
+      <li>ภาษากระเป๋าเงินอาจถูกเข้าใจว่าถอนเป็นเงินคืนได้ — ต้องเขียนกำกับให้ชัด</li>
+      <li>ไม่เห็นคิวรวมของระบบ ตอบข้อ 3 ได้อ่อนที่สุดในสามแบบ</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ══════════════ เทียบ ══════════════ -->
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>สี่คำถาม ตอบยังไงในแต่ละจอ</h2></div>
+  <div class="tbl-shell">
+    <table>
+      <thead><tr><th style="width:22%">คำถาม</th><th style="width:26%">A · คอนโซล</th><th style="width:26%">B · สายพาน</th><th style="width:26%">C · สมุดบัญชี</th></tr></thead>
+      <tbody>
+        <tr><td><strong>มีหัวใจเท่าไหร่</strong></td><td>แถบบน ติดตลอด</td><td>ไทล์ล่าง + มุมขวาบน</td><td><strong>ใหญ่ที่สุดบนจอ</strong></td></tr>
+        <tr><td><strong>งานถึงไหนแล้ว</strong></td><td><strong>ตารางครบทุกใบพร้อมกัน</strong></td><td>ฮีโร่ 1 ใบ + รางขวาที่เหลือ</td><td>การ์ดใบเดียว ที่เหลืออยู่แท็บงาน</td></tr>
+        <tr><td><strong>คิวอีกนานแค่ไหน</strong></td><td>ตัวเลขในตาราง + แผนที่บรรทัดเดียว</td><td><strong>เห็นเป็นภาพ ไม่ต้องอ่านเลข</strong></td><td>ต้องแตะเข้าไปดู</td></tr>
+        <tr><td><strong>ควรกดอะไรต่อ</strong></td><td>คำสั่งที่ก๊อปวางได้</td><td>ปุ่มถาวรในรางขวา</td><td><strong>สองปุ่มในระยะนิ้วโป้ง</strong></td></tr>
+        <tr><td><strong>เห็นกี่งานพร้อมกัน</strong></td><td>ไม่จำกัด</td><td>1 เด่น + 4–6 ในราง</td><td>1 เด่น</td></tr>
+        <tr><td><strong>ใช้เวลาอ่านครั้งแรก</strong></td><td>นานที่สุด</td><td>กลาง</td><td>สั้นที่สุด</td></tr>
+        <tr><td><strong>เปิดค้างทั้งวันไหว</strong></td><td>ไหว</td><td><strong>ออกแบบมาเพื่อสิ่งนี้</strong></td><td>ไม่ใช่จุดประสงค์</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="lede">
+    ข้อสรุปเดิมยังยืน — <strong>C เป็นฐาน</strong> เพราะตอบข้อ 1 กับ 4 ได้เร็วที่สุดและอยู่บนอุปกรณ์ที่ลูกค้าใช้จริง
+    จุดอ่อนของมันคือข้อ 3 ซึ่งแก้ได้ด้วยการยืมสายพานของ B มาวางเป็นแถบเดียวเหนือรายการ
+    ส่วน A ยังเป็นโหมดที่เปิดด้วย <span class="m">⌘K</span> สำหรับคนที่รันหลายไอดี
+  </p>
+
+  <div class="note">
+    <strong>ขอบเขต</strong> — ทั้งสามจอเป็นภาพจำลองที่วาดขึ้นในเอกสาร ไม่ใช่โค้ดที่รันได้ และไม่มีไฟล์ใดใน
+    <span class="m">frontend/</span> หรือ <span class="m">backend/</span> ถูกแก้ ตัวเลขทั้งหมดเป็นข้อมูลสมมติ
+    แต่ทุกฟิลด์ที่โชว์มีอยู่จริงใน <span class="m">JobOut</span> / <span class="m">QueueStatusOut</span> / <span class="m">ProfileOut</span>
+    ยกเว้นที่ระบุไว้ว่าต้องเพิ่ม
+  </div>
+</section>
+
+<footer>
+  <span>Autoheart · Dashboard Study</span>
+  <span>3 จอ · 4 คำถาม · ข้อมูลชุดเดียวกัน</span>
+  <span>ส.ค. 2026</span>
+</footer>
+
+</div>
