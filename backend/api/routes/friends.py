@@ -58,8 +58,10 @@ async def accept_friends(
     _maintenance=Depends(check_maintenance),
 ):
     meta = client_meta(request)
-    rate_limiter.check(f"friends_accept:user:{user['id']}", limit=20, window_seconds=3600)
-    rate_limiter.check(f"friends_accept:ip:{meta.get('ip_address')}", limit=40, window_seconds=3600)
+    # หน้าเว็บซอย player_ids เป็นก้อนละ 200 แล้วยิงต่อกัน การกดปุ่มครั้งเดียวจึงเป็น
+    # หลายคำขอ — เพดานเดิม 20/ชม. หมดตั้งแต่คลิกแรกของบัญชีที่มีคำขอค้างเป็นพัน
+    rate_limiter.check(f"friends_accept:user:{user['id']}", limit=120, window_seconds=3600)
+    rate_limiter.check(f"friends_accept:ip:{meta.get('ip_address')}", limit=240, window_seconds=3600)
 
     email, password = await saved_account_service.resolve(
         user["id"], email=body.email, password=body.password, account_id=body.account_id
@@ -87,8 +89,10 @@ async def reject_friends(
     _maintenance=Depends(check_maintenance),
 ):
     meta = client_meta(request)
-    rate_limiter.check(f"friends_reject:user:{user['id']}", limit=20, window_seconds=3600)
-    rate_limiter.check(f"friends_reject:ip:{meta.get('ip_address')}", limit=40, window_seconds=3600)
+    # หน้าเว็บซอย player_ids เป็นก้อนละ 200 แล้วยิงต่อกัน การกดปุ่มครั้งเดียวจึงเป็น
+    # หลายคำขอ — เพดานเดิม 20/ชม. หมดตั้งแต่คลิกแรกของบัญชีที่มีคำขอค้างเป็นพัน
+    rate_limiter.check(f"friends_reject:user:{user['id']}", limit=120, window_seconds=3600)
+    rate_limiter.check(f"friends_reject:ip:{meta.get('ip_address')}", limit=240, window_seconds=3600)
 
     email, password = await saved_account_service.resolve(
         user["id"], email=body.email, password=body.password, account_id=body.account_id
