@@ -9,7 +9,12 @@ from fastapi import APIRouter, Depends, Request
 
 from api.dependencies import check_maintenance, client_meta, get_current_user
 from api.middleware.rate_limiter import rate_limiter
-from models.schemas import FriendAcceptRequest, FriendDeleteRequest, FriendListRequest
+from models.schemas import (
+    FriendAcceptRequest,
+    FriendDeleteRequest,
+    FriendListRequest,
+    FriendRejectRequest,
+)
 from services.friend_service import friend_service
 from services.saved_account_service import saved_account_service
 
@@ -67,6 +72,34 @@ async def accept_friends(
         "failed": result.get("failed") or [],
         "skipped_not_pending": result.get("skipped_not_pending", 0),
         "skipped_cap": result.get("skipped_cap", 0),
+        "friend_cap": result.get("friend_cap"),
+        "friend_count": result.get("friend_count", 0),
+        "request_count": result.get("request_count", 0),
+        "requests": result.get("requests") or [],
+    }
+
+
+@router.post("/reject")
+async def reject_friends(
+    body: FriendRejectRequest,
+    request: Request,
+    user=Depends(get_current_user),
+    _maintenance=Depends(check_maintenance),
+):
+    meta = client_meta(request)
+    rate_limiter.check(f"friends_reject:user:{user['id']}", limit=20, window_seconds=3600)
+    rate_limiter.check(f"friends_reject:ip:{meta.get('ip_address')}", limit=40, window_seconds=3600)
+
+    email, password = await saved_account_service.resolve(
+        user["id"], email=body.email, password=body.password, account_id=body.account_id
+    )
+    result = await friend_service.reject_friends(email, password, body.player_ids)
+    return {
+        "ok": result.get("ok", False),
+        "requested": result.get("requested", len(body.player_ids)),
+        "rejected": result.get("rejected", 0),
+        "failed": result.get("failed") or [],
+        "skipped_not_pending": result.get("skipped_not_pending", 0),
         "friend_cap": result.get("friend_cap"),
         "friend_count": result.get("friend_count", 0),
         "request_count": result.get("request_count", 0),

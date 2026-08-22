@@ -1,13 +1,14 @@
 """
 ============================================================================
- Cookie Run — FRIEND TOOL (list / accept / remove friends)
+ Cookie Run — FRIEND TOOL (list / accept / reject / remove friends)
 ============================================================================
  เครื่องมือแยกจาก heart_farm.py สำหรับฟีเจอร์ "จัดการเพื่อน" บนเว็บ Autoheart
- ทำแค่ 3 อย่าง ไม่ยุ่งกับการฟาร์มหัวใจเลย:
+ ทำแค่ 4 อย่าง ไม่ยุ่งกับการฟาร์มหัวใจเลย:
 
    list    -> ล็อกอิน DevPlay แล้วคืนรายชื่อเพื่อน + คำขอเป็นเพื่อนที่ค้างอยู่
    delete  -> ลบเพื่อนตาม player_ids ที่ส่งมา (แบ่งเป็นก้อน + มี fallback)
    accept  -> กดรับคำขอเป็นเพื่อนตาม player_ids ที่ส่งมา (ทีละคน + เคารพ cap 300)
+   reject  -> ปัดคำขอทิ้งตาม player_ids ที่ส่งมา (ไม่กินช่องเพื่อน จึงไม่มี cap)
 
  รับ input ทาง stdin เป็น JSON บรรทัดเดียว (ไม่ส่งรหัสผ่านทาง argv เพราะ
  argv มองเห็นได้จาก `ps` ของโปรเซสอื่นบนเครื่องเดียวกัน):
@@ -26,8 +27,9 @@ import argparse
 import contextlib
 import json
 import sys
+import time
 
-from heart_farm import GAME_FRIEND_CAP, MainAccount, _accept_friend
+from heart_farm import ACCEPT_RETRIES, ACCEPT_RETRY_SLEEP, GAME_FRIEND_CAP, MainAccount
 
 # RemoveFriend ก้อนใหญ่เกินไปเซิร์ฟเวอร์ตอบ INTERNAL (เจอมาแล้วกับ AcceptLife
 # ที่ยิงทีเดียว 219 seq) เลยแบ่งเป็นก้อนตั้งแต่แรกแทนที่จะรอให้พังก่อน
@@ -90,6 +92,44 @@ def _fetch(main):
 
 def _list_friends(main):
     return _fetch(main)[0]
+
+
+def _handle_request(main, mid, accept):
+    """รับ/ปฏิเสธคำขอ 1 ใบ — RPC เดียวกัน ต่างกันแค่ธง accept
+
+    ไม่ยืม _accept_friend ของ heart_farm.py เพราะตัวนั้นฮาร์ดโค้ด accept=True
+    ไว้สำหรับ pipeline ฟาร์มหัวใจ แก้ให้รับพารามิเตอร์ก็ได้ แต่ไม่คุ้มไปแตะ
+    hot path ที่ยิงเป็นร้อยครั้งต่อรอบ — ยืมแค่ค่า retry มาใช้ให้เท่ากันพอ"""
+    r = None
+    for attempt in range(ACCEPT_RETRIES):
+        r = main.unary(
+            "service.api.FriendAPI",
+            "HandleFriendRequest",
+            {"common_req": {}, "player_id": mid, "accept": bool(accept)},
+        )
+        if not r.get("__error__"):
+            return True, r
+        if attempt < ACCEPT_RETRIES - 1:
+            time.sleep(ACCEPT_RETRY_SLEEP)
+    return False, r
+
+
+def _handle_many(main, targets, accept):
+    """ไล่ยิงทีละคน (ไม่มี API แบบก้อน) คืนรายการที่พลาดพร้อมสาเหตุ"""
+    failed = []
+    for pid in targets:
+        ok, r = _handle_request(main, pid, accept)
+        if not ok:
+            err = "%s %s" % (r.get("code"), r.get("details") or "") if r else ""
+            failed.append({"player_id": pid, "error": err.strip() or "ไม่ทราบสาเหตุ"})
+    return failed
+
+
+def _pending_targets(player_ids, requests):
+    """เอาเฉพาะ id ที่มีคำขอค้างอยู่จริง (กันกดซ้ำหลังคำขอหายไปแล้ว)"""
+    pending = {(r.get("requester") or {}).get("player_id") for r in requests}
+    targets = [pid for pid in dict.fromkeys(player_ids) if pid in pending]
+    return targets, len(set(player_ids)) - len(targets)
 
 
 def _remove_chunk(main, player_ids):
@@ -171,9 +211,7 @@ def do_accept(main, player_ids):
     ด้วยเหตุผลเดียวกับ do_delete — response ของเซิร์ฟเวอร์บอกแค่ว่า 'รับคำสั่ง
     แล้ว' ไม่ได้แปลว่าเป็นเพื่อนกันจริง"""
     before_friends, before_requests = _fetch(main)
-    pending = {(r.get("requester") or {}).get("player_id") for r in before_requests}
-    targets = [pid for pid in dict.fromkeys(player_ids) if pid in pending]
-    skipped_not_pending = len(set(player_ids)) - len(targets)
+    targets, skipped_not_pending = _pending_targets(player_ids, before_requests)
 
     # เพดาน 300 คนเป็นของเกม ไม่ใช่ของเรา — เกินแล้วเซิร์ฟเวอร์จะปฏิเสธทีละคน
     # กลายเป็นกอง error ที่ผู้ใช้อ่านไม่รู้เรื่อง ตัดตั้งแต่ต้นทางแล้วบอกตรง ๆ
@@ -182,14 +220,7 @@ def do_accept(main, player_ids):
     skipped_cap = max(len(targets) - slots, 0)
     targets = targets[:slots]
 
-    # ไม่มี API รับทีละก้อน ต้องยิง HandleFriendRequest ทีละคน — ใช้ตัวเดียวกับ
-    # ที่ heart_farm.py ใช้ตอนรับ guest จะได้ retry แถมมาด้วย
-    failed = []
-    for pid in targets:
-        ok, r = _accept_friend(main, pid)
-        if not ok:
-            err = "%s %s" % (r.get("code"), r.get("details") or "") if r else ""
-            failed.append({"player_id": pid, "error": err.strip() or "ไม่ทราบสาเหตุ"})
+    failed = _handle_many(main, targets, accept=True)
 
     after_friends, after_requests = _fetch(main)
     now_friends = {f.get("player_id") for f in after_friends}
@@ -209,6 +240,36 @@ def do_accept(main, player_ids):
     }
 
 
+def do_reject(main, player_ids):
+    """ปัดคำขอทิ้ง — ไม่มี cap ให้คิดเพราะการปฏิเสธไม่กินช่องเพื่อน
+
+    ยืนยันผลคนละแบบกับ do_accept: อันนั้นเช็คว่า 'เป็นเพื่อนกันแล้วหรือยัง'
+    อันนี้เช็คว่า 'คำขอหายไปจากลิสต์แล้วหรือยัง'
+
+    หมายเหตุ: FriendAPI ไม่มี block/ban (มีแค่ 6 method) การปฏิเสธจึงเป็นแค่
+    การล้างลิสต์ อีกฝ่ายส่งคำขอกลับมาใหม่ได้ทันที"""
+    before_friends, before_requests = _fetch(main)
+    targets, skipped_not_pending = _pending_targets(player_ids, before_requests)
+
+    failed = _handle_many(main, targets, accept=False)
+
+    after_friends, after_requests = _fetch(main)
+    still_pending = {(r.get("requester") or {}).get("player_id") for r in after_requests}
+    rejected = [pid for pid in targets if pid not in still_pending]
+
+    return {
+        "ok": not failed,
+        "requested": len(set(player_ids)),
+        "rejected": len(rejected),
+        "failed": failed,
+        "skipped_not_pending": skipped_not_pending,
+        "friend_cap": GAME_FRIEND_CAP,
+        "friend_count": len(after_friends),
+        "request_count": len(after_requests),
+        "requests": [_request_out(r) for r in after_requests],
+    }
+
+
 def _read_input():
     raw = sys.stdin.read().strip()
     if not raw:
@@ -217,8 +278,8 @@ def _read_input():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Cookie Run friend list / accept / remove tool")
-    parser.add_argument("--mode", choices=["list", "accept", "delete"], required=True)
+    parser = argparse.ArgumentParser(description="Cookie Run friend list / accept / reject / remove tool")
+    parser.add_argument("--mode", choices=["list", "accept", "reject", "delete"], required=True)
     args = parser.parse_args()
 
     with _stdout_to_stderr() as out:
@@ -236,6 +297,7 @@ def main():
             runner = {
                 "list": do_list,
                 "accept": lambda acc: do_accept(acc, player_ids),
+                "reject": lambda acc: do_reject(acc, player_ids),
                 "delete": lambda acc: do_delete(acc, player_ids),
             }[args.mode]
 
