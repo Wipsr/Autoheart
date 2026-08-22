@@ -67,6 +67,11 @@ export type GameFriend = {
   looks_like_guest: boolean;
 };
 
+// คำขอเป็นเพื่อนใช้การ์ดหน้าตาเดียวกับเพื่อน แค่มีเวลาที่ขอเพิ่มเข้ามา
+export type GameFriendRequest = GameFriend & {
+  request_time?: string | null;
+};
+
 export type FriendListResult = {
   email: string;
   mid?: string | null;
@@ -74,6 +79,22 @@ export type FriendListResult = {
   friend_cap?: number | null;
   friend_count: number;
   friends: GameFriend[];
+  request_count: number;
+  requests: GameFriendRequest[];
+};
+
+export type FriendAcceptResult = {
+  ok: boolean;
+  requested: number;
+  accepted: number;
+  failed: { player_id: string; error: string }[];
+  skipped_not_pending: number;
+  // ตัดออกเพราะเพื่อนเต็ม 300 แล้ว ไม่ใช่เพราะคำขอหาย
+  skipped_cap: number;
+  friend_cap?: number | null;
+  friend_count: number;
+  request_count: number;
+  requests: GameFriendRequest[];
 };
 
 export type FriendDeleteResult = {

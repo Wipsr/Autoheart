@@ -89,6 +89,7 @@ Autoheart/
 │   │   │   │   ├── purchase/[id]/page.tsx  # ขั้นตอนซื้อ (payment + credentials)
 │   │   │   │   ├── queue/page.tsx     # สถานะคิว real-time
 │   │   │   │   ├── history/page.tsx   # ประวัติการใช้งาน
+│   │   │   │   ├── friend-requests/page.tsx  # รับคำขอเป็นเพื่อน (ฟรี ไม่ผ่านคิว)
 │   │   │   │   ├── friends/page.tsx   # ลบเพื่อนในเกม (ฟรี ไม่ผ่านคิว)
 │   │   │   │   └── settings/page.tsx  # ตั้งค่าบัญชี (เปลี่ยนรหัสผ่าน)
 │   │   │   │
@@ -191,7 +192,7 @@ Autoheart/
 │   │   │   ├── jobs.py                # POST /api/jobs/create, GET /api/jobs/status
 │   │   │   ├── queue.py               # GET /api/queue/status, GET /api/queue/position
 │   │   │   ├── credentials.py         # POST /api/credentials/verify (DevPlay login check)
-│   │   │   ├── friends.py             # POST /api/friends/list, POST /api/friends/delete (ฟรี)
+│   │   │   ├── friends.py             # POST /api/friends/list|accept|delete (ฟรี)
 │   │   │   ├── admin.py               # Admin-only routes
 │   │   │   └── websocket.py           # WebSocket endpoints for real-time
 │   │   │
@@ -234,7 +235,7 @@ Autoheart/
 │   └── heart_farm/                     # Heart farm scripts (copied from heart_farm_share)
 │       ├── heart_farm.py               # Main farm script (modified for API mode)
 │       ├── heart_farm_fast.py          # Fast variant
-│       ├── friend_tool.py              # list/remove friends (ฟีเจอร์ลบเพื่อนบนเว็บ)
+│       ├── friend_tool.py              # list/accept/remove friends (เมนูรับ+ลบเพื่อนบนเว็บ)
 │       ├── _descriptors.bin            # Game protocol definitions
 │       └── requirements.txt
 │

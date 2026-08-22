@@ -19,6 +19,9 @@ BACKEND_ROOT = Path(__file__).resolve().parent.parent
 
 LIST_TIMEOUT_SECONDS = 90
 DELETE_TIMEOUT_SECONDS = 300
+# รับเพื่อนต้องยิง HandleFriendRequest ทีละคน (ไม่มี API แบบก้อน) จึงช้ากว่าลบ
+# ที่ส่งได้ทีละ 50 id — ให้เวลาเผื่อไว้มากกว่า
+ACCEPT_TIMEOUT_SECONDS = 300
 
 
 class FriendToolError(AppError):
@@ -84,6 +87,20 @@ class FriendService:
         return await self._run(
             "list", {"email": email, "password": password}, LIST_TIMEOUT_SECONDS
         )
+
+    async def accept_friends(
+        self, email: str, password: str, player_ids: list[str]
+    ) -> dict[str, Any]:
+        # เหตุผลเดียวกับ delete_friends — รับได้บางส่วนก็ยังคืน 200 พร้อมรายการ
+        # ที่พลาด ให้หน้าเว็บบอกผู้ใช้ได้ว่าเหลือใครให้กดซ้ำ
+        result = await self._run(
+            "accept",
+            {"email": email, "password": password, "player_ids": player_ids},
+            ACCEPT_TIMEOUT_SECONDS,
+        )
+        if "accepted" not in result:
+            raise FriendToolError(result.get("error") or "รับเพื่อนไม่สำเร็จ")
+        return result
 
     async def delete_friends(
         self, email: str, password: str, player_ids: list[str]
