@@ -25,6 +25,12 @@ import type {
 
 type Phase = "form" | "list";
 
+// ส่ง id ทีเดียวเป็นพัน ๆ ไม่ได้ 2 ชั้น: schema ฝั่ง API ปัดที่ 500 id/คำขอ และ
+// friend_tool ยิง HandleFriendRequest เรียงทีละคนในโปรเซสเดียว พันกว่าใบก็ชน
+// subprocess timeout 300s — ซอยเป็นก้อนแล้วยิงต่อกันจึงทั้งผ่าน validation และ
+// ให้ผู้ใช้เห็นความคืบหน้าระหว่างรอ
+const BATCH_SIZE = 200;
+
 // สองปุ่มคืนผลคนละหน้าตา (accepted vs rejected) แต่ใช้การ์ดสรุปใบเดียวกัน
 type ActionResult =
   | { kind: "accept"; data: FriendAcceptResult }
@@ -39,6 +45,7 @@ export default function FriendRequestsPage() {
   const [accepting, setAccepting] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [confirmingReject, setConfirmingReject] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState("");
   const [account, setAccount] = useState<FriendListResult | null>(null);
   const [requests, setRequests] = useState<GameFriendRequest[]>([]);
@@ -60,6 +67,11 @@ export default function FriendRequestsPage() {
   };
 
   const busy = accepting || rejecting;
+  // ก้อนละ 200 ใบ งานพันกว่าใบใช้เวลาเป็นนาที ต้องบอกว่าไปถึงไหนแล้ว
+  const busyLabel = (verb: string) =>
+    progress && progress.total > BATCH_SIZE
+      ? `${verb} ${formatHearts(progress.done)} / ${formatHearts(progress.total)}...`
+      : `${verb}...`;
   const friendCap = account?.friend_cap ?? null;
   // เพดาน 300 คนเป็นของเกม — รับเกินช่องว่างที่เหลือไม่ได้ ต้องบอกก่อนกด
   // ไม่ใช่ปล่อยให้เซิร์ฟเวอร์ปฏิเสธทีละคนแล้วค่อยโชว์กอง error
@@ -114,54 +126,70 @@ export default function FriendRequestsPage() {
     }
   };
 
-  const runAccept = async () => {
+  // รวมผลของทุก batch ให้เหลือก้อนเดียว ผู้ใช้ไม่ต้องรู้ว่าเบื้องหลังซอยกี่ครั้ง
+  const runAction = async (kind: "accept" | "reject") => {
     if (!token || selected.size === 0) return;
-    setAccepting(true);
+    const ids = Array.from(selected);
+    const setBusy = kind === "accept" ? setAccepting : setRejecting;
+    setBusy(true);
     setError("");
-    try {
-      const data = await api<FriendAcceptResult>("/api/friends/accept", {
-        method: "POST",
-        token,
-        body: JSON.stringify({
-          ...credPayload(cred),
-          player_ids: Array.from(selected),
-        }),
-      });
-      setResult({ kind: "accept", data });
-      setFriendCount(data.friend_count);
-      applyRequests(data.requests ?? [], false);
-      setAccount((prev) => (prev ? { ...prev, friend_count: data.friend_count } : prev));
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "รับเพื่อนไม่สำเร็จ");
-    } finally {
-      setAccepting(false);
-    }
-  };
+    setProgress({ done: 0, total: ids.length });
 
-  const runReject = async () => {
-    if (!token || selected.size === 0) return;
-    setRejecting(true);
-    setError("");
+    let requested = 0;
+    let done = 0;
+    let skippedNotPending = 0;
+    let skippedCap = 0;
+    let failed: { player_id: string; error: string }[] = [];
+    let last: FriendAcceptResult | FriendRejectResult | null = null;
+
     try {
-      const data = await api<FriendRejectResult>("/api/friends/reject", {
-        method: "POST",
-        token,
-        body: JSON.stringify({
-          ...credPayload(cred),
-          player_ids: Array.from(selected),
-        }),
-      });
-      setResult({ kind: "reject", data });
-      setFriendCount(data.friend_count);
-      applyRequests(data.requests ?? [], false);
-      setAccount((prev) => (prev ? { ...prev, friend_count: data.friend_count } : prev));
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const batch = ids.slice(i, i + BATCH_SIZE);
+        const data = await api<FriendAcceptResult | FriendRejectResult>(
+          `/api/friends/${kind}`,
+          {
+            method: "POST",
+            token,
+            body: JSON.stringify({ ...credPayload(cred), player_ids: batch }),
+          }
+        );
+        requested += data.requested;
+        done += "accepted" in data ? data.accepted : data.rejected;
+        skippedNotPending += data.skipped_not_pending;
+        if ("skipped_cap" in data) skippedCap += data.skipped_cap;
+        failed = failed.concat(data.failed);
+        last = data;
+        setProgress({ done: Math.min(i + BATCH_SIZE, ids.length), total: ids.length });
+      }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "ปฏิเสธคำขอไม่สำเร็จ");
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : kind === "accept"
+            ? "รับเพื่อนไม่สำเร็จ"
+            : "ปฏิเสธคำขอไม่สำเร็จ"
+      );
     } finally {
-      setRejecting(false);
+      // batch กลางทางพังก็ยังสรุปผลเท่าที่ทำไปแล้ว ไม่ทิ้งงานที่สำเร็จไปเงียบ ๆ
+      if (last) {
+        const base = { ...last, requested, failed, skipped_not_pending: skippedNotPending, ok: failed.length === 0 };
+        setResult(
+          kind === "accept"
+            ? { kind, data: { ...base, accepted: done, skipped_cap: skippedCap } as FriendAcceptResult }
+            : { kind, data: { ...base, rejected: done } as FriendRejectResult }
+        );
+        setFriendCount(last.friend_count);
+        applyRequests(last.requests ?? [], false);
+        setAccount((prev) => (prev ? { ...prev, friend_count: last!.friend_count } : prev));
+      }
+      setBusy(false);
+      setProgress(null);
       setConfirmingReject(false);
     }
   };
+
+  const runAccept = () => runAction("accept");
+  const runReject = () => runAction("reject");
 
   const reset = () => {
     setPhase("form");
@@ -174,6 +202,7 @@ export default function FriendRequestsPage() {
     setResult(null);
     setError("");
     setConfirmingReject(false);
+    setProgress(null);
   };
 
   return (
@@ -333,7 +362,7 @@ export default function FriendRequestsPage() {
                     <Button variant="danger" onClick={runReject} disabled={busy}>
                       {rejecting ? (
                         <>
-                          <Loader2 className="h-4 w-4 animate-spin" /> กำลังปฏิเสธ...
+                          <Loader2 className="h-4 w-4 animate-spin" /> {busyLabel("กำลังปฏิเสธ")}
                         </>
                       ) : (
                         <>
@@ -363,7 +392,7 @@ export default function FriendRequestsPage() {
                     <Button onClick={runAccept} disabled={busy || selected.size === 0}>
                       {accepting ? (
                         <>
-                          <Loader2 className="h-4 w-4 animate-spin" /> กำลังรับ...
+                          <Loader2 className="h-4 w-4 animate-spin" /> {busyLabel("กำลังรับ")}
                         </>
                       ) : (
                         <>

@@ -4,6 +4,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -44,6 +45,23 @@ def create_app() -> FastAPI:
         return JSONResponse(
             status_code=exc.status_code,
             content={"code": exc.code, "message": exc.message, "detail": exc.detail},
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_error_handler(_request: Request, exc: RequestValidationError):
+        """422 ของ FastAPI คืน {"detail": [...]} ที่ไม่มีฟิลด์ message — หน้าเว็บอ่าน
+        data.message แล้วตกไป res.statusText ซึ่งบน HTTP/2 เป็นสตริงว่าง กลายเป็น
+        error ที่มองไม่เห็นเลยสักตัว (กดปุ่มแล้วเงียบ) บังคับให้ทุก error ของ API
+        หน้าตาเหมือนกันหมด { code, message, detail }"""
+        first = (exc.errors() or [{}])[0]
+        field = ".".join(str(x) for x in first.get("loc", ()) if x != "body") or "payload"
+        return JSONResponse(
+            status_code=422,
+            content={
+                "code": "invalid_request",
+                "message": "ข้อมูลที่ส่งมาไม่ถูกต้อง (%s: %s)" % (field, first.get("msg", "invalid")),
+                "detail": None,
+            },
         )
 
     @app.get("/health")

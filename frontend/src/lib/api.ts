@@ -29,9 +29,12 @@ export async function api<T = unknown>(
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
+    // statusText เป็นสตริงว่างเสมอบน HTTP/2 (โปรโตคอลไม่มี reason phrase) ถ้าปล่อยผ่าน
+    // จะได้ ApiError ที่ message ว่าง แล้วโดน `{error && ...}` ของหน้าเว็บกลืนหายทั้งใบ
+    // — กดปุ่มแล้วเงียบสนิท ไม่มีอะไรบอกผู้ใช้เลย
     throw new ApiError(
       data.code || "error",
-      data.message || res.statusText,
+      data.message || res.statusText || `คำขอไม่สำเร็จ (HTTP ${res.status})`,
       res.status,
       data.detail
     );
