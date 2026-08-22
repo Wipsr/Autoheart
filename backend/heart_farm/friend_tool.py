@@ -1,12 +1,13 @@
 """
 ============================================================================
- Cookie Run — FRIEND TOOL (list / remove friends)
+ Cookie Run — FRIEND TOOL (list / accept / remove friends)
 ============================================================================
- เครื่องมือแยกจาก heart_farm.py สำหรับฟีเจอร์ "ลบเพื่อน" บนเว็บ Autoheart
- ทำแค่ 2 อย่าง ไม่ยุ่งกับการฟาร์มหัวใจเลย:
+ เครื่องมือแยกจาก heart_farm.py สำหรับฟีเจอร์ "จัดการเพื่อน" บนเว็บ Autoheart
+ ทำแค่ 3 อย่าง ไม่ยุ่งกับการฟาร์มหัวใจเลย:
 
-   list    -> ล็อกอิน DevPlay แล้วคืนรายชื่อเพื่อนทั้งหมดเป็น JSON
+   list    -> ล็อกอิน DevPlay แล้วคืนรายชื่อเพื่อน + คำขอเป็นเพื่อนที่ค้างอยู่
    delete  -> ลบเพื่อนตาม player_ids ที่ส่งมา (แบ่งเป็นก้อน + มี fallback)
+   accept  -> กดรับคำขอเป็นเพื่อนตาม player_ids ที่ส่งมา (ทีละคน + เคารพ cap 300)
 
  รับ input ทาง stdin เป็น JSON บรรทัดเดียว (ไม่ส่งรหัสผ่านทาง argv เพราะ
  argv มองเห็นได้จาก `ps` ของโปรเซสอื่นบนเครื่องเดียวกัน):
@@ -26,7 +27,7 @@ import contextlib
 import json
 import sys
 
-from heart_farm import GAME_FRIEND_CAP, MainAccount
+from heart_farm import GAME_FRIEND_CAP, MainAccount, _accept_friend
 
 # RemoveFriend ก้อนใหญ่เกินไปเซิร์ฟเวอร์ตอบ INTERNAL (เจอมาแล้วกับ AcceptLife
 # ที่ยิงทีเดียว 219 seq) เลยแบ่งเป็นก้อนตั้งแต่แรกแทนที่จะรอให้พังก่อน
@@ -70,11 +71,25 @@ def _friend_out(friend):
     }
 
 
-def _list_friends(main):
+def _request_out(request):
+    """คำขอเป็นเพื่อน = Friend ของคนขอ + เวลาที่ขอ — แปลงหน้าตาให้เหมือน
+    _friend_out เป๊ะ ๆ เพื่อให้หน้าเว็บใช้การ์ดรายชื่อตัวเดียวกันได้ทั้งสองเมนู"""
+    out = _friend_out(request.get("requester") or {})
+    out["request_time"] = request.get("request_time")
+    return out
+
+
+def _fetch(main):
+    """ListFriends คืนทั้งรายชื่อเพื่อนและคำขอที่ค้างอยู่มาในก้อนเดียว
+    (received_friend_requests) — ไม่มี RPC แยกสำหรับดึงคำขอ"""
     r = main.unary("service.api.FriendAPI", "ListFriends", {"common_req": {}})
     if r.get("__error__"):
         raise RuntimeError("ดึงรายชื่อเพื่อนไม่สำเร็จ: %s" % (r.get("details") or r.get("code")))
-    return r.get("friends") or []
+    return (r.get("friends") or []), (r.get("received_friend_requests") or [])
+
+
+def _list_friends(main):
+    return _fetch(main)[0]
 
 
 def _remove_chunk(main, player_ids):
@@ -89,7 +104,7 @@ def _remove_chunk(main, player_ids):
 
 
 def do_list(main):
-    friends = _list_friends(main)
+    friends, requests = _fetch(main)
     return {
         "ok": True,
         "mid": main.mid,
@@ -97,6 +112,8 @@ def do_list(main):
         "friend_cap": GAME_FRIEND_CAP,
         "friend_count": len(friends),
         "friends": [_friend_out(f) for f in friends],
+        "request_count": len(requests),
+        "requests": [_request_out(r) for r in requests],
     }
 
 
@@ -149,6 +166,49 @@ def do_delete(main, player_ids):
     }
 
 
+def do_accept(main, player_ids):
+    """รับเฉพาะ id ที่มีคำขอค้างอยู่จริง แล้วยืนยันผลด้วยการดึงรายชื่อซ้ำ
+    ด้วยเหตุผลเดียวกับ do_delete — response ของเซิร์ฟเวอร์บอกแค่ว่า 'รับคำสั่ง
+    แล้ว' ไม่ได้แปลว่าเป็นเพื่อนกันจริง"""
+    before_friends, before_requests = _fetch(main)
+    pending = {(r.get("requester") or {}).get("player_id") for r in before_requests}
+    targets = [pid for pid in dict.fromkeys(player_ids) if pid in pending]
+    skipped_not_pending = len(set(player_ids)) - len(targets)
+
+    # เพดาน 300 คนเป็นของเกม ไม่ใช่ของเรา — เกินแล้วเซิร์ฟเวอร์จะปฏิเสธทีละคน
+    # กลายเป็นกอง error ที่ผู้ใช้อ่านไม่รู้เรื่อง ตัดตั้งแต่ต้นทางแล้วบอกตรง ๆ
+    # ว่าเหลือช่องเท่าไรดีกว่า
+    slots = max(GAME_FRIEND_CAP - len(before_friends), 0)
+    skipped_cap = max(len(targets) - slots, 0)
+    targets = targets[:slots]
+
+    # ไม่มี API รับทีละก้อน ต้องยิง HandleFriendRequest ทีละคน — ใช้ตัวเดียวกับ
+    # ที่ heart_farm.py ใช้ตอนรับ guest จะได้ retry แถมมาด้วย
+    failed = []
+    for pid in targets:
+        ok, r = _accept_friend(main, pid)
+        if not ok:
+            err = "%s %s" % (r.get("code"), r.get("details") or "") if r else ""
+            failed.append({"player_id": pid, "error": err.strip() or "ไม่ทราบสาเหตุ"})
+
+    after_friends, after_requests = _fetch(main)
+    now_friends = {f.get("player_id") for f in after_friends}
+    accepted = [pid for pid in targets if pid in now_friends]
+
+    return {
+        "ok": not failed,
+        "requested": len(set(player_ids)),
+        "accepted": len(accepted),
+        "failed": failed,
+        "skipped_not_pending": skipped_not_pending,
+        "skipped_cap": skipped_cap,
+        "friend_cap": GAME_FRIEND_CAP,
+        "friend_count": len(after_friends),
+        "request_count": len(after_requests),
+        "requests": [_request_out(r) for r in after_requests],
+    }
+
+
 def _read_input():
     raw = sys.stdin.read().strip()
     if not raw:
@@ -157,8 +217,8 @@ def _read_input():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Cookie Run friend list / remove tool")
-    parser.add_argument("--mode", choices=["list", "delete"], required=True)
+    parser = argparse.ArgumentParser(description="Cookie Run friend list / accept / remove tool")
+    parser.add_argument("--mode", choices=["list", "accept", "delete"], required=True)
     args = parser.parse_args()
 
     with _stdout_to_stderr() as out:
@@ -170,12 +230,18 @@ def main():
                 raise ValueError("ต้องระบุอีเมลและรหัสผ่าน DevPlay")
 
             player_ids = [str(p) for p in (payload.get("player_ids") or []) if p]
-            if args.mode == "delete" and not player_ids:
+            if args.mode != "list" and not player_ids:
                 raise ValueError("ต้องระบุ player_ids อย่างน้อย 1 รายการ")
+
+            runner = {
+                "list": do_list,
+                "accept": lambda acc: do_accept(acc, player_ids),
+                "delete": lambda acc: do_delete(acc, player_ids),
+            }[args.mode]
 
             account = MainAccount(email, password)
             try:
-                result = do_list(account) if args.mode == "list" else do_delete(account, player_ids)
+                result = runner(account)
             finally:
                 account.close()
         except Exception as e:  # ทุก error ออกทาง stdout เป็น JSON เหมือนกันหมด

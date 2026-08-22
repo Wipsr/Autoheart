@@ -106,6 +106,14 @@ class FriendListRequest(BaseModel):
     account_id: Optional[str] = None
 
 
+class FriendAcceptRequest(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
+    # ต้องส่ง id มาเสมอเหมือนตอนลบ — หน้าเว็บดึงคำขอมาก่อนแล้วเลือกว่าจะรับใคร
+    player_ids: list[str] = Field(..., min_length=1, max_length=500)
+
+
 class FriendDeleteRequest(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
