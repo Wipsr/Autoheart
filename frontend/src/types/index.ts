@@ -83,6 +83,18 @@ export type FriendListResult = {
   requests: GameFriendRequest[];
 };
 
+export type FriendRejectResult = {
+  ok: boolean;
+  requested: number;
+  rejected: number;
+  failed: { player_id: string; error: string }[];
+  skipped_not_pending: number;
+  friend_cap?: number | null;
+  friend_count: number;
+  request_count: number;
+  requests: GameFriendRequest[];
+};
+
 export type FriendAcceptResult = {
   ok: boolean;
   requested: number;

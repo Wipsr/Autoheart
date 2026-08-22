@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, Check, Loader2, UserPlus, Users } from "lucide-react";
+import { AlertTriangle, Check, Loader2, UserPlus, UserX, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSavedAccounts } from "@/hooks/useSavedAccounts";
 import { api, ApiError } from "@/lib/api";
@@ -16,9 +16,19 @@ import {
 } from "@/components/account/AccountPicker";
 import { EmptyState } from "@/components/ui/States";
 import { formatHearts } from "@/lib/utils";
-import type { FriendAcceptResult, FriendListResult, GameFriendRequest } from "@/types";
+import type {
+  FriendAcceptResult,
+  FriendListResult,
+  FriendRejectResult,
+  GameFriendRequest,
+} from "@/types";
 
 type Phase = "form" | "list";
+
+// สองปุ่มคืนผลคนละหน้าตา (accepted vs rejected) แต่ใช้การ์ดสรุปใบเดียวกัน
+type ActionResult =
+  | { kind: "accept"; data: FriendAcceptResult }
+  | { kind: "reject"; data: FriendRejectResult };
 
 export default function FriendRequestsPage() {
   const { token } = useAuth();
@@ -27,12 +37,14 @@ export default function FriendRequestsPage() {
   const [phase, setPhase] = useState<Phase>("form");
   const [loading, setLoading] = useState(false);
   const [accepting, setAccepting] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [confirmingReject, setConfirmingReject] = useState(false);
   const [error, setError] = useState("");
   const [account, setAccount] = useState<FriendListResult | null>(null);
   const [requests, setRequests] = useState<GameFriendRequest[]>([]);
   const [friendCount, setFriendCount] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [result, setResult] = useState<FriendAcceptResult | null>(null);
+  const [result, setResult] = useState<ActionResult | null>(null);
 
   // มีบัญชีที่ save ไว้ → ตั้งต้นเลือกอันแรกให้ (จนกว่าผู้ใช้จะแตะเอง)
   const touched = useRef(false);
@@ -47,6 +59,7 @@ export default function FriendRequestsPage() {
     setCred(v);
   };
 
+  const busy = accepting || rejecting;
   const friendCap = account?.friend_cap ?? null;
   // เพดาน 300 คนเป็นของเกม — รับเกินช่องว่างที่เหลือไม่ได้ ต้องบอกก่อนกด
   // ไม่ใช่ปล่อยให้เซิร์ฟเวอร์ปฏิเสธทีละคนแล้วค่อยโชว์กอง error
@@ -114,7 +127,7 @@ export default function FriendRequestsPage() {
           player_ids: Array.from(selected),
         }),
       });
-      setResult(data);
+      setResult({ kind: "accept", data });
       setFriendCount(data.friend_count);
       applyRequests(data.requests ?? [], false);
       setAccount((prev) => (prev ? { ...prev, friend_count: data.friend_count } : prev));
@@ -122,6 +135,31 @@ export default function FriendRequestsPage() {
       setError(err instanceof ApiError ? err.message : "รับเพื่อนไม่สำเร็จ");
     } finally {
       setAccepting(false);
+    }
+  };
+
+  const runReject = async () => {
+    if (!token || selected.size === 0) return;
+    setRejecting(true);
+    setError("");
+    try {
+      const data = await api<FriendRejectResult>("/api/friends/reject", {
+        method: "POST",
+        token,
+        body: JSON.stringify({
+          ...credPayload(cred),
+          player_ids: Array.from(selected),
+        }),
+      });
+      setResult({ kind: "reject", data });
+      setFriendCount(data.friend_count);
+      applyRequests(data.requests ?? [], false);
+      setAccount((prev) => (prev ? { ...prev, friend_count: data.friend_count } : prev));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "ปฏิเสธคำขอไม่สำเร็จ");
+    } finally {
+      setRejecting(false);
+      setConfirmingReject(false);
     }
   };
 
@@ -135,6 +173,7 @@ export default function FriendRequestsPage() {
     setSelected(new Set());
     setResult(null);
     setError("");
+    setConfirmingReject(false);
   };
 
   return (
@@ -198,22 +237,25 @@ export default function FriendRequestsPage() {
           {result && (
             <Card className="border-live/40 bg-live/[0.04] p-4 text-sm">
               <p className="font-medium">
-                รับสำเร็จ {formatHearts(result.accepted)} / {formatHearts(result.requested)} คำขอ
+                {result.kind === "accept"
+                  ? `รับสำเร็จ ${formatHearts(result.data.accepted)} / ${formatHearts(result.data.requested)} คำขอ`
+                  : `ปฏิเสธแล้ว ${formatHearts(result.data.rejected)} / ${formatHearts(result.data.requested)} คำขอ`}
               </p>
-              {result.skipped_cap > 0 && (
+              {result.kind === "accept" && result.data.skipped_cap > 0 && (
                 <p className="mt-1 text-muted">
-                  ข้าม {formatHearts(result.skipped_cap)} คำขอเพราะเพื่อนเต็มเพดานแล้ว —
+                  ข้าม {formatHearts(result.data.skipped_cap)} คำขอเพราะเพื่อนเต็มเพดานแล้ว —
                   ลบเพื่อนออกก่อนแล้วค่อยกดรับใหม่
                 </p>
               )}
-              {result.skipped_not_pending > 0 && (
+              {result.data.skipped_not_pending > 0 && (
                 <p className="mt-1 text-muted">
-                  ข้าม {formatHearts(result.skipped_not_pending)} รายชื่อที่ไม่มีคำขอค้างอยู่แล้ว
+                  ข้าม {formatHearts(result.data.skipped_not_pending)} รายชื่อที่ไม่มีคำขอค้างอยู่แล้ว
                 </p>
               )}
-              {result.failed.length > 0 && (
+              {result.data.failed.length > 0 && (
                 <p className="mt-1 text-fail">
-                  รับไม่สำเร็จ {result.failed.length} คำขอ — กดรับซ้ำได้อีกครั้ง
+                  {result.kind === "accept" ? "รับ" : "ปฏิเสธ"}ไม่สำเร็จ{" "}
+                  {result.data.failed.length} คำขอ — กดซ้ำได้อีกครั้ง
                 </p>
               )}
             </Card>
@@ -280,27 +322,71 @@ export default function FriendRequestsPage() {
 
           {requests.length > 0 && (
             <Card className="space-y-3 p-4">
-              {overCap && (
-                <p className="flex items-start gap-2 text-sm text-fail">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                  เลือกไว้ {formatHearts(selected.size)} คน แต่รับเพิ่มได้อีกแค่{" "}
-                  {formatHearts(slots ?? 0)} — ส่วนที่เกินจะถูกข้าม
-                </p>
+              {confirmingReject ? (
+                <>
+                  <p className="flex items-start gap-2 text-sm text-fail">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                    ปฏิเสธ {formatHearts(selected.size)} คำขอ? คำขอจะหายไปจากลิสต์ —
+                    แต่เกมไม่มีระบบบล็อก อีกฝ่ายส่งคำขอกลับมาใหม่ได้
+                  </p>
+                  <div className="flex gap-2">
+                    <Button variant="danger" onClick={runReject} disabled={busy}>
+                      {rejecting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" /> กำลังปฏิเสธ...
+                        </>
+                      ) : (
+                        <>
+                          <UserX className="h-4 w-4" /> ยืนยันปฏิเสธ
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => setConfirmingReject(false)}
+                      disabled={busy}
+                    >
+                      ยกเลิก
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {overCap && (
+                    <p className="flex items-start gap-2 text-sm text-fail">
+                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                      เลือกไว้ {formatHearts(selected.size)} คน แต่รับเพิ่มได้อีกแค่{" "}
+                      {formatHearts(slots ?? 0)} — ส่วนที่เกินจะถูกข้าม
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <Button onClick={runAccept} disabled={busy || selected.size === 0}>
+                      {accepting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" /> กำลังรับ...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-4 w-4" />
+                          {allSelected
+                            ? `รับทั้งหมด (${formatHearts(selected.size)})`
+                            : `รับที่เลือก (${formatHearts(selected.size)})`}
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="danger"
+                      onClick={() => setConfirmingReject(true)}
+                      disabled={busy || selected.size === 0}
+                    >
+                      <UserX className="h-4 w-4" />
+                      {allSelected
+                        ? `ปฏิเสธทั้งหมด (${formatHearts(selected.size)})`
+                        : `ปฏิเสธที่เลือก (${formatHearts(selected.size)})`}
+                    </Button>
+                  </div>
+                </>
               )}
-              <Button onClick={runAccept} disabled={accepting || selected.size === 0}>
-                {accepting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> กำลังรับ...
-                  </>
-                ) : (
-                  <>
-                    <Check className="h-4 w-4" />
-                    {allSelected
-                      ? `รับทั้งหมด (${formatHearts(selected.size)})`
-                      : `รับที่เลือก (${formatHearts(selected.size)})`}
-                  </>
-                )}
-              </Button>
             </Card>
           )}
         </>
