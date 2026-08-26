@@ -72,15 +72,62 @@ class TopupOut(BaseModel):
 
 
 class CredentialItem(BaseModel):
-    email: str
-    password: str
+    # กรอกสด (email+password) หรืออ้างบัญชีที่ save ไว้ (account_id) อย่างใดอย่างหนึ่ง
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
     package_id: Optional[int] = None
     target_hearts: Optional[int] = None
 
 
 class CredentialsVerifyRequest(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
+
+
+class AccountInspectRequest(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
+
+
+class SavedAccountCreateRequest(BaseModel):
     email: str
     password: str
+    label: Optional[str] = None
+    # ตรวจรหัสกับ DevPlay ก่อนบันทึกไหม (ดีฟอลต์ตรวจ เพื่อกันบันทึกรหัสผิด)
+    verify: bool = True
+
+
+class FriendListRequest(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
+
+
+class FriendAcceptRequest(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
+    # ต้องส่ง id มาเสมอเหมือนตอนลบ — หน้าเว็บดึงคำขอมาก่อนแล้วเลือกว่าจะรับใคร
+    player_ids: list[str] = Field(..., min_length=1, max_length=500)
+
+
+class FriendRejectRequest(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
+    player_ids: list[str] = Field(..., min_length=1, max_length=500)
+
+
+class FriendDeleteRequest(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
+    # ต้องส่ง id มาเสมอ ไม่มีโหมด "ลบทุกคนโดยไม่ระบุ" ฝั่ง API เพราะการลบเพื่อน
+    # กู้คืนไม่ได้ — หน้าเว็บต้องดึงรายชื่อมาก่อนแล้วส่งกลับมาว่าจะลบใครบ้าง
+    player_ids: list[str] = Field(..., min_length=1, max_length=500)
 
 
 class JobCreateRequest(BaseModel):
@@ -169,6 +216,19 @@ class CouponInput(BaseModel):
     ends_at: Optional[datetime] = None
     is_active: bool = True
     applicable_package_ids: Optional[list[int]] = None
+
+
+class PackageInput(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    # slug เป็นคีย์ถาวรที่ migration/สคริปต์ใช้อ้างถึงแพ็ก (เช่น 013 อัปเดตราคาด้วย slug)
+    # เลยบังคับรูปแบบ kebab-case ไว้ กันพิมพ์เว้นวรรค/ตัวใหญ่ปนจนอ้างยาก
+    slug: str = Field(..., min_length=1, max_length=60, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    hearts: int = Field(..., gt=0)
+    price_baht: float = Field(..., ge=0)
+    description: Optional[str] = None
+    badge: Optional[str] = None
+    is_active: bool = True
+    sort_order: int = 0
 
 
 class PromotionInput(BaseModel):

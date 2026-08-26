@@ -89,6 +89,8 @@ Autoheart/
 │   │   │   │   ├── purchase/[id]/page.tsx  # ขั้นตอนซื้อ (payment + credentials)
 │   │   │   │   ├── queue/page.tsx     # สถานะคิว real-time
 │   │   │   │   ├── history/page.tsx   # ประวัติการใช้งาน
+│   │   │   │   ├── friend-requests/page.tsx  # รับ/ปฏิเสธคำขอเป็นเพื่อน (ฟรี ไม่ผ่านคิว)
+│   │   │   │   ├── friends/page.tsx   # ลบเพื่อนในเกม (ฟรี ไม่ผ่านคิว)
 │   │   │   │   └── settings/page.tsx  # ตั้งค่าบัญชี (เปลี่ยนรหัสผ่าน)
 │   │   │   │
 │   │   │   └── (admin)/               # Route group: Admin only
@@ -190,6 +192,7 @@ Autoheart/
 │   │   │   ├── jobs.py                # POST /api/jobs/create, GET /api/jobs/status
 │   │   │   ├── queue.py               # GET /api/queue/status, GET /api/queue/position
 │   │   │   ├── credentials.py         # POST /api/credentials/verify (DevPlay login check)
+│   │   │   ├── friends.py             # POST /api/friends/list|accept|reject|delete (ฟรี)
 │   │   │   ├── admin.py               # Admin-only routes
 │   │   │   └── websocket.py           # WebSocket endpoints for real-time
 │   │   │
@@ -207,6 +210,7 @@ Autoheart/
 │   │   ├── devplay_auth_service.py     # DevPlay credential verification
 │   │   ├── queue_service.py            # Job queue manager (Fair Interleaving / FIFO)
 │   │   ├── job_runner_service.py       # Subprocess manager for heart_farm.py
+│   │   ├── friend_service.py           # Subprocess manager for friend_tool.py
 │   │   ├── proxy_service.py            # Proxy config read/write
 │   │   ├── notification_service.py     # WebSocket broadcast + Supabase realtime
 │   │   └── admin_service.py            # Admin data queries
@@ -231,6 +235,7 @@ Autoheart/
 │   └── heart_farm/                     # Heart farm scripts (copied from heart_farm_share)
 │       ├── heart_farm.py               # Main farm script (modified for API mode)
 │       ├── heart_farm_fast.py          # Fast variant
+│       ├── friend_tool.py              # list/accept/reject/remove friends (เมนูจัดการเพื่อนบนเว็บ)
 │       ├── _descriptors.bin            # Game protocol definitions
 │       └── requirements.txt
 │

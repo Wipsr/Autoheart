@@ -33,6 +33,13 @@ class Settings(BaseSettings):
     environment: str = "development"
     hearts_per_minute: float = 50.0
     heart_farm_script: str = "heart_farm/heart_farm.py"
+    friend_tool_script: str = "heart_farm/friend_tool.py"
+
+    # ngmx (Pearlz-Core) — แหล่งข้อมูล "เช็คข้อมูลไอดี" ชั่วคราว: เรา proxy ไปที่
+    # เว็บนี้เพื่อดึง wallet/inventory พร้อมชื่อ+รูป โดยไม่ต้องแตก content bundle เอง
+    # ตั้งใจให้เป็น layer เดียวที่ถอดออกได้เมื่อมีตารางแปล seq ของเราเอง
+    ngmx_base_url: str = "https://ngmx.app"
+
     # ว่างไว้ = ใช้ล่ามตัวเดียวกับที่รัน API (venv ตอน dev / คอนเทนเนอร์ตอน deploy)
     # ตั้งค่านี้เฉพาะเมื่อจงใจให้ worker รันด้วยล่ามคนละตัวจริง ๆ — ถ้าชี้ไปที่ล่าม
     # ที่ไม่ได้ติดตั้ง requirements.txt ไว้ worker จะตายด้วย ModuleNotFoundError

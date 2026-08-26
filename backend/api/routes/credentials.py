@@ -4,6 +4,7 @@ from api.dependencies import check_maintenance, client_meta, get_current_user
 from api.middleware.rate_limiter import rate_limiter
 from models.schemas import CredentialsVerifyRequest
 from services.devplay_auth_service import devplay_auth_service
+from services.saved_account_service import saved_account_service
 
 router = APIRouter(prefix="/api/credentials", tags=["credentials"])
 
@@ -20,11 +21,14 @@ async def verify_credentials(
     rate_limiter.check(f"verify:user:{user['id']}", limit=20, window_seconds=3600)
     rate_limiter.check(f"verify:ip:{meta.get('ip_address')}", limit=60, window_seconds=3600)
 
-    result = await devplay_auth_service.verify_credentials(body.email, body.password)
+    email, password = await saved_account_service.resolve(
+        user["id"], email=body.email, password=body.password, account_id=body.account_id
+    )
+    result = await devplay_auth_service.verify_credentials(email, password)
     # Never echo password
     return {
         "valid": result.get("valid"),
-        "email": body.email,
+        "email": email,
         "mid": result.get("mid"),
         "error_message": result.get("error_message"),
         # ส่ง code ดิบออกไปด้วยเพื่อให้แยกออกว่า "รหัสผิดจริง" กับ "DevPlay ปฏิเสธ

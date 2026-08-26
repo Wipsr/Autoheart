@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { CredentialRow, type Cred } from "@/components/purchase/CredentialRow";
+import { useSavedAccounts } from "@/hooks/useSavedAccounts";
 import { formatBaht, formatBahtExact, formatHearts } from "@/lib/utils";
-import type { Package } from "@/types";
+import type { Package, SavedAccount } from "@/types";
 import { PACKAGES } from "@/lib/constants";
 
 type Step = 1 | 2 | 3 | 4;
@@ -24,6 +25,10 @@ const STEP_LABEL: Record<Step, string> = {
 };
 
 const emptyCred = (): Cred => ({ email: "", password: "", status: "idle" });
+
+// payload สำหรับ verify/create: อ้าง account_id ถ้ามี ไม่งั้นใช้ email+password
+const credBody = (c: Cred): Record<string, string> =>
+  c.account_id ? { account_id: c.account_id } : { email: c.email.trim(), password: c.password };
 
 export default function PurchasePage() {
   const params = useParams();
@@ -43,6 +48,7 @@ export default function PurchasePage() {
   const [mode, setMode] = useState<"single" | "batch">("single");
   const [creds, setCreds] = useState<Cred[]>([emptyCred()]);
   const [verifyingAll, setVerifyingAll] = useState(false);
+  const { accounts: savedAccounts } = useSavedAccounts();
 
   const [voucher, setVoucher] = useState("");
   // null = ยังไม่ได้เลือกเอง ให้ระบบเดาให้ตามยอดคงเหลือ
@@ -144,10 +150,34 @@ export default function PurchasePage() {
   const patchCred = (index: number, patch: Partial<Cred>) =>
     setCreds((prev) => prev.map((c, i) => (i === index ? { ...c, ...patch } : c)));
 
+  // เลือกบัญชีที่บันทึกไว้สำหรับช่องนี้ (null = กลับไปกรอกเอง)
+  const pickSaved = (index: number, account: SavedAccount | null) => {
+    if (account) {
+      patchCred(index, {
+        account_id: account.id,
+        label: account.label?.trim() || account.nickname || account.email,
+        email: account.email,
+        password: "",
+        status: "valid", // บัญชีที่ save ผ่านการ verify ตอนบันทึกแล้ว
+        message: undefined,
+      });
+    } else {
+      patchCred(index, {
+        account_id: undefined,
+        label: undefined,
+        email: "",
+        password: "",
+        status: "idle",
+        message: undefined,
+      });
+    }
+  };
+
   const verifyOne = async (index: number, source?: Cred[]) => {
     const list = source || creds;
     const cred = list[index];
-    if (!token || !cred || !cred.email.trim() || !cred.password) return false;
+    if (!token || !cred) return false;
+    if (!cred.account_id && (!cred.email.trim() || !cred.password)) return false;
     patchCred(index, { status: "checking", message: undefined });
     try {
       const res = await api<{ valid: boolean; error_message?: string }>(
@@ -155,7 +185,7 @@ export default function PurchasePage() {
         {
           method: "POST",
           token,
-          body: JSON.stringify({ email: cred.email.trim(), password: cred.password }),
+          body: JSON.stringify(credBody(cred)),
         }
       );
       patchCred(index, {
@@ -201,13 +231,11 @@ export default function PurchasePage() {
     const credentials =
       mode === "single"
         ? Array.from({ length: qty }, () => ({
-            email: creds[0].email.trim(),
-            password: creds[0].password,
+            ...credBody(creds[0]),
             package_id: pkg.id,
           }))
         : activeCreds.map((c) => ({
-            email: c.email.trim(),
-            password: c.password,
+            ...credBody(c),
             package_id: pkg.id,
           }));
 
@@ -401,6 +429,8 @@ export default function PurchasePage() {
                 showIndex={mode === "batch"}
                 onChange={(patch) => patchCred(i, patch)}
                 onVerify={() => verifyOne(i)}
+                savedAccounts={savedAccounts}
+                onPickSaved={(a) => pickSaved(i, a)}
               />
             ))}
           </div>
