@@ -29,6 +29,10 @@ const GROUPS: { title: string; links: [string, string][] }[] = [
     ],
   },
   {
+    title: "แพ็กเกจ",
+    links: [["/admin/packages", "แพ็กหัวใจ"]],
+  },
+  {
     title: "การตลาด",
     links: [
       ["/admin/promotions", "โปรโมชัน"],
