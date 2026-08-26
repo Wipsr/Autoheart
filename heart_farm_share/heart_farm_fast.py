@@ -68,6 +68,12 @@ CLAIM_BATCH         = 50       # mail seqs per AcceptLife call. The server fails
                                 # so a smaller batch loses less work to a bisect.
 CLAIM_LEAF_RETRIES  = 3        # how many single-mail AcceptLife failures still
                                 # get a retry before we take them at their word.
+CLEANUP_DECLINE_MAX = 200      # most guest friend requests to decline per session.
+                                # An account that has farmed for a while can sit on
+                                # 1000+ of them; clearing every one inline would
+                                # stall the session behind a long burst of writes,
+                                # so the rest wait for the next session or for the
+                                # friend-requests page, which does them in bulk.
 GUEST_CHANNEL_POOL  = 6        # number of shared gRPC channels for guests (round-
                                 # robin). >1 gives HTTP/2 concurrency headroom so
                                 # one connection's stream cap isn't the ceiling at
@@ -1057,19 +1063,29 @@ def _decline_stale_requests(main, pending, session_mids):
             stale.append(pid)
     if not stale:
         return 0
-    print("  %d/%d pending friend request(s) look like guests -> declining"
-          % (len(stale), len(pending or [])))
+    backlog = len(stale)
+    if backlog > CLEANUP_DECLINE_MAX:
+        stale = stale[:CLEANUP_DECLINE_MAX]
+        print("  %d/%d pending friend request(s) look like guests -> declining the first %d"
+              % (backlog, len(pending or []), len(stale)))
+        print("     (the remaining %d wait for the next session, or clear them in bulk"
+              " from the friend-requests page)" % (backlog - len(stale)))
+    else:
+        print("  %d/%d pending friend request(s) look like guests -> declining"
+              % (backlog, len(pending or [])))
     if DRY_RUN:
         print("  DRY_RUN -> would decline %d." % len(stale))
         return 0
     declined = 0
-    for pid in stale:
+    for i, pid in enumerate(stale, 1):
         r = main.unary("service.api.FriendAPI", "HandleFriendRequest",
                        {"common_req": {}, "player_id": pid, "accept": False})
         if r.get("__error__"):
             print("    %s decline FAILED -> %s" % (pid, json.dumps(r, ensure_ascii=False)[:120]))
         else:
             declined += 1
+        if i % PRINT_EVERY == 0 and i < len(stale):
+            print("    ... [decline] %d/%d" % (i, len(stale)))
     print("  declined %d/%d pending request(s)." % (declined, len(stale)))
     return declined
 
