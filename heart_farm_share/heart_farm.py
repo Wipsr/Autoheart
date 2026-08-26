@@ -63,6 +63,11 @@ STREAM_CONCURRENCY  = 2        # workers WITHIN the accept/sendlife steps (these
                                 # with a reliable retry pass covering the rest)
 ACCEPT_RETRIES      = 2
 ACCEPT_RETRY_SLEEP  = 0.3
+GUEST_RETRIES       = 3        # attempts per guest account. Each retry goes out
+                                # through a different proxy exit IP with a fresh
+                                # device id, which clears both a dead exit node and
+                                # a login server that refused the previous one.
+GUEST_RETRY_SLEEP   = 0.4      # pause between those attempts.
 CLAIM_BATCH         = 50       # mail seqs per AcceptLife call. The server fails
                                 # the WHOLE call if it dislikes one mail in it,
                                 # so a smaller batch loses less work to a bisect.
@@ -578,41 +583,53 @@ class MainAccount:
 #  proxy to avoid the login server's per-IP rate limit) + its own gRPC channel.
 #  Fully disk-free -- nothing about a guest is ever written to disk.
 # ============================================================================
-def create_guest(retries=3):
+def create_guest(retries=GUEST_RETRIES):
     """A rotating proxy pool inevitably includes some dead/unreachable exit
-    nodes -- each retry lands on a different exit IP, so a few quick retries
-    almost always succeed. Never lets a transient network error propagate
-    (it would kill the whole parallel batch of guest creations)."""
-    lc = fresh_lc()
-    device_id = _rand_uuid()
-    body = {"guest_secret": "", "lc": lc, "device_id": device_id}
+    nodes, and the login server also refuses to mint a guest outright through
+    some of them -- HTTP 200 carrying a non-20000 code and no token. Both are
+    per-attempt problems the next try leaves behind, because it goes out through
+    a different exit IP with a fresh device id, so a refusal is retried exactly
+    like a dead socket. (Only network errors used to be retried: ANY answer
+    broke out of the loop, so a refusal burned the whole guest on its first and
+    only exit node -- the one case the retries were written for.) Never lets a
+    transient failure propagate; it would kill the whole parallel batch of
+    guest creations."""
     headers = {
         "x-bundle-id": APP_HEADERS["x-bundle-id"], "x-api-key": APP_HEADERS["x-api-key"],
         "x-sdk-version": APP_HEADERS["x-sdk-version"], "x-env": APP_HEADERS["x-env"],
         "content-type": "application/json; charset=utf-8", "accept-encoding": "gzip",
         "user-agent": APP_HEADERS["user-agent"],
     }
-    last_err = None
-    for _ in range(retries):
+    last = None
+    for attempt in range(retries):
+        if attempt:
+            time.sleep(GUEST_RETRY_SLEEP)
+        # Fresh lc + device id per attempt: if the refusal is pinned to the device
+        # rather than the exit IP, replaying the same one just earns the same no.
+        lc, device_id = fresh_lc(), _rand_uuid()
+        body = {"guest_secret": "", "lc": lc, "device_id": device_id}
         try:
             r = requests.post(AUTH_HOST + "/v3/login", headers=headers, json=body, timeout=25, proxies=_PROXIES)
-            break
         except requests.RequestException as e:
-            last_err = e
-            r = None
-    else:
-        return {"__error__": True, "network_error": str(last_err)}
-    try:
-        d = r.json()
-    except Exception:
-        return {"__error__": True, "status": r.status_code, "raw": r.text[:400]}
-    if d.get("code") != 20000 or not d.get("game_access_token"):
-        return {"__error__": True, "status": r.status_code, "resp": d}
-    member = d.get("member", {})
-    return {
-        "mid": member.get("mid"), "guest_secret": d.get("guest_secret"),
-        "game_access_token": d.get("game_access_token"), "device_id": device_id, "lc": lc,
-    }
+            last = {"__error__": True, "network_error": str(e)}
+            continue
+        try:
+            d = r.json()
+        except Exception:
+            last = {"__error__": True, "status": r.status_code, "raw": r.text[:400]}
+            continue
+        if d.get("code") != 20000 or not d.get("game_access_token"):
+            last = {"__error__": True, "status": r.status_code, "resp": d}
+            continue
+        member = d.get("member", {})
+        return {
+            "mid": member.get("mid"), "guest_secret": d.get("guest_secret"),
+            "game_access_token": d.get("game_access_token"), "device_id": device_id, "lc": lc,
+        }
+    if last is None:                       # retries <= 0, nothing was ever tried
+        return {"__error__": True, "network_error": "create_guest(retries=%r)" % retries}
+    last["attempts"] = retries
+    return last
 
 
 # ---- shared gRPC channel for ALL guests -------------------------------------
@@ -728,7 +745,11 @@ def create_and_friend_one(main_mid):
     try:
         rec = create_guest()
         if rec.get("__error__"):
-            print("  [producer] guest create FAILED:", json.dumps(rec, ensure_ascii=False)[:200])
+            # Lead with the reason and the attempt count: the payload is long
+            # enough that truncation used to cut the answer off mid-field.
+            reason = (rec.get("resp") or {}).get("code") or rec.get("network_error") or rec.get("raw") or "?"
+            print("  [producer] guest create FAILED [%s] after %s attempt(s): %s"
+                  % (str(reason)[:60], rec.get("attempts", 1), json.dumps(rec, ensure_ascii=False)[:180]))
             return None
         g = Guest(rec)
         gseq = g.ensure_game_member()
