@@ -63,6 +63,17 @@ STREAM_CONCURRENCY  = 6        # !!! BAN-RISK LEVER !!! parallel writes to YOUR
                                 # LOWER this. No guarantee against a ban.
 ACCEPT_RETRIES      = 3        # a bit more retry headroom for high concurrency
 ACCEPT_RETRY_SLEEP  = 0.3
+CLAIM_BATCH         = 50       # mail seqs per AcceptLife call. The server fails
+                                # the WHOLE call if it dislikes one mail in it,
+                                # so a smaller batch loses less work to a bisect.
+CLAIM_LEAF_RETRIES  = 3        # how many single-mail AcceptLife failures still
+                                # get a retry before we take them at their word.
+CLEANUP_DECLINE_MAX = 200      # most guest friend requests to decline per session.
+                                # An account that has farmed for a while can sit on
+                                # 1000+ of them; clearing every one inline would
+                                # stall the session behind a long burst of writes,
+                                # so the rest wait for the next session or for the
+                                # friend-requests page, which does them in bulk.
 GUEST_CHANNEL_POOL  = 6        # number of shared gRPC channels for guests (round-
                                 # robin). >1 gives HTTP/2 concurrency headroom so
                                 # one connection's stream cap isn't the ceiling at
@@ -777,6 +788,32 @@ def guest_send_life(g, main_member_seq):
         return False, {"exception": str(e)}
 
 
+def _list_friends(main):
+    """Live friend list + the incoming requests still waiting for an answer.
+    Returns (friends, pending, err); friends is None when the call failed."""
+    lf = main.unary("service.api.FriendAPI", "ListFriends", {"common_req": {}})
+    if lf.get("__error__"):
+        return None, None, lf
+    return (lf.get("friends") or []), (lf.get("received_friend_requests") or []), None
+
+
+def _reserve_friend_slot(room, room_lock):
+    """Take one of the remaining slots under the friend cap, or report that there
+    are none left. Reserved BEFORE the accept call, never after, so concurrent
+    workers cannot overshoot the cap in the gap between checking and accepting."""
+    with room_lock:
+        if room["left"] <= 0:
+            room["blocked"] += 1
+            return False
+        room["left"] -= 1
+        return True
+
+
+def _release_friend_slot(room, room_lock):
+    with room_lock:
+        room["left"] += 1
+
+
 def _accept_friend(main, mid):
     r = None
     for attempt in range(ACCEPT_RETRIES):
@@ -788,7 +825,7 @@ def _accept_friend(main, mid):
     return False, r
 
 
-def _accept_worker(main, in_q, out_q, retry_list, retry_lock, progress, progress_lock, to_create, t0):
+def _accept_worker(main, in_q, out_q, retry_list, retry_lock, progress, progress_lock, to_create, t0, room, room_lock):
     while True:
         item = in_q.get()
         if item is _SENTINEL:
@@ -800,10 +837,17 @@ def _accept_worker(main, in_q, out_q, retry_list, retry_lock, progress, progress
                 progress["n"] += 1
             continue
         g, gseq = item
+        if not _reserve_friend_slot(room, room_lock):
+            # no room under the cap -- accepting would just fail server-side, so
+            # drop this guest instead of burning retries on a guaranteed refusal.
+            with progress_lock:
+                progress["n"] += 1
+            continue
         r = main.unary("service.api.FriendAPI", "HandleFriendRequest", {"common_req": {}, "player_id": g.mid, "accept": True})
         if not r.get("__error__"):
             out_q.put((g, gseq))
         else:
+            _release_friend_slot(room, room_lock)
             with retry_lock:
                 retry_list.append((g, gseq))
         with progress_lock:
@@ -812,12 +856,13 @@ def _accept_worker(main, in_q, out_q, retry_list, retry_lock, progress, progress
                 print("    ... [accept] %d/%d  %.1fs elapsed" % (progress["n"], to_create, time.time() - t0))
 
 
-def _accept_stream(main, in_q, out_q, to_create, stats, stats_lock):
+def _accept_stream(main, in_q, out_q, to_create, stats, stats_lock, friend_room):
     t0 = time.time()
     retry_list, retry_lock = [], threading.Lock()
     progress, progress_lock = {"n": 0, "create_fail": 0}, threading.Lock()
+    room, room_lock = {"left": friend_room, "blocked": 0}, threading.Lock()
     threads = [threading.Thread(target=_accept_worker,
-                                args=(main, in_q, out_q, retry_list, retry_lock, progress, progress_lock, to_create, t0))
+                                args=(main, in_q, out_q, retry_list, retry_lock, progress, progress_lock, to_create, t0, room, room_lock))
                for _ in range(STREAM_CONCURRENCY)]
     for t in threads:
         t.start()
@@ -827,15 +872,39 @@ def _accept_stream(main, in_q, out_q, to_create, stats, stats_lock):
         stats["create_fail"] += progress["create_fail"]
 
     if retry_list:
+        # The friend count we started with is only a snapshot, and a failed accept
+        # is more often the cap than a hiccup -- a cap does not heal on retry. Ask
+        # the server for the live count once before spending ACCEPT_RETRIES on
+        # every guest in the list.
+        friends, _pending, err = _list_friends(main)
+        if friends is not None:
+            live_room = max(0, GAME_FRIEND_CAP - len(friends))
+            with room_lock:
+                room["left"] = live_room
+            if live_room <= 0:
+                print("    [accept] at the %d-friend cap (%d friends) -- skipping %d retries"
+                      % (GAME_FRIEND_CAP, len(friends), len(retry_list)))
+                with room_lock:
+                    room["blocked"] += len(retry_list)
+                retry_list = []
+    if retry_list:
         print("    [accept] mop-up: retrying %d failures sequentially ..." % len(retry_list))
         for g, gseq in retry_list:
+            if not _reserve_friend_slot(room, room_lock):
+                continue
             ok, r = _accept_friend(main, g.mid)
             if ok:
                 out_q.put((g, gseq))
             else:
+                _release_friend_slot(room, room_lock)
                 with stats_lock:
                     stats["accept_fail"] += 1
                 print("    %s accept FAILED (after mop-up) -> %s" % (g.mid, json.dumps(r, ensure_ascii=False)[:150]))
+    if room["blocked"]:
+        with stats_lock:
+            stats["accept_cap_blocked"] += room["blocked"]
+        print("    [accept] %d guest(s) skipped: no room under the %d-friend cap"
+              % (room["blocked"], GAME_FRIEND_CAP))
     out_q.put(_SENTINEL)
 
 
@@ -884,23 +953,24 @@ def _sendlife_stream(in_q, main_member_seq, accepted, to_create, stats, stats_lo
                 print("    %s SendLife FAILED (after mop-up) -> %s" % (g.mid, json.dumps(r, ensure_ascii=False)[:150]))
 
 
-def run_pipeline_from_queue(main, in_q, to_create):
+def run_pipeline_from_queue(main, in_q, to_create, friend_room):
     if to_create <= 0:
         return []
     sendlife_q = queue.Queue()
     accepted = []
-    stats = {"create_fail": 0, "accept_fail": 0, "sendlife_fail": 0}
+    stats = {"create_fail": 0, "accept_fail": 0, "accept_cap_blocked": 0, "sendlife_fail": 0}
     stats_lock = threading.Lock()
 
-    accept_t = threading.Thread(target=_accept_stream, args=(main, in_q, sendlife_q, to_create, stats, stats_lock))
+    accept_t = threading.Thread(target=_accept_stream, args=(main, in_q, sendlife_q, to_create, stats, stats_lock, friend_room))
     sendlife_t = threading.Thread(target=_sendlife_stream, args=(sendlife_q, main.member_seq, accepted, to_create, stats, stats_lock))
     accept_t.start()
     sendlife_t.start()
     accept_t.join()
     sendlife_t.join()
 
-    print("  pipeline done: %d/%d guests fully accepted + sent a heart. (create_fail=%d accept_fail=%d sendlife_fail=%d)"
-          % (len(accepted), to_create, stats["create_fail"], stats["accept_fail"], stats["sendlife_fail"]))
+    print("  pipeline done: %d/%d guests fully accepted + sent a heart. (create_fail=%d accept_fail=%d cap_blocked=%d sendlife_fail=%d)"
+          % (len(accepted), to_create, stats["create_fail"], stats["accept_fail"],
+             stats["accept_cap_blocked"], stats["sendlife_fail"]))
     return accepted
 
 
@@ -908,6 +978,37 @@ def run_pipeline_from_queue(main, in_q, to_create):
 def _accept_life(main, seqs):
     r = main.unary("service.api.LifeMailAPI", "AcceptLife", {"common_req": {}, "mail_seq": seqs})
     return (not r.get("__error__")), r
+
+
+def _claim_seqs(main, seqs, state):
+    """Claim `seqs` in ONE AcceptLife call, halving the batch on failure.
+
+    The server answers the whole call with INTERNAL SERVER ERROR when it dislikes
+    a SINGLE mail in it (already collected, expired, sender deleted), so a failed
+    batch says nothing about the other seqs it carried. Bisecting isolates the bad
+    ones in ~2*log2(n) extra calls instead of degrading the entire remainder to one
+    call per mail -- the old fallback, which cost hundreds of sequential round
+    trips whenever a single stale mail was in the mailbox."""
+    ok, r = _accept_life(main, seqs)
+    state["calls"] += 1
+    if not ok and len(seqs) == 1 and len(state["bad"]) < CLAIM_LEAF_RETRIES:
+        # a lone seq may just have caught a transient 500 -- give it one retry
+        # before writing it off. Only worth it while failures are still rare: a
+        # mailbox full of stale mail would otherwise pay a retry per seq.
+        time.sleep(ACCEPT_RETRY_SLEEP)
+        ok, r = _accept_life(main, seqs)
+        state["calls"] += 1
+    if ok:
+        state["ok"] += len(seqs)
+        if r.get("life_count") is not None:
+            state["life_count"] = r.get("life_count")
+        return
+    if len(seqs) == 1:
+        state["bad"].append((seqs[0], r))
+        return
+    half = len(seqs) // 2
+    _claim_seqs(main, seqs[:half], state)
+    _claim_seqs(main, seqs[half:], state)
 
 
 def claim_hearts(main, guests=None):
@@ -927,40 +1028,85 @@ def claim_hearts(main, guests=None):
         print("  nothing to collect.")
         return 0
 
-    ok_count, life_count = 0, None
-    success, r = _accept_life(main, good)
-    if success:
-        ok_count = len(good)
-        life_count = r.get("life_count")
-        print("  AcceptLife (batched, %d seqs) OK" % len(good))
-    else:
-        print("  batched AcceptLife failed (%s) -> falling back to one-at-a-time ..." % r)
-        for seq in good:
-            ok, r2 = _accept_life(main, [seq])
-            if ok:
-                ok_count += 1
-                life_count = r2.get("life_count")
-    print("  collected %d/%d" % (ok_count, len(good)))
-    if life_count is not None:
-        print("  life_count now = %s" % life_count)
-    return ok_count
+    state = {"ok": 0, "calls": 0, "life_count": None, "bad": []}
+    for i in range(0, len(good), CLAIM_BATCH):
+        chunk = good[i:i + CLAIM_BATCH]
+        before = state["ok"]
+        _claim_seqs(main, chunk, state)
+        if state["ok"] - before < len(chunk):
+            print("  AcceptLife batch %d-%d: %d/%d claimed after bisect"
+                  % (i + 1, i + len(chunk), state["ok"] - before, len(chunk)))
+    if state["bad"]:
+        seq, r = state["bad"][0]
+        print("  %d mail(s) rejected on their own (already collected / expired?) e.g. seq=%s -> %s"
+              % (len(state["bad"]), seq, json.dumps(r, ensure_ascii=False)[:150]))
+    print("  collected %d/%d  (%d AcceptLife call(s))" % (state["ok"], len(good), state["calls"]))
+    if state["life_count"] is not None:
+        print("  life_count now = %s" % state["life_count"])
+    return state["ok"]
 
 
 def _looks_like_guest(friend):
     return friend.get("level") == 1 and not (friend.get("profile") or {}).get("nickname")
 
 
+def _decline_stale_requests(main, pending, session_mids):
+    """A friend request that was never accepted is NOT a friend, so RemoveFriend
+    never touches it: every guest whose accept failed leaves one sitting in the
+    account for good, and they pile up run after run. Decline the ones that are
+    plainly ours -- anything that looks like a real player is left alone."""
+    stale = []
+    for fr in pending or []:
+        requester = fr.get("requester") or {}
+        pid = requester.get("player_id")
+        if pid and (pid in session_mids or _looks_like_guest(requester)):
+            stale.append(pid)
+    if not stale:
+        return 0
+    backlog = len(stale)
+    if backlog > CLEANUP_DECLINE_MAX:
+        stale = stale[:CLEANUP_DECLINE_MAX]
+        print("  %d/%d pending friend request(s) look like guests -> declining the first %d"
+              % (backlog, len(pending or []), len(stale)))
+        print("     (the remaining %d wait for the next session, or clear them in bulk"
+              " from the friend-requests page)" % (backlog - len(stale)))
+    else:
+        print("  %d/%d pending friend request(s) look like guests -> declining"
+              % (backlog, len(pending or [])))
+    if DRY_RUN:
+        print("  DRY_RUN -> would decline %d." % len(stale))
+        return 0
+    declined = 0
+    for i, pid in enumerate(stale, 1):
+        r = main.unary("service.api.FriendAPI", "HandleFriendRequest",
+                       {"common_req": {}, "player_id": pid, "accept": False})
+        if r.get("__error__"):
+            print("    %s decline FAILED -> %s" % (pid, json.dumps(r, ensure_ascii=False)[:120]))
+        else:
+            declined += 1
+        if i % PRINT_EVERY == 0 and i < len(stale):
+            print("    ... [decline] %d/%d" % (i, len(stale)))
+    print("  declined %d/%d pending request(s)." % (declined, len(stale)))
+    return declined
+
+
 def cleanup_guests(main, guests):
     print("\n=== CLEANUP: removing guest friends (free slots for next session) ===")
-    lf = main.unary("service.api.FriendAPI", "ListFriends", {"common_req": {}})
-    if lf.get("__error__"):
-        print("  ListFriends FAILED:", lf); return None
-    all_friends = lf.get("friends") or []
+    all_friends, pending, err = _list_friends(main)
+    if all_friends is None:
+        print("  ListFriends FAILED:", err); return None
     session_mids = {g.mid for g, _ in (guests or [])}
     to_remove = sorted({f["player_id"] for f in all_friends if _looks_like_guest(f)} | session_mids)
-    real_count = len(all_friends) - len(to_remove)
+    # Count the friends that will actually survive, rather than subtracting the
+    # removal list: a session mid that is no longer a friend (its accept failed,
+    # or the server dropped it) is in to_remove without being in all_friends, and
+    # subtracting would under-report -- which is what makes the next session
+    # oversize itself and run into the friend cap.
+    dropping = set(to_remove)
+    real_count = sum(1 for f in all_friends if f.get("player_id") not in dropping)
     print("  %d total friends, %d look like guests (incl. %d from this session)"
           % (len(all_friends), len(to_remove), len(session_mids)))
+    _decline_stale_requests(main, pending, session_mids)
     if not to_remove:
         print("  nothing to remove.")
         return real_count
@@ -990,11 +1136,11 @@ def _fill_from_shared_queue(shared_q, n):
     return local_q, got, ran_dry
 
 
-def run_session_from_queue(main, session_q, n):
+def run_session_from_queue(main, session_q, n, friend_room):
     guests = []
     real_count_after = None
     try:
-        guests = run_pipeline_from_queue(main, session_q, n)
+        guests = run_pipeline_from_queue(main, session_q, n, friend_room)
         collected = claim_hearts(main, guests)
         real_count_after = cleanup_guests(main, guests)
         return collected, real_count_after
@@ -1016,17 +1162,25 @@ def run_until_target(main, target_hearts):
 
     while total < target_hearts:
         session_num += 1
-        if known_real_count is None:
-            lf = main.unary("service.api.FriendAPI", "ListFriends", {"common_req": {}})
-            current_count = len(lf.get("friends") or [])
+        # Always ask the server for the real count. What cleanup_guests returns is
+        # a prediction (it assumes every RemoveFriend landed), and when it drifts
+        # low we size the session too big and every accept past the cap fails.
+        friends, pending, err = _list_friends(main)
+        if friends is None:
+            current_count = known_real_count if known_real_count is not None else 0
+            note = ("  ListFriends FAILED (%s) -- using the estimated count %d"
+                    % (json.dumps(err, ensure_ascii=False)[:100], current_count))
         else:
-            current_count = known_real_count
+            current_count = len(friends)
+            note = ("  %d friend request(s) still pending from earlier runs" % len(pending)) if pending else None
         room = max(0, GAME_FRIEND_CAP - current_count)
         remaining = target_hearts - total
         n = min(room, remaining)
         print("\n########## SESSION %d ##########" % session_num)
         print("  target=%d  collected so far=%d  still need=%d  room=%d(300-%d real friends)  this session=%d"
               % (target_hearts, total, remaining, room, current_count, n))
+        if note:
+            print(note)
         if n <= 0:
             print("  no room to make progress (300-friend cap full of real friends?) -- stopping.")
             break
@@ -1051,7 +1205,7 @@ def run_until_target(main, target_hearts):
             print("  DRY_RUN -> would run a session of %d guests here. Stopping (dry run doesn't loop)." % got)
             break
 
-        collected, known_real_count = run_session_from_queue(main, session_q, got)
+        collected, known_real_count = run_session_from_queue(main, session_q, got, room)
         total += collected
         print("\n=== SESSION %d done: collected %d/%d this session. TOTAL %d/%d ==="
               % (session_num, collected, got, total, target_hearts))
