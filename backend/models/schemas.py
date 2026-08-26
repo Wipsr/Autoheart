@@ -218,6 +218,19 @@ class CouponInput(BaseModel):
     applicable_package_ids: Optional[list[int]] = None
 
 
+class PackageInput(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    # slug เป็นคีย์ถาวรที่ migration/สคริปต์ใช้อ้างถึงแพ็ก (เช่น 013 อัปเดตราคาด้วย slug)
+    # เลยบังคับรูปแบบ kebab-case ไว้ กันพิมพ์เว้นวรรค/ตัวใหญ่ปนจนอ้างยาก
+    slug: str = Field(..., min_length=1, max_length=60, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    hearts: int = Field(..., gt=0)
+    price_baht: float = Field(..., ge=0)
+    description: Optional[str] = None
+    badge: Optional[str] = None
+    is_active: bool = True
+    sort_order: int = 0
+
+
 class PromotionInput(BaseModel):
     title: str
     hearts_reward: int = Field(gt=0)

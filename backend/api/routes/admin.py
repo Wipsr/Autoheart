@@ -15,6 +15,7 @@ from models.schemas import (
     SystemSettingUpdate,
     CouponInput,
     MaintenanceInput,
+    PackageInput,
     PopupInput,
     PromotionInput,
     WorkerSettingsInput,
@@ -322,6 +323,59 @@ async def manual_credit(topup_id: str, body: AdminCreditRequest, admin=Depends(g
         .execute()
         .data[0]
     )
+    return updated
+
+
+@router.get("/packages")
+async def list_packages(_admin=Depends(get_admin_user)):
+    # แอดมินต้องเห็นแพ็กที่ปิดขายด้วย เลยไม่กรอง is_active เหมือน /api/packages
+    return (
+        get_supabase_admin()
+        .table("packages")
+        .select("*")
+        .order("sort_order")
+        .order("id")
+        .execute()
+        .data
+        or []
+    )
+
+
+@router.post("/packages")
+async def create_package(body: PackageInput, request: Request, admin=Depends(get_admin_user)):
+    db = get_supabase_admin()
+    payload = body.model_dump(mode="json")
+    payload["slug"] = payload["slug"].strip()
+    dup = db.table("packages").select("id").eq("slug", payload["slug"]).limit(1).execute()
+    if dup.data:
+        raise AppError("slug_taken", f"slug '{payload['slug']}' ถูกใช้ไปแล้ว", 400)
+    created = db.table("packages").insert(payload).execute().data[0]
+    _audit(admin, request, "create", "package", str(created["id"]), None, created)
+    return created
+
+
+@router.put("/packages/{package_id}")
+async def update_package(
+    package_id: int, body: PackageInput, request: Request, admin=Depends(get_admin_user)
+):
+    db = get_supabase_admin()
+    old = db.table("packages").select("*").eq("id", package_id).limit(1).execute()
+    if not old.data:
+        raise NotFoundError("ไม่พบแพ็กเกจ")
+    payload = body.model_dump(mode="json")
+    payload["slug"] = payload["slug"].strip()
+    dup = (
+        db.table("packages")
+        .select("id")
+        .eq("slug", payload["slug"])
+        .neq("id", package_id)
+        .limit(1)
+        .execute()
+    )
+    if dup.data:
+        raise AppError("slug_taken", f"slug '{payload['slug']}' ถูกใช้ไปแล้ว", 400)
+    updated = db.table("packages").update(payload).eq("id", package_id).execute().data[0]
+    _audit(admin, request, "update", "package", str(package_id), old.data[0], updated)
     return updated
 
 
