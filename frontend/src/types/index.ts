@@ -159,6 +159,10 @@ export type InviteStatus = {
   can_set_referrer: boolean;
   can_set_referrer_until?: string | null;
   referrer?: InviteReferrer | null;
+  /** อ่าน GetInvitationTree ได้ไหม — false แปลว่าตัวเลขข้างบนเป็น 0 เพราะอ่านไม่ได้
+   *  ไม่ใช่เพราะยังไม่มีใครถูกเชิญ (เซิร์ฟเวอร์ตอบ error กับบัญชีที่ยังไม่มีสายเชิญ) */
+  tree_available: boolean;
+  tree_error?: string;
 };
 
 export type InviteRunResult = {

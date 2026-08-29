@@ -16,14 +16,22 @@ import invite_tool  # noqa: E402
 
 
 class FakeGuest:
-    def __init__(self, response):
+    """guest ปลอม — ตอบ SetMemberProfile กับ SetReferrer แยกกัน เพราะของจริงต้อง
+    ตั้งโปรไฟล์ให้ผ่านก่อน ไม่งั้นเซิร์ฟเวอร์ตอบ ILLEGAL PARAMETER"""
+
+    def __init__(self, response, profile_response=None):
         self.mid = "guest-1"
         self._response = response
+        self._profile_response = profile_response if profile_response is not None else {}
+        self.calls = []
 
     def ensure_game_member(self):
         return 1
 
     def unary(self, service, method, req):
+        self.calls.append(method)
+        if method == "SetMemberProfile":
+            return self._profile_response
         assert service == invite_tool.INVITATION_API
         assert method == "SetReferrer"
         return self._response
@@ -32,10 +40,10 @@ class FakeGuest:
         pass
 
 
-def _run_one(guest_response=None, guest_record=None):
+def _run_one(guest_response=None, guest_record=None, profile_response=None):
     record = guest_record or {"mid": "guest-1"}
     with patch.object(invite_tool, "create_guest", return_value=record), patch.object(
-        invite_tool, "Guest", lambda rec: FakeGuest(guest_response)
+        invite_tool, "Guest", lambda rec: FakeGuest(guest_response, profile_response)
     ):
         return invite_tool._invite_one("target-mid")
 
@@ -63,6 +71,16 @@ class InviteBucketTests(unittest.TestCase):
         self.assertEqual(bucket, "failed")
         self.assertIn("boom", detail)
 
+    def test_profile_failure_stops_before_setting_referrer(self):
+        # โปรไฟล์ไม่ผ่าน = ตั้ง referrer ยังไงก็ได้ ILLEGAL PARAMETER
+        # ต้องรายงานสาเหตุจริง ไม่ใช่ error ปลายทางที่อ่านแล้วงง
+        bucket, detail = _run_one(
+            {"referrer": {}},
+            profile_response={"__error__": True, "code": "StatusCode.INTERNAL", "details": "nickname taken"},
+        )
+        self.assertEqual(bucket, "failed")
+        self.assertIn("nickname taken", detail)
+
     def test_exception_does_not_escape_and_kill_the_batch(self):
         def explode(rec):
             raise RuntimeError("guest blew up")
@@ -86,6 +104,43 @@ class InviteAggregateTests(unittest.TestCase):
         self.assertEqual(buckets["create_fail"], 0)
         # เก็บตัวอย่าง error ไว้แค่ 10 อัน ไม่งั้น response บวมตามจำนวนที่พัง
         self.assertEqual(len(errors), 10)
+
+
+class InviteTreeTests(unittest.TestCase):
+    """GetInvitationTree ล้มกับบัญชีที่ยังไม่มีข้อมูลสายเชิญ (เจอจริงกับ guest ทุกตัว)
+    — งานหลักคือการตั้ง referrer ต้องไม่ล้มตามไปด้วย"""
+
+    class FakeAccount:
+        mid = "PXXXX1234"
+        lv = 7
+
+        def __init__(self, response):
+            self._response = response
+
+        def unary(self, service, method, req):
+            return self._response
+
+    def test_tree_error_is_reported_not_raised(self):
+        acc = self.FakeAccount({"__error__": True, "details": "INTERNAL SERVER ERROR"})
+        tree, err = invite_tool._get_tree(acc)
+        self.assertIsNone(tree)
+        self.assertEqual(err, "INTERNAL SERVER ERROR")
+
+        out = invite_tool._tree_out(acc, tree, err)
+        self.assertFalse(out["tree_available"])
+        self.assertEqual(out["direct_invited"], 0)
+        self.assertEqual(out["mid"], "PXXXX1234")
+
+    def test_tree_values_are_parsed_when_available(self):
+        acc = self.FakeAccount(
+            {"direct_invited_count": "12", "total_invited_count": "30", "invitation_point": "450"}
+        )
+        tree, err = invite_tool._get_tree(acc)
+        out = invite_tool._tree_out(acc, tree, err)
+        self.assertTrue(out["tree_available"])
+        self.assertEqual(out["direct_invited"], 12)
+        self.assertEqual(out["total_invited"], 30)
+        self.assertEqual(out["invitation_point"], 450)
 
 
 class InviteInputTests(unittest.TestCase):

@@ -35,6 +35,8 @@ from __future__ import annotations
 import argparse
 import contextlib
 import json
+import random
+import string
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -42,6 +44,28 @@ import heart_farm
 from heart_farm import Guest, MainAccount, _close_guest_channel, create_guest
 
 INVITATION_API = "service.api.InvitationAPI"
+MEMBER_API = "service.api.MemberAPI"
+
+# บัญชีที่ยังไม่มีโปรไฟล์ตั้ง referrer ไม่ได้ — เซิร์ฟเวอร์ตอบ "ILLEGAL PARAMETER"
+# (ทดสอบกับเซิร์ฟจริงแล้ว: ยิง SetMemberProfile ก่อนแล้ว SetReferrer ผ่านทันที)
+# ค่าที่สุ่มมาจาก enum ของเกมตรง ๆ — เกมนี้เป็นเวอร์ชันอินเดีย region จึงเป็นรัฐ
+_REGIONS = (
+    "PROFILE_REGION_MAHARASHTRA",
+    "PROFILE_REGION_KARNATAKA",
+    "PROFILE_REGION_TAMIL_NADU",
+    "PROFILE_REGION_GUJARAT",
+    "PROFILE_REGION_WEST_BENGAL",
+    "PROFILE_REGION_UTTAR_PRADESH",
+    "PROFILE_REGION_NATIONAL_CAPITAL_TERRITORY_OF_DELHI",
+)
+_LANGUAGES = ("PROFILE_LANGUAGE_ENGLISH", "PROFILE_LANGUAGE_HINDI")
+_GENDERS = ("GENDER_MALE", "GENDER_FEMALE", "GENDER_OTHER")
+_AGE_GROUPS = (
+    "AGE_GROUP_OLD_TEEN_YOUNG_TWENTY",
+    "AGE_GROUP_OLD_TWENTY_YOUNG_THIRTY",
+    "AGE_GROUP_OLD_THIRTY_YOUNG_FORTY",
+)
+PROFILE_RETRIES = 2
 
 # เพดานต่อการกด 1 ครั้ง — ตัวเลข 29 มาจากขั้นรางวัลของ track เชิญเพื่อนในเกม
 # (เว็บคู่แข่งขายเป็นล็อกละ 29 เหมือนกัน) ผู้ใช้ลดลงมาได้แต่ห้ามเกิน เพราะทุก 1
@@ -108,13 +132,19 @@ def _node_out(node):
 
 
 def _get_tree(account):
+    """คืน (tree, error) — ไม่ raise
+
+    GetInvitationTree ตอบ INTERNAL SERVER ERROR กับบัญชีที่ยังไม่มีข้อมูลสาย
+    เชิญเพื่อน (เจอกับ guest ที่เพิ่งสร้างทุกตัว) ซึ่งไม่ใช่เหตุผลที่จะล้มทั้งงาน
+    — ตัวเลขยืนยันผลเป็นของแถม ส่วนงานหลักคือการตั้ง referrer ต้องเดินต่อได้"""
     r = account.unary(INVITATION_API, "GetInvitationTree", {"common_req": {}})
     if r.get("__error__"):
-        raise RuntimeError("ดึงสถานะเชิญเพื่อนไม่สำเร็จ: %s" % (r.get("details") or r.get("code")))
-    return r
+        return None, (r.get("details") or r.get("code") or "ไม่ทราบสาเหตุ")
+    return r, ""
 
 
-def _tree_out(account, tree):
+def _tree_out(account, tree, error=""):
+    tree = tree or {}
     return {
         "mid": account.mid,
         "level": account.lv,
@@ -129,7 +159,43 @@ def _tree_out(account, tree):
         "can_set_referrer": bool(tree.get("can_set_referrer")),
         "can_set_referrer_until": tree.get("can_set_referrer_until"),
         "referrer": _node_out(tree.get("parent")),
+        # ตัวเลขข้างบนเชื่อถือได้เฉพาะตอน tree_available — ไม่งั้นมันคือศูนย์เพราะ
+        # อ่านไม่ได้ ไม่ใช่เพราะยังไม่มีใครถูกเชิญ หน้าเว็บต้องแยกสองกรณีนี้ออก
+        "tree_available": bool(tree),
+        "tree_error": error,
     }
+
+
+def _random_nickname():
+    """ชื่อเล่นสุ่ม — ไม่รู้ว่าเกมบังคับ unique ไหม ถ้าชนก็ retry ด้วยชื่อใหม่"""
+    return "cr" + "".join(random.choices(string.ascii_lowercase + string.digits, k=7))
+
+
+def _ensure_profile(g):
+    """ตั้งโปรไฟล์ให้ guest ก่อนตั้ง referrer — คืน (ok, error)
+
+    ค่าที่ใส่สุ่มจาก enum จริงของเกม ไม่ได้ฮาร์ดโค้ดชุดเดียวทุกตัว เพราะ guest
+    ที่โปรไฟล์เหมือนกันเป๊ะเป็นร้อยตัวคือรูปแบบที่มองออกง่ายเกินไป"""
+    last = ""
+    for _ in range(PROFILE_RETRIES):
+        r = g.unary(
+            MEMBER_API,
+            "SetMemberProfile",
+            {
+                "common_req": {},
+                "member_profile": {
+                    "region": random.choice(_REGIONS),
+                    "language": random.choice(_LANGUAGES),
+                    "gender": random.choice(_GENDERS),
+                    "age_group": random.choice(_AGE_GROUPS),
+                    "nickname": _random_nickname(),
+                },
+            },
+        )
+        if not r.get("__error__"):
+            return True, ""
+        last = _err_text(r)
+    return False, last or "ตั้งโปรไฟล์ guest ไม่สำเร็จ"
 
 
 def _invite_one(target_mid):
@@ -152,6 +218,9 @@ def _invite_one(target_mid):
         try:
             # ต้องมี member ในเกมก่อน ไม่งั้น RPC ถูกปฏิเสธตั้งแต่ metadata
             g.ensure_game_member()
+            ok, err = _ensure_profile(g)
+            if not ok:
+                return "failed", err
             r = g.unary(
                 INVITATION_API,
                 "SetReferrer",
@@ -172,7 +241,8 @@ def _invite_one(target_mid):
 
 
 def do_status(account):
-    return {"ok": True, "status": _tree_out(account, _get_tree(account))}
+    tree, err = _get_tree(account)
+    return {"ok": True, "status": _tree_out(account, tree, err)}
 
 
 def do_invite(target_mid, count, workers):
@@ -197,13 +267,15 @@ def run_invite(target_mid, count, workers, account=None):
     """ยืนยันผลด้วย GetInvitationTree ก่อน/หลัง เมื่อมี credential ของเป้าหมาย
     ด้วยเหตุผลเดียวกับ do_delete/do_accept ใน friend_tool.py — 'ยิงสำเร็จ' ของ
     เซิร์ฟเวอร์ไม่ได้แปลว่ายอดขึ้นจริง"""
-    before = _get_tree(account) if account else None
+    before, _ = _get_tree(account) if account else (None, "")
     buckets, errors = do_invite(target_mid, count, workers)
 
-    after = _get_tree(account) if account else None
-    invited_before = _int((before or {}).get("direct_invited_count")) if before else None
-    invited_after = _int((after or {}).get("direct_invited_count")) if after else None
-    gained = (invited_after - invited_before) if after else None
+    after, after_err = _get_tree(account) if account else (None, "")
+    # ยอดก่อน/หลังใช้ได้ต่อเมื่ออ่าน tree ได้ "ทั้งสองรอบ" ไม่งั้น gained จะกลาย
+    # เป็นตัวเลขมั่ว ๆ ที่ดูน่าเชื่อถือกว่าความจริง
+    invited_before = _int(before.get("direct_invited_count")) if before else None
+    invited_after = _int(after.get("direct_invited_count")) if after else None
+    gained = (invited_after - invited_before) if (before and after) else None
 
     return {
         "ok": buckets["failed"] == 0 and buckets["create_fail"] == 0,
@@ -217,7 +289,7 @@ def run_invite(target_mid, count, workers, account=None):
         "invited_after": invited_after,
         "gained": gained,
         "errors": errors,
-        "status": _tree_out(account, after) if after else None,
+        "status": _tree_out(account, after, after_err) if account else None,
     }
 
 

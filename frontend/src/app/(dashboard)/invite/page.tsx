@@ -210,15 +210,31 @@ export default function InvitePage() {
             action={<span className="font-mono text-[11px] text-dim">{status.mid}</span>}
           />
           <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4">
-            <Stat label="เชิญโดยตรง" value={`${formatHearts(status.direct_invited)} คน`} />
-            <Stat label="ทั้งสาย" value={`${formatHearts(status.total_invited)} คน`} />
-            <Stat label="แต้มเชิญเพื่อน" value={formatHearts(status.invitation_point)} />
+            {/* อ่าน tree ไม่ได้ = โชว์ขีด ไม่ใช่เลข 0 — 0 ทำให้เข้าใจผิดว่ายังไม่มีใครถูกเชิญ */}
+            <Stat
+              label="เชิญโดยตรง"
+              value={status.tree_available ? `${formatHearts(status.direct_invited)} คน` : "—"}
+            />
+            <Stat
+              label="ทั้งสาย"
+              value={status.tree_available ? `${formatHearts(status.total_invited)} คน` : "—"}
+            />
+            <Stat
+              label="แต้มเชิญเพื่อน"
+              value={status.tree_available ? formatHearts(status.invitation_point) : "—"}
+            />
             <Stat
               label="ผู้เชิญของไอดีนี้"
               value={status.referrer ? status.referrer.nickname || status.referrer.player_id : "—"}
               hint={status.can_set_referrer ? "ยังตั้งผู้เชิญของตัวเองได้" : undefined}
             />
           </div>
+          {!status.tree_available && (
+            <p className="border-t border-lineSoft px-4 py-3 text-xs text-dim">
+              เซิร์ฟเวอร์เกมไม่คืนยอดเชิญเพื่อนของไอดีนี้ ({status.tree_error || "ไม่ทราบสาเหตุ"}) —
+              เชิญได้ตามปกติ แต่ต้องเช็คยอดจริงในเกมเอง
+            </p>
+          )}
         </Card>
       )}
 
