@@ -10,6 +10,10 @@ def classify_failure(message: str) -> str:
         "unauthorized",
         "banned",
         "ok=false",
+        # The game server rejects the client version we send: every retry
+        # sends the same version and earns the same refusal, until an operator
+        # bumps CRK_APP_VERSION/CRK_APP_BUILD.
+        "low client version",
     )
     return "permanent" if any(marker in message.lower() for marker in permanent_markers) else "transient"
 
