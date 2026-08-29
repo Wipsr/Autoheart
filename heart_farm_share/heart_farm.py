@@ -296,11 +296,26 @@ APP_HEADERS = {
     "x-env": "prod",
     "user-agent": "okhttp/5.3.2",
 }
-COMBO_NAME = "26.6.1_dusrmsdyrhl_crg"
-LIVE_INDEX_HASH = "26e9ec2e5bc49b34877b3d784db97c5c"
+
+
+def _env(name, default):
+    """Environment override for a client-identity value ("" counts as unset)."""
+    return (os.environ.get(name) or "").strip() or default
+
+
+# The game server refuses any client older than the live build (DS
+# responseCode 364, "LOW CLIENT VERSION"), so these have to track whatever
+# Cookie Run: Kingdom currently ships. After a game update, set them to the
+# version + build code the store lists for com.devsisters.crg -- either edit
+# the defaults here or set the CRK_* environment variables, which is what the
+# backend deployment uses so a bump needs no code change.
+APP_VERSION = _env("CRK_APP_VERSION", "26.8.02")
+APP_BUILD = _env("CRK_APP_BUILD", "651")
+COMBO_NAME = _env("CRK_COMBO_NAME", "26.6.1_dusrmsdyrhl_crg")
+LIVE_INDEX_HASH = _env("CRK_INDEX_HASH", "26e9ec2e5bc49b34877b3d784db97c5c")
 _LC_TEMPLATE = {
-    "app_build": "626",
-    "app_version": "26.7.02",
+    "app_build": APP_BUILD,
+    "app_version": APP_VERSION,
     "locale_on_game": "en",
     "location_country": "TH",
     "os_name": "android",
@@ -467,6 +482,22 @@ def _ds_call(path, params):
     return {"code": obj.get("responseCode"), "message": obj.get("responseMessage"), "data": data}
 
 
+def _ds_init_error(res, lc):
+    """Message for a failed initMember3. Code 364 is the one that shows up
+    after every game update -- the server has moved on and rejects the version
+    we claim -- so it gets told apart from a generic failure and says exactly
+    which value to bump, instead of dumping a raw response nobody can act on."""
+    if res.get("code") == 364:
+        return (
+            "เวอร์ชันเกมที่สคริปต์แจ้งไป (%s build %s) เก่ากว่าที่เซิร์ฟเวอร์รับแล้ว "
+            "(LOW CLIENT VERSION) — Cookie Run ออกเวอร์ชันใหม่ ให้ตั้ง CRK_APP_VERSION "
+            "และ CRK_APP_BUILD เป็นเวอร์ชัน/build ล่าสุดของแอปบน Google Play "
+            "(หรือแก้ APP_VERSION/APP_BUILD ในไฟล์นี้) แล้วรันใหม่"
+            % (lc.get("app_version", ""), lc.get("app_build", ""))
+        )
+    return "เข้าเกมไม่สำเร็จ (initMember3): %s" % json.dumps(res, ensure_ascii=False)[:300]
+
+
 def _ds_init_member(mid, lc, session):
     """Calls member/initMember3.ds -- required once per account (main or
     guest) before any gRPC call, else the game server returns UNAUTHENTICATED.
@@ -479,7 +510,7 @@ def _ds_init_member(mid, lc, session):
     })
     res = _ds_call("member/initMember3.ds", p)
     if res["code"] != 200 or not res["data"]:
-        raise RuntimeError("เข้าเกมไม่สำเร็จ (initMember3): %s" % json.dumps(res, ensure_ascii=False)[:300])
+        raise RuntimeError(_ds_init_error(res, lc))
     d = res["data"]
     session["session_key"] = d.get("sessionKey")
     session["member_seq"] = d.get("memberSeq")

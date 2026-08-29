@@ -9,6 +9,15 @@ class FailureClassificationTests(unittest.TestCase):
             classify_failure("Login failed: invalid password"), "permanent"
         )
 
+    def test_low_client_version_is_not_retried(self):
+        self.assertEqual(
+            classify_failure(
+                "เวอร์ชันเกมที่สคริปต์แจ้งไป (26.7.02 build 626) เก่ากว่าที่เซิร์ฟเวอร์รับแล้ว "
+                "(LOW CLIENT VERSION)"
+            ),
+            "permanent",
+        )
+
     def test_unknown_worker_exit_is_transient(self):
         self.assertEqual(
             classify_failure("Worker exited with code 1"), "transient"

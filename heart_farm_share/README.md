@@ -68,6 +68,7 @@ proxy นี้ใช้แค่ตอนสร้างบัญชี guest �
 |---|---|
 | `เข้าสู่ระบบไม่สำเร็จ: อีเมลหรือรหัสผ่านไม่ถูกต้อง` | เช็ค MAIN_EMAIL/MAIN_PASSWORD ให้ตรงกับที่ใช้ล็อกอินเกม (DevPlay) |
 | `[producer] guest create FAILED` ขึ้นถี่ๆ | proxy ที่ตั้งไว้อาจมีปัญหาชั่วคราว/หมดอายุ ลองใหม่อีกครั้ง หรือดูหัวข้อ "เรื่อง Proxy" ด้านบนถ้าอยากเปลี่ยนไปใช้ proxy ของตัวเอง |
+| `เวอร์ชันเกม ... เก่ากว่าที่เซิร์ฟเวอร์รับแล้ว (LOW CLIENT VERSION)` | เกมออกเวอร์ชันใหม่ ให้เปิด `heart_farm.py` หาบรรทัด `APP_VERSION` / `APP_BUILD` แล้วแก้เป็นเวอร์ชันกับ build ล่าสุดของแอป Cookie Run: Kingdom บน Google Play (หรือตั้ง environment variable `CRK_APP_VERSION` / `CRK_APP_BUILD` แทนก็ได้) |
 | `_descriptors.bin not found next to heart_farm.py` | ไฟล์ 2 ไฟล์ต้องอยู่โฟลเดอร์เดียวกันเสมอ อย่าย้าย/ลบ `_descriptors.bin` ทิ้ง |
 | `no room to make progress` | เพื่อนจริงในบัญชีมีเกือบ/ครบ 300 คนอยู่แล้ว ไม่มีที่ว่างให้เพิ่ม guest — ต้องลดจำนวนเพื่อนจริงก่อน |
 | `2 sessions in a row collected 0 hearts -- aborting` | มีปัญหาต่อเนื่อง (proxy/บัญชี) เช็ค log ด้านบนว่ารอบไหน error อะไร แล้วลองใหม่ |
