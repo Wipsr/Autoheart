@@ -12,6 +12,7 @@ import {
   Shield,
   UserMinus,
   UserPlus,
+  UserRoundPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +23,7 @@ const tabs = [
   { href: "/packages", label: "ซื้อ", icon: Package },
   { href: "/history", label: "ประวัติ", icon: History },
   { href: "/account", label: "ไอดี", icon: ScanEye },
+  { href: "/invite", label: "เชิญ", icon: UserRoundPlus },
   { href: "/friend-requests", label: "คำขอ", icon: UserPlus },
   { href: "/friends", label: "เพื่อน", icon: UserMinus },
   { href: "/settings", label: "ตั้งค่า", icon: Settings },
@@ -33,6 +35,7 @@ const GRID_COLS: Record<number, string> = {
   6: "grid-cols-6",
   7: "grid-cols-7",
   8: "grid-cols-8",
+  9: "grid-cols-9",
 };
 
 export function MobileNav() {

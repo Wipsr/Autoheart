@@ -13,6 +13,7 @@ import {
   Shield,
   UserMinus,
   UserPlus,
+  UserRoundPlus,
 } from "lucide-react";
 import { cn, formatHearts } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,6 +24,7 @@ const links = [
   { href: "/packages", label: "ซื้อแพ็คเกจ", icon: Package },
   { href: "/history", label: "ประวัติ", icon: History },
   { href: "/account", label: "เช็คข้อมูลไอดี", icon: ScanEye },
+  { href: "/invite", label: "เชิญเพื่อน", icon: UserRoundPlus },
   { href: "/friend-requests", label: "รับเพื่อน", icon: UserPlus },
   { href: "/friends", label: "ลบเพื่อน", icon: UserMinus },
   { href: "/settings", label: "ตั้งค่า", icon: Settings },

@@ -66,6 +66,7 @@ Endpoints สำคัญ:
 - `GET /api/packages`
 - `POST /api/topup/redeem`
 - `POST /api/credentials/verify`
+- `POST /api/invite/status` · `POST /api/invite/run` (เชิญเพื่อน — ฟรี ไม่ผ่านคิว)
 - `POST /api/jobs/create` (single + batch)
 - `GET /api/queue/status`
 - `WS /ws/jobs/{id}?token=...`
@@ -74,6 +75,19 @@ Endpoints สำคัญ:
 Worker loop จะดึง job จากคิวทีละ 1 งาน แล้วรัน:
 
 `python heart_farm/heart_farm.py --api-mode --email ... --password ... --target-hearts N`
+
+### เชิญเพื่อน (invite / referrer)
+
+เมนู **เชิญเพื่อน** ดันยอด "เชิญเพื่อน" ในเกมด้วยการสร้างไอดี guest ใหม่แล้วให้แต่ละตัวเรียก
+`InvitationAPI.SetReferrer` ชี้มาที่ไอดีเป้าหมาย (สูงสุด 29 คนต่อครั้ง — เท่าขั้นรางวัลของเกม)
+
+- `POST /api/invite/status` — ล็อกอินบัญชีเกมแล้วอ่าน `GetInvitationTree` (ยอดเชิญตรง/ทั้งสาย/แต้ม)
+- `POST /api/invite/run` — เชิญตามจำนวนที่ขอ ส่ง `account_id`/`email`+`password` (ยืนยันยอดก่อน-หลังให้)
+  หรือส่ง `target_mid` เฉย ๆ เมื่อไม่มีรหัสผ่านของไอดีปลายทาง
+
+สิทธิ์ตั้ง referrer มีครั้งเดียวต่อบัญชีและใช้ได้เฉพาะบัญชีที่ยังใหม่ ระบบจึงสร้าง guest สดตอนกด
+ไม่ทำพูลค้างไว้ — และเพราะมันไปแย่ง rate limit ของ DevPlay กับ worker ฟาร์มหัวใจ route นี้จำกัดไว้
+5 ครั้ง/ชม./ผู้ใช้ ตั้ง proxy ใน Admin → Proxy ไว้ด้วยจะล้มน้อยกว่ามาก
 
 ### Worker Reliability & Telegram alerts
 

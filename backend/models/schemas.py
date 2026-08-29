@@ -130,6 +130,24 @@ class FriendDeleteRequest(BaseModel):
     player_ids: list[str] = Field(..., min_length=1, max_length=500)
 
 
+class InviteStatusRequest(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
+
+
+class InviteRunRequest(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
+    # โหมดไม่ต้องใช้รหัสผ่าน: ระบุ MID ของไอดีที่จะให้ยอด "เชิญเพื่อน" ขึ้นตรง ๆ
+    # (ใช้เมื่อไม่ได้ส่ง credential มา — เชิญให้ไอดีเพื่อนได้โดยไม่ต้องขอรหัสเขา)
+    target_mid: Optional[str] = None
+    # เพดาน 29 ต้องตรงกับ MAX_INVITES ใน heart_farm/invite_tool.py — ตัวเครื่องมือ
+    # clamp ซ้ำอีกชั้นอยู่แล้ว ตรงนี้แค่ให้ผู้ใช้ได้ error ที่อ่านรู้เรื่องก่อนถึง subprocess
+    count: int = Field(29, ge=1, le=29)
+
+
 class JobCreateRequest(BaseModel):
     """Single or batch job creation. Each credential becomes one job."""
     credentials: list[CredentialItem] = Field(..., min_length=1, max_length=50)

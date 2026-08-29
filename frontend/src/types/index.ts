@@ -139,6 +139,45 @@ export type AccountItem = {
   level: number;
 };
 
+export type InviteReferrer = {
+  player_id: string;
+  nickname: string;
+};
+
+export type InviteStatus = {
+  email?: string;
+  mid: string;
+  level: number;
+  nickname: string;
+  /** คนที่ตั้ง referrer เป็นไอดีนี้โดยตรง = ตัวเลขที่เมนูนี้ดันขึ้น */
+  direct_invited: number;
+  /** รวมทั้งสาย (คนที่คนที่เราชวน ไปชวนต่ออีกที) */
+  total_invited: number;
+  invitation_point: number;
+  last_rewarded_seq: number;
+  /** ของไอดีเราเอง: ยังตั้ง "ใครชวนเรา" ได้อยู่ไหม — ไม่เกี่ยวกับการเชิญคนอื่น */
+  can_set_referrer: boolean;
+  can_set_referrer_until?: string | null;
+  referrer?: InviteReferrer | null;
+};
+
+export type InviteRunResult = {
+  ok: boolean;
+  target_mid: string;
+  requested: number;
+  success: number;
+  already: number;
+  failed: number;
+  /** สร้าง guest ไม่ขึ้น = ปัญหา proxy/rate limit ไม่ใช่ที่ไอดีเป้าหมาย */
+  create_fail: number;
+  /** ยอดก่อน/หลังจาก GetInvitationTree — มีเฉพาะตอนล็อกอินด้วยบัญชีเกม */
+  invited_before: number | null;
+  invited_after: number | null;
+  gained: number | null;
+  errors: string[];
+  status: InviteStatus | null;
+};
+
 export type AccountWallet = {
   coin: number;
   gem: number;
