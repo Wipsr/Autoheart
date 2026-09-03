@@ -52,12 +52,7 @@ def _raw_init_member(email, password):
     # เลย login แยกด้วย urllib ตรง ๆ ตามสูตรเดียวกับ heart_farm._login
     import urllib.request
 
-    headers = {
-        "X-Bundle-Id": hf.APP_HEADERS["x-bundle-id"],
-        "X-API-Key": hf.APP_HEADERS["x-api-key"],
-        "Content-Type": "application/json; charset=utf-8",
-        "User-Agent": hf.APP_HEADERS["user-agent"],
-    }
+    headers = hf.auth_headers(lc)
 
     def _post(path, obj):
         data = json.dumps(obj).encode()
