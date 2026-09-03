@@ -12,7 +12,6 @@ import {
   Shield,
   UserMinus,
   UserPlus,
-  Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,7 +22,6 @@ const tabs = [
   { href: "/packages", label: "ซื้อ", icon: Package },
   { href: "/history", label: "ประวัติ", icon: History },
   { href: "/account", label: "ไอดี", icon: ScanEye },
-  { href: "/powder", label: "ผง", icon: Wand2 },
   { href: "/friend-requests", label: "คำขอ", icon: UserPlus },
   { href: "/friends", label: "เพื่อน", icon: UserMinus },
   { href: "/settings", label: "ตั้งค่า", icon: Settings },

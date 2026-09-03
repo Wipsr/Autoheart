@@ -130,20 +130,6 @@ class FriendDeleteRequest(BaseModel):
     player_ids: list[str] = Field(..., min_length=1, max_length=500)
 
 
-class PowderStatusRequest(BaseModel):
-    email: Optional[str] = None
-    password: Optional[str] = None
-    account_id: Optional[str] = None
-
-
-class PowderPumpRequest(BaseModel):
-    email: Optional[str] = None
-    password: Optional[str] = None
-    account_id: Optional[str] = None
-    # เพดานเดียวกับ MAX_GUESTS ใน powder_tool.py — กันคำขอเดียวกินโควตา proxy ทั้งก้อน
-    count: int = Field(50, ge=1, le=300)
-
-
 class JobCreateRequest(BaseModel):
     """Single or batch job creation. Each credential becomes one job."""
     credentials: list[CredentialItem] = Field(..., min_length=1, max_length=50)

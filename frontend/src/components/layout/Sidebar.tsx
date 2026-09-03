@@ -13,7 +13,6 @@ import {
   Shield,
   UserMinus,
   UserPlus,
-  Wand2,
 } from "lucide-react";
 import { cn, formatHearts } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,7 +23,6 @@ const links = [
   { href: "/packages", label: "ซื้อแพ็คเกจ", icon: Package },
   { href: "/history", label: "ประวัติ", icon: History },
   { href: "/account", label: "เช็คข้อมูลไอดี", icon: ScanEye },
-  { href: "/powder", label: "ปั๊มผงเวทมนตร์", icon: Wand2 },
   { href: "/friend-requests", label: "รับเพื่อน", icon: UserPlus },
   { href: "/friends", label: "ลบเพื่อน", icon: UserMinus },
   { href: "/settings", label: "ตั้งค่า", icon: Settings },

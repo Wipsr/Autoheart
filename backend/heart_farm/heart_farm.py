@@ -529,8 +529,9 @@ class MainAccount:
         self.session = {}
         self._login(email, password)
         # เก็บก้อนดิบของ initMember3 ไว้ด้วย (นอกจาก session ที่มันเติมให้) เพราะ
-        # wallet ของบัญชี เช่นยอดผงเวทมนตร์ อยู่ในก้อนนี้ที่เดียว — powder_tool.py
-        # ใช้อ่านยอดผง ส่วนการฟาร์มหัวใจไม่ได้ใช้และไม่ได้รับผลกระทบ
+        # wallet ของบัญชี เช่นยอดผงเวทมนตร์/เหรียญ อยู่ในก้อนนี้ที่เดียว —
+        # shop_recon.py (เครื่องมือสำรวจ) ใช้อ่านค่านี้ ส่วนการฟาร์มหัวใจไม่ได้ใช้
+        # และไม่ได้รับผลกระทบ
         self.init_data = _ds_init_member(self.mid, self.lc, self.session)
         self.member_seq = self.session["member_seq"]
         self.lv = self.session.get("lv", 0)
