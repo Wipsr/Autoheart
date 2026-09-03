@@ -332,7 +332,7 @@ _LC_TEMPLATE = {
     "os_version": "12",
     "store": "playstore",
     "timezone": "Asia/Bangkok",
-    "library_version": "0.3.3-rc19",
+    "library_version": "0.3.3-rc25",
     "library_name": "DevPlay Cocos SDK",
     "device": {"traits": [], "manufacturer": "Samsung", "model": "SM-S918U", "version": "Android OS 12"},
 }
