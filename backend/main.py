@@ -8,7 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from api.routes import account, admin, auth, credentials, friends, jobs, packages, public, queue, saved_accounts, topup, websocket
+from api.routes import account, admin, auth, credentials, friends, jobs, packages, powder, public, queue, saved_accounts, topup, websocket
 from config import get_settings
 from core.exceptions import AppError
 from services.job_runner_service import job_runner_service
@@ -80,6 +80,7 @@ def create_app() -> FastAPI:
     app.include_router(account.router)
     app.include_router(saved_accounts.router)
     app.include_router(friends.router)
+    app.include_router(powder.router)
     app.include_router(jobs.router)
     app.include_router(queue.router)
     app.include_router(admin.router)

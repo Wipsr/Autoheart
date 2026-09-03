@@ -72,6 +72,37 @@ export type GameFriendRequest = GameFriend & {
   request_time?: string | null;
 };
 
+/** สถานะระบบชวนเพื่อน ใช้คำนวณว่าปั๊มผงได้อีกไหม */
+export type PowderInviteStats = {
+  direct_invited_count: number;
+  total_invited_count: number;
+  invitation_point: number;
+  last_rewarded_seq: number;
+};
+
+export type PowderStatusResult = PowderInviteStats & {
+  email: string;
+  mid?: string | null;
+  level?: number | null;
+  /** ยอดผงปัจจุบัน — null ได้ถ้าอ่านจาก wallet ไม่เจอ (หน้าเว็บโชว์ขีดแทน) */
+  powder?: number | null;
+};
+
+export type PowderPumpResult = {
+  email: string;
+  mid?: string | null;
+  requested: number;
+  invited: number;
+  failures: { reason: string; count: number }[];
+  powder_gained: number;
+  rewards: { type: string; qty: number }[];
+  milestones_claimed: number;
+  before?: PowderInviteStats | null;
+  after?: PowderInviteStats | null;
+  powder?: number | null;
+  note?: string;
+};
+
 export type FriendListResult = {
   email: string;
   mid?: string | null;

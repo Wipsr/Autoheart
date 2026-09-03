@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     hearts_per_minute: float = 50.0
     heart_farm_script: str = "heart_farm/heart_farm.py"
     friend_tool_script: str = "heart_farm/friend_tool.py"
+    powder_tool_script: str = "heart_farm/powder_tool.py"
 
     # ngmx (Pearlz-Core) — แหล่งข้อมูล "เช็คข้อมูลไอดี" ชั่วคราว: เรา proxy ไปที่
     # เว็บนี้เพื่อดึง wallet/inventory พร้อมชื่อ+รูป โดยไม่ต้องแตก content bundle เอง
