@@ -8,17 +8,11 @@ import httpx
 # ใช้ lc + ตารางแปล error code ชุดเดียวกับที่ worker ใช้จริง
 # อย่า copy โครงสร้าง lc มาไว้ที่นี่: เคยทำแล้วมันไหลออกจากกัน จน DevPlay
 # ตอบ 40000 (request ไม่ถูกต้อง) ทุกครั้ง แล้วถูกรายงานว่า "รหัสผิด"
-from heart_farm.heart_farm import _LOGIN_ERROR_MESSAGES, fresh_lc
+from heart_farm.heart_farm import _LOGIN_ERROR_MESSAGES, auth_headers, fresh_lc
 
 
 class DevPlayAuthService:
     AUTH_HOST = "https://account.devplay.com"
-    APP_HEADERS = {
-        "X-Bundle-Id": "com.devsisters.crg",
-        "X-API-Key": "SrwOwqNLG7fyi0kYvk03xc1s7eM",
-        "Content-Type": "application/json; charset=utf-8",
-        "User-Agent": "okhttp/5.3.2",
-    }
 
     def _fresh_lc(self) -> dict[str, Any]:
         lc = fresh_lc()
@@ -31,12 +25,14 @@ class DevPlayAuthService:
             return {"valid": False, "error_message": "กรุณากรอกอีเมลและรหัสผ่าน DevPlay"}
 
         lc = self._fresh_lc()
+        # DevPlay ปฏิเสธ (40002) ถ้าไม่มี security headers ชุดเดียวกับที่ worker ส่ง
+        headers = auth_headers(lc)
         async with httpx.AsyncClient(timeout=20.0) as client:
             try:
                 await client.post(
                     f"{self.AUTH_HOST}/v4/checkemail",
                     json={"email": email, "lc": lc},
-                    headers=self.APP_HEADERS,
+                    headers=headers,
                 )
                 response = await client.post(
                     f"{self.AUTH_HOST}/v3/login/devsisters",
@@ -46,7 +42,7 @@ class DevPlayAuthService:
                         "oven_access_token": "",
                         "lc": lc,
                     },
-                    headers=self.APP_HEADERS,
+                    headers=headers,
                 )
                 data = response.json()
             except httpx.HTTPError as e:

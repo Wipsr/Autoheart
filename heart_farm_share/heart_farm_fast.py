@@ -334,7 +334,7 @@ _LC_TEMPLATE = {
     "timezone": "Asia/Bangkok",
     "library_version": "0.3.3-rc25",
     "library_name": "DevPlay Cocos SDK",
-    "device": {"traits": [], "manufacturer": "Samsung", "model": "SM-S918U", "version": "Android OS 12"},
+    "device": {"traits": [], "manufacturer": "Samsung", "model": "SM-A528B", "version": "Android OS 12"},
 }
 
 _PROXIES = {"http": PROXY_URL, "https": PROXY_URL} if PROXY_URL else None
@@ -354,6 +354,48 @@ def fresh_lc():
     lc["app_installed_id"] = _rand_uuid()
     lc["semi_device_id"] = _rand_uuid().replace("-", "")[:16]
     return lc
+
+
+def _b64_hdr(value):
+    """DevPlay carries its identity headers base64-encoded (standard alphabet)."""
+    return base64.b64encode(str(value).encode("utf-8")).decode("ascii")
+
+
+def auth_headers(lc):
+    """Headers for every account.devplay.com request (login + guest creation).
+
+    Current DevPlay SDK builds fingerprint the caller through a set of
+    base64-encoded identity headers on top of the plain x-bundle-id/x-api-key
+    pair. A caller that sends only the plain pair is taken for a bot and refused
+    with HTTP 200 carrying code 40002 and an empty token -- which is exactly what
+    guest creation started hitting on every attempt, on every exit IP, so the
+    retries could never work around it. The values mirror the fingerprint the lc
+    already describes, so each fresh device identity stays self-consistent.
+    """
+    device = lc.get("device") or {}
+    headers = {
+        "x-bundle-id": APP_HEADERS["x-bundle-id"], "x-api-key": APP_HEADERS["x-api-key"],
+        "x-sdk-version": APP_HEADERS["x-sdk-version"], "x-env": APP_HEADERS["x-env"],
+        "content-type": "application/json; charset=utf-8", "accept-encoding": "gzip",
+        "user-agent": APP_HEADERS["user-agent"],
+        # the attestation verdict a healthy client reports -- b64("ok")
+        "x-attestation-client-status": _b64_hdr("ok"),
+    }
+    # Only sent when the identity actually has the value: the email login builds
+    # an lc with an empty devsisters_id, and the real client omits the header
+    # rather than sending an empty one.
+    for name, value in (
+        ("x-anonymous-id", lc.get("anonymous_id", "")),
+        ("x-app-installed-id", lc.get("app_installed_id", "")),
+        ("x-devsisters-id", lc.get("devsisters_id", "")),
+        ("x-device-manufacturer", device.get("manufacturer", "")),
+        ("x-device-model", device.get("model", "")),
+        ("x-timezone", lc.get("timezone", "")),
+        ("x-location-country", lc.get("location_country", "")),
+    ):
+        if value:
+            headers[name] = _b64_hdr(value)
+    return headers
 
 
 def _rand_cable(n=20):
@@ -447,6 +489,9 @@ _HTTP = _pooled_session(_HTTP_POOL_N)
 _GUEST_HTTP = _pooled_session(_HTTP_POOL_N)
 
 _LOGIN_ERROR_MESSAGES = {
+    40002: "เซิร์ฟเวอร์ DevPlay ปฏิเสธคำขอ "
+           "(ตรวจว่าเป็นไคลเอนต์ปลอม) — "
+           "ส่วนใหญ่แปลว่าข้อมูลเวอร์ชันแอป/อุปกรณ์ที่แจ้งไปไม่ตรงกับที่เซิร์ฟเวอร์รับ",
     40101: "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
     40102: "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
     40401: "ไม่พบบัญชีนี้ในระบบ DevPlay",
@@ -575,10 +620,7 @@ class MainAccount:
 
     def _login(self, email, password):
         lc = dict(self.lc); lc["devsisters_id"] = ""
-        headers = {
-            "X-Bundle-Id": APP_HEADERS["x-bundle-id"], "X-API-Key": APP_HEADERS["x-api-key"],
-            "Content-Type": "application/json; charset=utf-8", "User-Agent": APP_HEADERS["user-agent"],
-        }
+        headers = auth_headers(lc)
 
         def _post(path, obj):
             data = json.dumps(obj).encode()
@@ -652,12 +694,6 @@ def create_guest(retries=GUEST_RETRIES):
     only exit node -- the one case the retries were written for.) Never lets a
     transient failure propagate; it would kill the whole parallel batch of
     guest creations."""
-    headers = {
-        "x-bundle-id": APP_HEADERS["x-bundle-id"], "x-api-key": APP_HEADERS["x-api-key"],
-        "x-sdk-version": APP_HEADERS["x-sdk-version"], "x-env": APP_HEADERS["x-env"],
-        "content-type": "application/json; charset=utf-8", "accept-encoding": "gzip",
-        "user-agent": APP_HEADERS["user-agent"],
-    }
     last = None
     for attempt in range(retries):
         if attempt:
@@ -667,7 +703,8 @@ def create_guest(retries=GUEST_RETRIES):
         lc, device_id = fresh_lc(), _rand_uuid()
         body = {"guest_secret": "", "lc": lc, "device_id": device_id}
         try:
-            r = _GUEST_HTTP.post(AUTH_HOST + "/v3/login", headers=headers, json=body, timeout=25, proxies=_PROXIES)
+            r = _GUEST_HTTP.post(AUTH_HOST + "/v3/login", headers=auth_headers(lc), json=body,
+                                 timeout=25, proxies=_PROXIES)
         except requests.RequestException as e:
             last = {"__error__": True, "network_error": str(e)}
             continue
@@ -735,10 +772,7 @@ class Guest:
         tok = self.session.get("access_token", "")
         if tok and _jwt_exp(tok) > time.time() + 120:
             return tok
-        headers = {
-            "x-bundle-id": APP_HEADERS["x-bundle-id"], "x-api-key": APP_HEADERS["x-api-key"],
-            "content-type": "application/json; charset=utf-8", "user-agent": APP_HEADERS["user-agent"],
-        }
+        headers = auth_headers(self.lc)
         body = {"guest_secret": self.rec["guest_secret"], "lc": self.lc, "device_id": self.rec.get("device_id", "")}
         d = _GUEST_HTTP.post(AUTH_HOST + "/v3/login", headers=headers, json=body, timeout=25, proxies=_PROXIES).json()
         if not d.get("game_access_token"):
