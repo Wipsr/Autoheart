@@ -296,21 +296,28 @@ def ds_build_request_body(params):
 #  IDs, like a newly-installed app -- called once for the main account and
 #  once per guest, so nothing reuses a single fixed identity).
 # ============================================================================
-AUTH_HOST = "https://account.devplay.com"
-HTTP_ENDPOINT = "https://server.live.prod.devsnova.cloud/"
-GRPC_ENDPOINT = "gserver.live.prod.devsnova.cloud:443"
-APP_HEADERS = {
-    "x-bundle-id": "com.devsisters.crg",
-    "x-api-key": "SrwOwqNLG7fyi0kYvk03xc1s7eM",
-    "x-sdk-version": "0.3.3",
-    "x-env": "prod",
-    "user-agent": "okhttp/5.3.2",
-}
-
-
 def _env(name, default):
     """Environment override for a client-identity value ("" counts as unset)."""
     return (os.environ.get(name) or "").strip() or default
+
+
+AUTH_HOST = _env("CRK_AUTH_HOST", "https://account.devplay.com")
+HTTP_ENDPOINT = "https://server.live.prod.devsnova.cloud/"
+GRPC_ENDPOINT = "gserver.live.prod.devsnova.cloud:443"
+# When the login server dislikes the client identity below it answers HTTP 200
+# with a non-20000 code and no token. None of these values vary per attempt, so
+# that refusal repeats identically on every retry -- through a fresh device id
+# and, with a rotating proxy, a fresh exit IP. A guest failure that survives all
+# retries therefore points here rather than at the network: re-capture these
+# from a HAR of the live client. The CRK_* overrides exist so a deployment can
+# correct them without a code change.
+APP_HEADERS = {
+    "x-bundle-id": _env("CRK_BUNDLE_ID", "com.devsisters.crg"),
+    "x-api-key": _env("CRK_API_KEY", "SrwOwqNLG7fyi0kYvk03xc1s7eM"),
+    "x-sdk-version": _env("CRK_SDK_VERSION", "0.3.3"),
+    "x-env": _env("CRK_ENV", "prod"),
+    "user-agent": _env("CRK_USER_AGENT", "okhttp/5.3.2"),
+}
 
 
 # The game server refuses any client older than the live build (DS
@@ -332,8 +339,8 @@ _LC_TEMPLATE = {
     "os_version": "12",
     "store": "playstore",
     "timezone": "Asia/Bangkok",
-    "library_version": "0.3.3-rc25",
-    "library_name": "DevPlay Cocos SDK",
+    "library_version": _env("CRK_LIBRARY_VERSION", "0.3.3-rc25"),
+    "library_name": _env("CRK_LIBRARY_NAME", "DevPlay Cocos SDK"),
     "device": {"traits": [], "manufacturer": "Samsung", "model": "SM-S918U", "version": "Android OS 12"},
 }
 
@@ -801,6 +808,29 @@ class Guest:
 #  max(creation, accept, sendlife) instead of their sum. See the project this
 #  was extracted from for the full live-tested rationale/numbers.
 # ============================================================================
+# Latched to once a run: the producers are parallel, so without this every
+# failed guest would repeat the same paragraph hundreds of times over.
+_IDENTITY_HINT_LOCK = threading.Lock()
+_IDENTITY_HINT_SHOWN = False
+
+
+def _warn_stale_identity_once():
+    """A refusal that outlives every retry is not a network problem. Each attempt
+    already rotated the device id, the whole lc fingerprint and -- behind a
+    rotating proxy -- the exit IP, so the only thing still holding still is the
+    app identity the request carries."""
+    global _IDENTITY_HINT_SHOWN
+    with _IDENTITY_HINT_LOCK:
+        if _IDENTITY_HINT_SHOWN:
+            return
+        _IDENTITY_HINT_SHOWN = True
+    print("  [producer] the login server refused EVERY attempt -- device id, lc and exit IP "
+          "all rotated between them, so this points at the app identity, not the proxy. "
+          "Re-capture x-api-key / x-sdk-version / library_version from a HAR of the live "
+          "client (override without a code change: CRK_API_KEY, CRK_SDK_VERSION, "
+          "CRK_LIBRARY_VERSION).")
+
+
 def create_and_friend_one(main_mid):
     try:
         rec = create_guest()
@@ -810,6 +840,8 @@ def create_and_friend_one(main_mid):
             reason = (rec.get("resp") or {}).get("code") or rec.get("network_error") or rec.get("raw") or "?"
             print("  [producer] guest create FAILED [%s] after %s attempt(s): %s"
                   % (str(reason)[:60], rec.get("attempts", 1), json.dumps(rec, ensure_ascii=False)[:180]))
+            if (rec.get("resp") or {}).get("code"):
+                _warn_stale_identity_once()
             return None
         g = Guest(rec)
         gseq = g.ensure_game_member()
