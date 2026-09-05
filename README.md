@@ -122,6 +122,16 @@ npm run dev
 4. ระบบ verify credentials → สร้าง jobs → Fair Interleaved Queue
 5. ดูตำแหน่งคิว / เวลารอ dynamic / live console บน `/queue`
 
+## ฟีเจอร์ที่ proxy ไป ngmx
+
+"เช็คข้อมูลไอดี" (`/account`) และ "ปั๊มผงเวทมนตร์" (`/powder`) ไม่ได้รันด้วย worker
+ของเรา แต่ยิงต่อไปที่ ngmx (Pearlz-Core) — ดูเหตุผลและข้อควรระวังเรื่องรหัสผ่านใน
+`backend/services/ngmx_service.py` ซึ่งเป็นจุดต่อ ngmx จุดเดียวของทั้งระบบ
+
+งานปั๊มผงอยู่ในคิวของ ngmx ไม่ใช่คิว `jobs` ของเรา ตาราง `powder_jobs` เก็บแค่ว่า
+งานไหนเป็นของผู้ใช้คนไหน แล้วหน้าเว็บ poll `/api/powder/jobs` เพื่อ sync สถานะ
+ตอนนี้ยังไม่ตัดเครดิตหัวใจ (ต้นทุนจริงคือเหรียญในเกมของผู้ใช้เอง)
+
 ## หมายเหตุความปลอดภัย
 
 - อย่า commit `.env.local` / service role key
@@ -166,7 +176,13 @@ CORS_ORIGINS=https://<vercel-domain>
 ENVIRONMENT=production
 PYTHON_BIN=python3
 TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+NGMX_SESSION_COOKIE            # cookie crw_key ของบัญชีบริการฝั่ง ngmx (ฟีเจอร์ปั๊มผง)
 ```
+
+> **NGMX_SESSION_COOKIE**: หน้า "ปั๊มผงเวทมนตร์" สั่งงานต่อไปเข้าคิวของ ngmx ซึ่งผูก
+> พ้อยท์/สิทธิ์ใช้ฟรีไว้กับ session cookie ไม่ตั้งค่านี้ = ได้บัญชีใหม่ (พ้อยท์ 0)
+> ทุกครั้งที่ backend รีสตาร์ต ให้เอาค่า cookie `crw_key` ของบัญชีที่แอดมิน ngmx
+> ให้สิทธิ์ไว้มาใส่
 
 > **Egress IP**: Railway ใช้ IP ของ datacenter ซึ่ง DevPlay อาจบล็อก
 > ถ้า login fail หลัง deploy ให้เปิด proxy ที่ Admin → Proxy ก่อน (`proxy_config` ใน DB)

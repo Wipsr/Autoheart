@@ -182,3 +182,27 @@ export type AccountInspectResult = {
   trophies: number;
   points?: { today: number; current: number; gift_count: number } | null;
 };
+
+// ── ปั๊มผงเวทมนตร์ (proxy จาก ngmx) ──────────────────────────────────────
+// scan = ล็อกอินดูเหรียญ/ผงก่อนตั้งเป้า, job = งานที่สั่งเข้าคิวฝั่ง ngmx แล้ว
+export type PowderScanResult = {
+  mid: string;
+  nickname?: string | null;
+  coin: number;
+  powder: number;
+  box_price?: number | null;
+};
+
+export type PowderJobStatus = "queued" | "running" | "success" | "error" | "cancelled";
+
+export type PowderJob = {
+  id: string;
+  email: string;
+  requested_powder: number;
+  status: PowderJobStatus;
+  progress: number;
+  status_line: string;
+  delivered: number;
+  error_message?: string | null;
+  created_at?: string | null;
+};

@@ -92,6 +92,21 @@ class AccountInspectRequest(BaseModel):
     account_id: Optional[str] = None
 
 
+class PowderScanRequest(BaseModel):
+    # กรอกสด (email+password) หรืออ้างบัญชีที่ save ไว้ (account_id) อย่างใดอย่างหนึ่ง
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
+
+
+class PowderStartRequest(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
+    # เพดานเท่ากับ max_units ของเครื่องมือฝั่ง ngmx — กันพิมพ์เกินตั้งแต่ต้นทาง
+    powder: int = Field(..., ge=1, le=1_000_000)
+
+
 class SavedAccountCreateRequest(BaseModel):
     email: str
     password: str

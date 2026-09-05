@@ -10,6 +10,7 @@ import {
   ScanEye,
   Settings,
   Shield,
+  Sparkles,
   UserMinus,
   UserPlus,
 } from "lucide-react";
@@ -22,17 +23,19 @@ const tabs = [
   { href: "/packages", label: "ซื้อ", icon: Package },
   { href: "/history", label: "ประวัติ", icon: History },
   { href: "/account", label: "ไอดี", icon: ScanEye },
+  { href: "/powder", label: "ผง", icon: Sparkles },
   { href: "/friend-requests", label: "คำขอ", icon: UserPlus },
   { href: "/friends", label: "เพื่อน", icon: UserMinus },
   { href: "/settings", label: "ตั้งค่า", icon: Settings },
 ];
 
-// แถบล่างมือถือขยายตามจำนวนแท็บ (ปกติ 8, แอดมินสลับ "ตั้งค่า" เป็น "Admin" คงที่ 8)
+// แถบล่างมือถือขยายตามจำนวนแท็บ (ปกติ 9, แอดมินสลับ "ตั้งค่า" เป็น "Admin" คงที่ 9)
 const GRID_COLS: Record<number, string> = {
   5: "grid-cols-5",
   6: "grid-cols-6",
   7: "grid-cols-7",
   8: "grid-cols-8",
+  9: "grid-cols-9",
 };
 
 export function MobileNav() {
