@@ -43,7 +43,11 @@ export default function SettingsPage() {
         </p>
         <p>
           <span className="text-dim">เครดิต:</span>{" "}
-          {(profile?.points ?? 0).toLocaleString()} หัวใจ
+          {(profile?.hearts ?? 0).toLocaleString()} หัวใจ
+        </p>
+        <p>
+          <span className="text-dim">พอยท์เติมเงิน:</span>{" "}
+          {(profile?.points ?? 0).toLocaleString()} พอยท์
         </p>
       </Card>
       <Card className="p-5">

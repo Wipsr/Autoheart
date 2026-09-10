@@ -6,12 +6,18 @@ import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/Card";
-import { ProgressBar, StatusPill } from "@/components/ui/Badge";
+import { Badge, ProgressBar, StatusPill } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/States";
 import { JobConsole } from "@/components/queue/JobConsole";
 import type { JobLog } from "@/hooks/useQueue";
 import { formatHearts } from "@/lib/utils";
 import type { Job } from "@/types";
+
+const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  heart: "หัวใจ",
+  point: "พอยท์",
+  angpao: "อั่งเปา",
+};
 
 export default function AdminJobDetailPage() {
   const { id } = useParams<{ id: string }>();

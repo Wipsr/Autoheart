@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 
-type Promotion = { id: string; title: string; type: string; hearts_reward: number; requires_devplay: boolean };
+// API ยังใช้ชื่อคอลัมน์ points_reward ด้วยเหตุผลทางประวัติศาสตร์ แต่สิ่งที่เครดิตให้จริงคือหัวใจ
+type Promotion = { id: string; title: string; type: string; points_reward: number; requires_devplay: boolean };
 
 export function TrialClaimCard() {
   const { token, refreshProfile } = useAuth();
@@ -31,7 +32,7 @@ export function TrialClaimCard() {
       const result = await api<{ points_credited: number }>(`/api/promotions/${promo.id}/claim`, {
         method: "POST", token, body: JSON.stringify({ devplay_email: email, devplay_password: password }),
       });
-      setMessage(`รับสำเร็จ +${result.points_credited.toLocaleString()} พอยท์`);
+      setMessage(`รับสำเร็จ +${result.points_credited.toLocaleString()} หัวใจ`);
       setPassword("");
       refreshProfile(token);
     } catch (error) {
@@ -44,7 +45,7 @@ export function TrialClaimCard() {
   return (
     <Card glow className="p-5">
       <h2 className="font-semibold text-rose-200">{promo.title}</h2>
-      <p className="mt-1 text-sm text-muted">ยืนยัน DevPlay หนึ่งครั้งต่อไอดี เพื่อรับ {promo.hearts_reward.toLocaleString()} หัวใจ</p>
+      <p className="mt-1 text-sm text-muted">ยืนยัน DevPlay หนึ่งครั้งต่อไอดี เพื่อรับ {promo.points_reward.toLocaleString()} หัวใจ</p>
       <form onSubmit={claim} className="mt-4 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
         <Input required type="email" placeholder="DevPlay Email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input required type="password" placeholder="DevPlay Password" value={password} onChange={(e) => setPassword(e.target.value)} />

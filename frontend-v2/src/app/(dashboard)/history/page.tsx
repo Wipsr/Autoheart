@@ -5,19 +5,25 @@ import { History, Receipt } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardHead } from "@/components/ui/Card";
-import { StatusPill } from "@/components/ui/Badge";
+import { Badge, StatusPill } from "@/components/ui/Badge";
 import { EmptyState, ListSkeleton } from "@/components/ui/States";
 import { maskEmail } from "@/components/queue/JobRow";
 import type { Job, Topup } from "@/types";
-import { formatBahtExact, formatPoints } from "@/lib/utils";
+import { formatBahtExact, formatHearts, formatPoints } from "@/lib/utils";
 
 const TOPUP_STATUS_LABEL: Record<string, string> = {
   pending: "รอดำเนินการ",
   processing: "กำลังตรวจซอง",
-  credited: "เติมพอยท์แล้ว",
+  credited: "เติมเครดิตแล้ว",
   failed: "ไม่สำเร็จ",
   needs_manual: "รอแอดมินตรวจ",
   refunded: "คืนเงินแล้ว",
+};
+
+const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  heart: "หัวใจ",
+  point: "พอยท์",
+  angpao: "อั่งเปา",
 };
 
 export default function HistoryPage() {
@@ -71,9 +77,14 @@ export default function HistoryPage() {
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-3">
+                {j.payment_method && (
+                  <Badge className="border border-line text-dim">
+                    {PAYMENT_METHOD_LABEL[j.payment_method] || j.payment_method}
+                  </Badge>
+                )}
                 <StatusPill status={j.status} />
                 <span className="font-mono text-xs tabular-nums text-muted">
-                  {formatPoints(j.hearts_collected)} / {formatPoints(j.target_hearts)}
+                  {formatHearts(j.hearts_collected)} / {formatHearts(j.target_hearts)}
                 </span>
               </div>
             </div>
@@ -102,12 +113,16 @@ export default function HistoryPage() {
                   <span className="text-dim"> × {t.quantity}</span>
                 </p>
                 <p className="mt-0.5 font-mono text-[11px] text-dim">
+                  {t.package_id == null ? "เติมพอยท์ทั่วไป · " : ""}
                   {TOPUP_STATUS_LABEL[t.status] || t.status}
                   {t.created_at ? ` · ${new Date(t.created_at).toLocaleString("th-TH")}` : ""}
                 </p>
               </div>
               <span className="font-mono text-sm tabular-nums text-heart">
-                +{formatPoints(t.points_credited)}
+                +
+                {t.credit_target === "points"
+                  ? `${formatPoints(t.points_credited)} P`
+                  : `${formatHearts(t.hearts_credited ?? t.points_credited)} หัวใจ`}
               </span>
             </div>
           ))}
