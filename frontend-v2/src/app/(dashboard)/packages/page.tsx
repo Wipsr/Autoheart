@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Info } from "lucide-react";
 import { PackageGrid } from "@/components/packages/PackageCard";
 import { api } from "@/lib/api";
@@ -31,9 +32,10 @@ export default function PackagesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold">เติมพอยท์</h1>
+        <h1 className="font-display text-2xl font-semibold">เลือกแพ็คเกจหัวใจ</h1>
         <p className="mt-0.5 text-sm text-muted">
-          1 พอยท์ = 1 หัวใจ · หักพอยท์ตอนสั่งงานเท่านั้น งานล้มคืนพอยท์เต็มจำนวนอัตโนมัติ
+          แพ็คเกจคือ &ldquo;หัวใจ&rdquo; ที่เอาไปสั่งงานฟาร์มได้เลย ·
+          ตอนสั่งงานเลือกจ่ายได้ 3 ทาง: หักหัวใจที่มีอยู่ / แลกจากพอยท์ / จ่ายซองอั่งเปา
         </p>
       </div>
       <PackageGrid packages={packages} />
@@ -41,7 +43,12 @@ export default function PackagesPage() {
       <div className="flex gap-2.5 rounded-card border border-info-line bg-info-soft px-4 py-3">
         <Info className="mt-0.5 h-[15px] w-[15px] shrink-0 text-info" />
         <p className="text-[12.5px] text-info-ink">
-          พอยท์ไม่มีวันหมดอายุ และใช้กับงานฟาร์มได้ทุกไอดี ไม่ผูกกับไอดีใดไอดีหนึ่ง
+          หัวใจกับพอยท์เป็นคนละกระเป๋า — หัวใจใช้สั่งงานได้ทันที ส่วนพอยท์เป็นเงินที่เติมค้างไว้
+          แล้วค่อยแลกเป็นหัวใจทีหลัง เติมพอยท์หรือแลกล่วงหน้าได้ที่หน้า{" "}
+          <Link href="/topup" className="font-medium underline underline-offset-2">
+            เติม/แลกพอยท์
+          </Link>{" "}
+          · ทั้งคู่ไม่มีวันหมดอายุ และใช้กับไอดีไหนก็ได้
         </p>
       </div>
     </div>

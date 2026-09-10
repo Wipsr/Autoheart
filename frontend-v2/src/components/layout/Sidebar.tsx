@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/Button";
 const MAIN = [
   { href: "/dashboard", label: "ภาพรวม", icon: LayoutDashboard },
   { href: "/queue", label: "คิวงาน", icon: ListOrdered },
-  { href: "/packages", label: "เติมพอยท์", icon: Wallet },
+  { href: "/packages", label: "ซื้อหัวใจ", icon: Wallet },
   { href: "/topup", label: "เติม/แลกพอยท์", icon: Coins },
   { href: "/history", label: "ประวัติ", icon: History },
 ];
