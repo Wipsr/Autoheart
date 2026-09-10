@@ -7,8 +7,13 @@
 --
 -- อัตราแลกยังเป็น 1 พอยท์ = 1 หัวใจ ตัวเลขเดิมทั้งหมดจึงย้ายมาตรง ๆ ได้
 --
--- รันได้ซ้ำ (idempotent) และปลอดภัยกับ backend เวอร์ชันเก่า เพราะยังมี
--- credit_user_hearts / deduct_user_hearts เป็น wrapper ชี้ไปฟังก์ชันใหม่
+-- รันได้ซ้ำ (idempotent)
+--
+-- ลำดับ deploy: รัน migration นี้แล้ว **ต้อง deploy backend ใหม่ทันที**
+-- wrapper ท้ายไฟล์กันได้แค่ฝั่ง RPC เท่านั้น ส่วน backend เก่ายังอ่าน/เขียน
+-- คอลัมน์ตรง ๆ อยู่ (profiles.credits, packages.hearts, hearts_credited,
+-- credits_refunded) ซึ่งจะพังทันทีที่ rename เสร็จ
+-- เลือกจังหวะที่ไม่มีงานรันและไม่มีซองค้าง
 
 -- ── 1) คอลัมน์สกุลเงิน ────────────────────────────────────────────────
 
@@ -100,8 +105,8 @@ END;
 $$;
 
 -- ── 4) ชื่อเดิมกลายเป็น wrapper ──────────────────────────────────────
--- backend รุ่นเก่าที่ยังไม่ถูก deploy ทับจะไม่พังระหว่างช่วงเปลี่ยนผ่าน
--- ลบทิ้งได้เมื่อ Railway รันโค้ดใหม่ครบแล้ว
+-- ลดพื้นที่พังของ backend รุ่นเก่าระหว่างช่วงเปลี่ยนผ่าน (เฉพาะฝั่ง RPC
+-- ไม่ครอบคลุมการอ่าน/เขียนคอลัมน์ตรง ๆ) ลบทิ้งได้เมื่อ Railway รันโค้ดใหม่แล้ว
 
 CREATE OR REPLACE FUNCTION public.credit_user_hearts(
     p_user_id UUID,
@@ -139,6 +144,8 @@ REVOKE EXECUTE ON FUNCTION public.deduct_user_hearts(UUID, INTEGER) FROM anon, a
 -- ── 6) ข้อความที่ผู้ใช้เห็น ───────────────────────────────────────────
 -- slug คงเดิม เพราะ seed.sql กับ topup ใช้เป็น key อ้างอิงแพ็กเกจ
 
-UPDATE public.packages SET name = 'แพ็คเกจ 1,000 พอยท์' WHERE slug = '1000-hearts';
-UPDATE public.packages SET name = 'แพ็คเกจ 2,000 พอยท์' WHERE slug = '2000-hearts';
-UPDATE public.packages SET name = 'แพ็คเกจ 3,000 พอยท์' WHERE slug = '3000-hearts';
+-- เขียนแบบกวาดทั้งตาราง ไม่เจาะจง slug เพราะแอดมินเพิ่มแพ็กเองได้
+-- (production มีแพ็ก 10,000 ที่ไม่ได้มาจาก seed)
+UPDATE public.packages
+SET name = replace(name, 'หัวใจ', 'พอยท์')
+WHERE name LIKE '%หัวใจ%';
