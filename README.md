@@ -184,8 +184,14 @@ Repo: https://github.com/Wipsr/Autoheart (branch `main`)
 
 ### Frontend → Vercel
 
-Import repo → **Root Directory = `frontend`** หรือ **`frontend-v2`** (preset Next.js ตรวจเอง)
-ทั้งสองตัวใช้ตัวแปรชุดเดียวกัน และชี้ backend ตัวเดียวกันได้พร้อมกัน
+repo นี้มี frontend สองตัว แต่ละตัวเป็น Vercel project แยกกัน ต่างกันแค่ Root Directory:
+
+| Vercel project | Root Directory | โดเมน |
+|---|---|---|
+| `autoheart` | `frontend` | autoheart.vercel.app |
+| `autoheart-v2` | `frontend-v2` | autoheart-v2.vercel.app |
+
+ทั้งคู่ใช้ตัวแปรชุดเดียวกันและชี้ backend ตัวเดียวกันได้พร้อมกัน:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL
@@ -193,6 +199,19 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY
 NEXT_PUBLIC_API_URL=https://<railway-domain>
 NEXT_PUBLIC_WS_URL=wss://<railway-domain>
 ```
+
+> **ทุกโดเมนที่เพิ่มใหม่ต้องไปใส่ใน `CORS_ORIGINS` ที่ Railway ด้วย**
+> ไม่งั้นหน้าเว็บโหลดขึ้นปกติแต่ยิง API ไม่ได้เลยสักเส้น เบราว์เซอร์บล็อกที่ preflight
+> เช็คได้ด้วย:
+> ```bash
+> curl -i -X OPTIONS https://<railway-domain>/api/packages \
+>   -H 'Origin: https://<vercel-domain>' \
+>   -H 'Access-Control-Request-Method: GET' | grep -i access-control-allow-origin
+> ```
+> ถ้าไม่มีบรรทัด `access-control-allow-origin` กลับมา = ยังไม่ผ่าน
+
+> การแก้ Environment Variables บน Vercel **ไม่ trigger deploy ให้เอง**
+> ต้องกด Redeploy หรือ push commit เข้า `main` อีกที ค่าใหม่ถึงจะเข้า build
 
 ### Backend → Railway
 
