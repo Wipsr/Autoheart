@@ -61,7 +61,14 @@ export default function AdminJobDetailPage() {
       <Card className="space-y-3 p-4 text-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span>{job.devplay_email}</span>
-          <StatusPill status={job.status} />
+          <div className="flex items-center gap-2">
+            {job.payment_method && (
+              <Badge className="border border-lineStrong text-dim">
+                {PAYMENT_METHOD_LABEL[job.payment_method] || job.payment_method}
+              </Badge>
+            )}
+            <StatusPill status={job.status} />
+          </div>
         </div>
         <div className="flex items-center justify-between gap-3 font-mono text-xs tabular-nums text-muted">
           <span>
