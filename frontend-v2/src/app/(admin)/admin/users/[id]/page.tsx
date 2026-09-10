@@ -19,6 +19,7 @@ type Detail = {
     email?: string;
     role?: string;
     points: number;
+    hearts: number;
     is_banned?: boolean;
   };
   jobs: unknown[];
@@ -77,8 +78,9 @@ export default function AdminUserDetailPage() {
         <p className="mt-0.5 font-mono text-[11px] text-dim">{data.user.id}</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard label="พอยท์คงเหลือ" value={formatPoints(data.user.points)} tone="text-point-ink" />
+      <div className="grid gap-3 sm:grid-cols-4">
+        <StatCard label="หัวใจคงเหลือ" value={formatPoints(data.user.hearts)} tone="text-point-ink" />
+        <StatCard label="พอยท์เติมเงิน" value={formatPoints(data.user.points)} />
         <StatCard label="งานทั้งหมด" value={data.jobs.length} />
         <StatCard label="รายการเติมเงิน" value={data.topups.length} />
       </div>

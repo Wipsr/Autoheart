@@ -13,7 +13,8 @@ import { Field, PageHeader, Toggle } from "@/components/admin/AdminUI";
 type Promo = {
   id: string;
   title: string;
-  hearts_reward: number;
+  // API/DB ยังใช้ชื่อคอลัมน์ points_reward ด้วยเหตุผลทางประวัติศาสตร์ แต่สิ่งที่แถมให้จริงคือหัวใจ
+  points_reward: number;
   is_active: boolean;
   slug: string;
 };
@@ -47,7 +48,7 @@ export default function PromotionsPage() {
       token,
       body: JSON.stringify({
         title: p.title,
-        hearts_reward: p.hearts_reward,
+        points_reward: p.points_reward,
         is_active: p.is_active,
       }),
     });
@@ -88,8 +89,8 @@ export default function PromotionsPage() {
                   className="font-mono tabular-nums"
                   type="number"
                   min="0"
-                  value={p.hearts_reward}
-                  onChange={(e) => patch(p.id, { hearts_reward: Number(e.target.value) })}
+                  value={p.points_reward}
+                  onChange={(e) => patch(p.id, { points_reward: Number(e.target.value) })}
                 />
               </Field>
             </div>

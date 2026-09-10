@@ -6,12 +6,18 @@ import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/Card";
-import { ProgressBar, StatusPill } from "@/components/ui/Badge";
+import { Badge, ProgressBar, StatusPill } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/States";
 import { JobConsole } from "@/components/queue/JobConsole";
 import type { JobLog } from "@/hooks/useQueue";
 import { formatHearts } from "@/lib/utils";
 import type { Job } from "@/types";
+
+const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  heart: "หัวใจ",
+  point: "พอยท์",
+  angpao: "อั่งเปา",
+};
 
 export default function AdminJobDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -55,7 +61,14 @@ export default function AdminJobDetailPage() {
       <Card className="space-y-3 p-4 text-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span>{job.devplay_email}</span>
-          <StatusPill status={job.status} />
+          <div className="flex items-center gap-2">
+            {job.payment_method && (
+              <Badge className="border border-lineStrong text-dim">
+                {PAYMENT_METHOD_LABEL[job.payment_method] || job.payment_method}
+              </Badge>
+            )}
+            <StatusPill status={job.status} />
+          </div>
         </div>
         <div className="flex items-center justify-between gap-3 font-mono text-xs tabular-nums text-muted">
           <span>

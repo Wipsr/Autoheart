@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, HttpUrl
@@ -46,6 +46,7 @@ class ProfileOut(BaseModel):
     display_name: Optional[str] = None
     role: str
     points: int
+    hearts: int = 0
     total_spent_baht: float = 0
     total_jobs: int = 0
     is_banned: bool = False
@@ -53,22 +54,35 @@ class ProfileOut(BaseModel):
 
 class TopupRedeemRequest(BaseModel):
     voucher: str = Field(..., min_length=8)
-    package_id: int
+    # ไม่ระบุ package_id = เติมพอยท์ทั่วไป (1 บาท = 1 พอยท์ ไม่ผูกแพ็กเกจ)
+    package_id: Optional[int] = None
     quantity: int = Field(1, ge=1, le=50)
     coupon_code: Optional[str] = Field(None, max_length=64)
+    # points = เข้ากระเป๋าพอยท์ (ค้างไว้ใช้ทีหลัง), hearts = เข้ายอดหัวใจตรง ๆ
+    # (ใช้ตอนจ่ายอั่งเปาที่หน้าสั่งงานเลย) — ไม่มีผลถ้าไม่ระบุ package_id
+    credit_target: Literal["points", "hearts"] = "points"
 
 
 class TopupOut(BaseModel):
     id: UUID
-    package_id: int
+    package_id: Optional[int] = None
     quantity: int
     amount_baht: Optional[float] = None
     status: str
     credit_status: Optional[str] = None
+    credit_target: str = "points"
     points_credited: int = 0
+    hearts_credited: int = 0
     error_code: Optional[str] = None
     error_message: Optional[str] = None
     created_at: Optional[datetime] = None
+
+
+class PointsConvertRequest(BaseModel):
+    """แลกพอยท์เป็นหัวใจล่วงหน้า ตามเรตของแพ็กเกจที่เลือก"""
+
+    package_id: int
+    quantity: int = Field(1, ge=1, le=50)
 
 
 class CredentialItem(BaseModel):
@@ -135,6 +149,11 @@ class JobCreateRequest(BaseModel):
     credentials: list[CredentialItem] = Field(..., min_length=1, max_length=50)
     package_id: Optional[int] = None
     target_hearts: Optional[int] = None
+    # heart = หักจากยอดหัวใจที่มีอยู่, point = แลกพอยท์เป็นหัวใจแล้วใช้ทันที
+    # (ต้องมี package_id เดียวกันทั้งชุด), angpao = จ่ายอั่งเปาตรงตามราคาแพ็ก
+    payment_method: Literal["heart", "point", "angpao"] = "heart"
+    voucher: Optional[str] = None
+    coupon_code: Optional[str] = Field(None, max_length=64)
 
 
 class JobOut(BaseModel):
@@ -143,6 +162,7 @@ class JobOut(BaseModel):
     package_id: Optional[int] = None
     devplay_email: str
     target_hearts: int
+    payment_method: str = "heart"
     queue_position: Optional[int] = None
     status: str
     hearts_collected: int = 0

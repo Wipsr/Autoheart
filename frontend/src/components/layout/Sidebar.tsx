@@ -16,6 +16,7 @@ import {
   Sparkles,
   UserMinus,
   UserPlus,
+  Wallet,
 } from "lucide-react";
 import { cn, formatHearts } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +25,7 @@ const links = [
   { href: "/queue", label: "คิวงาน", icon: ListOrdered },
   { href: "/dashboard", label: "ภาพรวม", icon: LayoutDashboard },
   { href: "/packages", label: "ซื้อแพ็คเกจ", icon: Package },
+  { href: "/topup", label: "เติม/แลกพอยท์", icon: Wallet },
   { href: "/history", label: "ประวัติ", icon: History },
   { href: "/account", label: "เช็คข้อมูลไอดี", icon: ScanEye },
   { href: "/powder", label: "ปั๊มผงเวทมนตร์", icon: Sparkles },
@@ -76,8 +78,14 @@ export function Sidebar() {
         <p className="font-mono text-[10px] uppercase tracking-widest text-dim">เครดิตหัวใจ</p>
         <p className="mt-1 flex items-center gap-1.5 font-mono text-xl font-semibold tabular-nums text-heart">
           <Heart className="h-3.5 w-3.5 fill-heart" />
-          {formatHearts(profile?.points ?? 0)}
+          {formatHearts(profile?.hearts ?? 0)}
         </p>
+        <Link
+          href="/topup"
+          className="mt-1.5 block font-mono text-[10px] text-dim hover:text-info hover:underline"
+        >
+          พอยท์เติมเงิน {formatHearts(profile?.points ?? 0)}
+        </Link>
       </div>
     </aside>
   );

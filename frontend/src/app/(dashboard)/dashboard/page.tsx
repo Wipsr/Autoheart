@@ -44,10 +44,18 @@ export default function DashboardPage() {
           {loading ? (
             <Skeleton className="mt-2 h-8 w-24" />
           ) : (
-            <p className="mt-1 flex items-baseline gap-1.5 font-mono text-3xl font-semibold tabular-nums text-heart">
-              <Heart className="h-4 w-4 fill-heart" />
-              {formatHearts(profile?.points ?? 0)}
-            </p>
+            <>
+              <p className="mt-1 flex items-baseline gap-1.5 font-mono text-3xl font-semibold tabular-nums text-heart">
+                <Heart className="h-4 w-4 fill-heart" />
+                {formatHearts(profile?.hearts ?? 0)}
+              </p>
+              <Link
+                href="/topup"
+                className="mt-1 inline-block font-mono text-[11px] text-dim hover:text-info hover:underline"
+              >
+                พอยท์เติมเงิน {formatHearts(profile?.points ?? 0)} · เติม/แลกเป็นหัวใจ
+              </Link>
+            </>
           )}
         </Card>
         <Card className="p-4">

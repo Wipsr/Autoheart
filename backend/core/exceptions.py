@@ -45,6 +45,11 @@ class InsufficientPointsError(AppError):
         super().__init__("insufficient_points", message, 400)
 
 
+class InsufficientHeartsError(AppError):
+    def __init__(self, message: str = "หัวใจไม่พอ"):
+        super().__init__("insufficient_hearts", message, 400)
+
+
 class MaintenanceError(AppError):
     def __init__(self, message: str = "ระบบปิดปรับปรุงชั่วคราว"):
         super().__init__("maintenance", message, 503)

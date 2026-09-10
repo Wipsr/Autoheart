@@ -4,7 +4,10 @@ export type Profile = {
   email?: string | null;
   display_name?: string | null;
   role: "user" | "admin";
+  // points = กระเป๋าเงินที่เติมค้างไว้ด้วยอั่งเปา (1 บาท = 1 พอยท์)
+  // hearts = ยอดหัวใจที่ใช้สั่งงานฟาร์มได้จริง
   points: number;
+  hearts: number;
   total_spent_baht?: number;
   total_jobs?: number;
   is_banned?: boolean;
@@ -14,6 +17,7 @@ export type Package = {
   id: number;
   name: string;
   slug: string;
+  // จำนวนหัวใจที่ได้ (ชื่อคอลัมน์ยังเป็น points ด้วยเหตุผลทางประวัติศาสตร์)
   points: number;
   price_baht: number;
   description?: string | null;
@@ -32,6 +36,7 @@ export type Job = {
   target_hearts: number;
   points_spent?: number;
   points_refunded?: boolean;
+  payment_method?: "heart" | "point" | "angpao";
   queue_position?: number | null;
   status: string;
   hearts_collected: number;
@@ -49,12 +54,14 @@ export type Job = {
 
 export type Topup = {
   id: string;
-  package_id: number;
+  package_id?: number | null;
   quantity: number;
   amount_baht?: number | null;
   status: string;
   credit_status?: string | null;
+  credit_target?: "points" | "hearts";
   points_credited: number;
+  hearts_credited?: number;
   error_code?: string | null;
   error_message?: string | null;
   created_at?: string | null;

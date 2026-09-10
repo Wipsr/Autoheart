@@ -85,7 +85,9 @@ export function JobRow({
       <div className="col-span-2 font-mono text-xs tabular-nums text-muted sm:col-span-1 sm:text-right">
         {formatHearts(job.hearts_collected)} / {formatHearts(job.target_hearts)}
         <span className="ml-2 text-point-dim sm:ml-0 sm:block">
-          {formatPoints(job.points_spent ?? job.target_hearts)} P
+          {job.payment_method === "point"
+            ? `${formatPoints(job.target_hearts)} P`
+            : `${formatHearts(job.target_hearts)} ♥`}
         </span>
         {running && <ProgressBar className="mt-1.5 hidden sm:block" value={percent} />}
       </div>

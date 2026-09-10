@@ -56,7 +56,8 @@ class PromotionService:
         except Exception as exc:
             raise AppError("promotion_already_claimed", "บัญชีหรือ DevPlay นี้ใช้สิทธิ์ไปแล้ว", 409) from exc
         try:
-            db.rpc("credit_user_points", {"p_user_id": user_id, "p_points": promotion["points_reward"], "p_baht": 0}).execute()
+            # โปรฯ ให้หัวใจใช้สั่งงานได้ทันที ไม่ใช่พอยท์ที่ต้องแลกอีกที
+            db.rpc("credit_user_hearts", {"p_user_id": user_id, "p_hearts": promotion["points_reward"], "p_baht": 0}).execute()
         except Exception:
             db.table("promotion_claims").delete().eq("promotion_id", promotion_id).eq("user_id", user_id).execute()
             raise

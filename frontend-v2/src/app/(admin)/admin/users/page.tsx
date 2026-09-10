@@ -79,8 +79,9 @@ export default function AdminUsersPage() {
                 </p>
                 <p className="mt-0.5 font-mono text-[11px] text-dim">{u.id.slice(0, 8)}</p>
               </div>
-              <span className="shrink-0 font-mono text-xs tabular-nums text-heart">
-                {formatPoints(u.points)} P
+              <span className="shrink-0 text-right font-mono text-xs tabular-nums">
+                <span className="text-heart">{formatPoints(u.hearts)} หัวใจ</span>
+                <span className="ml-2 text-dim">{formatPoints(u.points)} P</span>
               </span>
             </Link>
           ))}

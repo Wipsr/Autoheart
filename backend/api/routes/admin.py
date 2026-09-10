@@ -20,6 +20,7 @@ from models.schemas import (
     PromotionInput,
     WorkerSettingsInput,
 )
+from api.routes.jobs import refund_job_payment
 from services.audit_service import audit_service
 from services.admin_service import admin_service
 from services.job_runner_service import job_runner_service
@@ -152,14 +153,7 @@ async def admin_cancel(job_id: str, refund: bool = True, _admin=Depends(get_admi
         and not j.get("points_refunded")
         and j["status"] in ("queued", "validating", "processing", "failed")
     ):
-        db.rpc(
-            "credit_user_points",
-            {
-                "p_user_id": j["user_id"],
-                "p_points": int(j.get("points_spent") or j["target_hearts"]),
-                "p_baht": 0,
-            },
-        ).execute()
+        refund_job_payment(db, j)
         db.table("jobs").update({"points_refunded": True}).eq("id", job_id).execute()
     db.table("jobs").update(
         {"status": "cancelled", "queue_position": None, "progress_message": "ยกเลิกโดยแอดมิน"}
@@ -303,21 +297,33 @@ async def manual_credit(topup_id: str, body: AdminCreditRequest, admin=Depends(g
     if t.get("credit_status") == "credited":
         return {"ok": False, "message": "เติมพอยท์ไปแล้ว"}
 
-    pkg = db.table("packages").select("*").eq("id", t["package_id"]).limit(1).execute().data[0]
-    points = int(pkg["points"]) * int(t.get("quantity") or 1)
-    amount = float(t.get("amount_baht") or pkg["price_baht"]) * int(t.get("quantity") or 1)
+    credit_target = t.get("credit_target") or "points"
+    quantity = int(t.get("quantity") or 1)
+    amount = float(t.get("amount_baht") or 0)
 
+    if t.get("package_id"):
+        pkg = db.table("packages").select("*").eq("id", t["package_id"]).limit(1).execute().data[0]
+        amount_total = float(t.get("amount_baht") or pkg["price_baht"]) * quantity
+        credited_amount = int(pkg["points"]) * quantity
+    else:
+        amount_total = amount
+        credited_amount = int(round(amount))
+        credit_target = "points"
+
+    rpc_name = "credit_user_hearts" if credit_target == "hearts" else "credit_user_points"
+    rpc_amount_key = "p_hearts" if credit_target == "hearts" else "p_points"
     db.rpc(
-        "credit_user_points",
-        {"p_user_id": t["user_id"], "p_points": points, "p_baht": amount},
+        rpc_name,
+        {"p_user_id": t["user_id"], rpc_amount_key: credited_amount, "p_baht": amount_total},
     ).execute()
+    credited_field = "hearts_credited" if credit_target == "hearts" else "points_credited"
     updated = (
         db.table("topup_redemptions")
         .update(
             {
                 "status": "credited",
                 "credit_status": "credited",
-                "points_credited": points,
+                credited_field: credited_amount,
                 "admin_credited_by": admin["id"],
                 "admin_credited_at": datetime.now(timezone.utc).isoformat(),
                 "admin_note": body.note,

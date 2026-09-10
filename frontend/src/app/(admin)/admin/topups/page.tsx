@@ -95,13 +95,17 @@ export default function AdminTopupsPage() {
                   </Badge>
                 </p>
                 <p className="mt-0.5 truncate font-mono text-[11px] text-dim">
+                  {t.package_id == null ? "เติมพอยท์ทั่วไป · " : ""}
                   {t.error_message || t.id}
                   {t.created_at ? ` · ${new Date(t.created_at).toLocaleString("th-TH")}` : ""}
                 </p>
               </div>
 
               <span className="shrink-0 font-mono text-xs tabular-nums text-heart">
-                +{formatHearts(t.points_credited)}
+                +
+                {t.credit_target === "points"
+                  ? `${formatHearts(t.points_credited)} พอยท์`
+                  : `${formatHearts(t.hearts_credited ?? t.points_credited)} หัวใจ`}
               </span>
 
               {t.credit_status !== "credited" && (

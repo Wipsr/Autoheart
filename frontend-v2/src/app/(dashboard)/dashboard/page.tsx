@@ -101,14 +101,25 @@ export default function DashboardPage() {
       />
 
       <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="พอยท์คงเหลือ" gold hint="1 พอยท์ = 1 หัวใจ · หักเมื่อสั่งงาน">
+        <StatCard
+          label="หัวใจคงเหลือ"
+          gold
+          hint={
+            <>
+              พอยท์เติมเงิน {formatPoints(profile?.points ?? 0)} P ·{" "}
+              <Link href="/topup" className="underline hover:text-point-ink">
+                เติม/แลกเป็นหัวใจ
+              </Link>
+            </>
+          }
+        >
           {loading ? (
             <Skeleton className="h-8 w-28" />
           ) : (
             <p className="flex items-center gap-2">
               <PointIcon className="h-[18px] w-[18px] text-point" />
               <span className="font-mono text-3xl font-semibold leading-none tabular-nums text-point-ink">
-                {formatPoints(profile?.points ?? 0)}
+                {formatPoints(profile?.hearts ?? 0)}
               </span>
             </p>
           )}

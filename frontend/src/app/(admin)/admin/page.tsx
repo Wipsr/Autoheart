@@ -129,9 +129,10 @@ export default function AdminPage() {
         />
         <StatCard label="รายได้ (บาท)" value={formatBahtExact(data.revenue_baht)} />
         <StatCard
-          label="หัวใจที่เครดิตไปแล้ว"
+          label="พอยท์ที่เครดิตไปแล้ว"
           value={formatHearts(data.points_credited)}
           tone="text-heart"
+          hint="เฉพาะยอดที่เติมเข้าพอยท์ ไม่รวมที่เติมตรงเป็นหัวใจ"
         />
       </div>
 

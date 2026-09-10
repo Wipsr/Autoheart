@@ -7,11 +7,17 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { ProgressBar, StatusPill } from "@/components/ui/Badge";
+import { Badge, ProgressBar, StatusPill } from "@/components/ui/Badge";
 import { EmptyState, ListSkeleton } from "@/components/ui/States";
 import { FilterTabs, PageHeader } from "@/components/admin/AdminUI";
 import { formatHearts } from "@/lib/utils";
 import type { Job } from "@/types";
+
+const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  heart: "หัวใจ",
+  point: "พอยท์",
+  angpao: "อั่งเปา",
+};
 
 const FILTERS = [
   { value: "", label: "ทั้งหมด" },
@@ -85,6 +91,12 @@ export default function AdminJobsPage() {
                   <ProgressBar className="mt-2 max-w-xs" value={Number(j.progress_percent || 0)} />
                 )}
               </div>
+
+              {j.payment_method && (
+                <Badge className="shrink-0 border border-line text-dim">
+                  {PAYMENT_METHOD_LABEL[j.payment_method] || j.payment_method}
+                </Badge>
+              )}
 
               <StatusPill status={j.status} />
 

@@ -58,7 +58,7 @@ export function Navbar() {
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
-              <PointChip points={profile?.points ?? 0} />
+              <PointChip points={profile?.hearts ?? 0} suffix="หัวใจ" />
               <Button variant="ghost" size="sm" onClick={() => signOut()}>
                 ออกจากระบบ
               </Button>
@@ -111,7 +111,7 @@ export function Navbar() {
                 </Link>
               )}
               <div className="flex items-center justify-between gap-3 pt-1">
-                <PointChip points={profile?.points ?? 0} />
+                <PointChip points={profile?.hearts ?? 0} suffix="หัวใจ" />
                 <Button variant="ghost" size="sm" onClick={() => signOut()}>
                   ออกจากระบบ
                 </Button>

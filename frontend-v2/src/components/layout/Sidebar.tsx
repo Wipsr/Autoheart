@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Coins,
   Gift,
   Hammer,
   History,
@@ -26,6 +27,7 @@ const MAIN = [
   { href: "/dashboard", label: "ภาพรวม", icon: LayoutDashboard },
   { href: "/queue", label: "คิวงาน", icon: ListOrdered },
   { href: "/packages", label: "เติมพอยท์", icon: Wallet },
+  { href: "/topup", label: "เติม/แลกพอยท์", icon: Coins },
   { href: "/history", label: "ประวัติ", icon: History },
 ];
 
@@ -117,18 +119,23 @@ export function Sidebar() {
 
       <div className="mt-auto rounded-card border border-point-line bg-point-soft p-3.5">
         <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-point-dim">
-          พอยท์คงเหลือ
+          หัวใจคงเหลือ
         </p>
         <p className="mt-1.5 flex items-baseline gap-1.5">
           <span className="font-mono text-2xl font-semibold tabular-nums text-point-ink">
-            {formatPoints(profile?.points ?? 0)}
+            {formatPoints(profile?.hearts ?? 0)}
           </span>
-          <span className="text-xs text-point-dim">P</span>
         </p>
+        <Link
+          href="/topup"
+          className="mt-1 block font-mono text-[11px] text-point-dim hover:text-point-ink hover:underline"
+        >
+          พอยท์เติมเงิน {formatPoints(profile?.points ?? 0)} P · เติม/แลก
+        </Link>
         <Link href="/packages" className="mt-3 block">
           <Button className="w-full">
             <Plus className="h-[15px] w-[15px]" />
-            เติมพอยท์
+            ซื้อแพ็คเกจ
           </Button>
         </Link>
       </div>
