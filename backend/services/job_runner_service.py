@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+from api.routes.jobs import refund_job_payment
 from config import get_settings
 from core.security import decrypt_password
 from core.supabase_client import get_supabase_admin
@@ -284,11 +285,11 @@ class JobRunnerService:
         )
 
     def _refund_job_points(self, job_id: str) -> bool:
-        """Refund the points deducted at order time, once. Returns True if refunded."""
+        """Refund whatever was deducted at order time, once. Returns True if refunded."""
         db = get_supabase_admin()
         res = (
             db.table("jobs")
-            .select("user_id, target_hearts, points_spent, points_refunded")
+            .select("user_id, target_hearts, points_spent, payment_method, points_refunded")
             .eq("id", job_id)
             .limit(1)
             .execute()
@@ -298,14 +299,7 @@ class JobRunnerService:
         job = res.data[0]
         if job.get("points_refunded"):
             return False
-        db.rpc(
-            "credit_user_points",
-            {
-                "p_user_id": job["user_id"],
-                "p_points": int(job.get("points_spent") or job["target_hearts"]),
-                "p_baht": 0,
-            },
-        ).execute()
+        refund_job_payment(db, job)
         db.table("jobs").update({"points_refunded": True}).eq("id", job_id).execute()
         return True
 
@@ -313,7 +307,7 @@ class JobRunnerService:
         db = get_supabase_admin()
         job_data = (
             db.table("jobs")
-            .select("attempt_count, target_hearts, points_spent")
+            .select("attempt_count, target_hearts, points_spent, payment_method")
             .eq("id", job_id)
             .limit(1)
             .execute()
@@ -340,10 +334,13 @@ class JobRunnerService:
         if not retry:
             refunded = self._refund_job_points(job_id)
             if refunded:
-                points = int(row.get("points_spent") or row.get("target_hearts") or 0)
+                if row.get("payment_method") == "point":
+                    amount, unit = int(row.get("points_spent") or 0), "พอยท์"
+                else:
+                    amount, unit = int(row.get("target_hearts") or 0), "หัวใจ"
                 await self.append_log(
                     job_id,
-                    f"คืนพอยท์ {points} P ที่หักไว้แล้ว",
+                    f"คืน{unit} {amount} ที่หักไว้แล้ว",
                     level="info",
                 )
         await self.append_log(
