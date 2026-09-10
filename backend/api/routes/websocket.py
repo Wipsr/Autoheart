@@ -90,7 +90,11 @@ async def me(user=Depends(get_current_user)):
         "email": user.get("email"),
         "display_name": user.get("display_name") or user.get("nickname"),
         "role": user["role"],
+        # ต้องส่งทั้งสองยอด: points คือกระเป๋าที่เติมค้างไว้ hearts คือยอดสั่งงาน
+        # หน้าเว็บอ่าน profile.hearts ทุกจุด ถ้าไม่ส่งมาจะเป็น undefined แล้วโชว์ 0
+        # ทั้งที่ใน DB มีจริง (เจอตอนแลกพอยท์สำเร็จแต่หัวใจไม่ขึ้นสักที)
         "points": user["points"],
+        "hearts": user.get("hearts", 0),
         "total_spent_baht": user.get("total_spent_baht"),
         "total_jobs": user.get("total_jobs"),
     }
