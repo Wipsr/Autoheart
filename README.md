@@ -122,12 +122,30 @@ npm run dev
 4. ระบบ verify credentials → สร้าง jobs → Fair Interleaved Queue
 5. ดูตำแหน่งคิว / เวลารอ dynamic / live console บน `/queue`
 
+## เครื่องมือฟรี (proxy ไป ngmx)
+
+นอกจากฟาร์มหัวใจที่เข้าคิว worker ของเราเอง ยังมีเครื่องมือที่ใช้ฟรี ไม่ตัดเครดิต
+และไม่เข้าคิว เพราะงานรันอยู่ฝั่ง ngmx:
+
+| หน้า | เครื่องมือ | ทำอะไร |
+|---|---|---|
+| `/account` | เช็คข้อมูลไอดี | อ่าน wallet/ของในคลัง |
+| `/powder` | ปั๊มผงเวทมนตร์ | เปิดกล่องสุ่มด้วยเหรียญในบัญชีแลกผง |
+| `/giftbox` | เปิดกล่องของขวัญ | เปิดกล่องที่ค้างอยู่ในบัญชีรวดเดียว |
+| `/treasure` | ตี + สมบัติ | อัปเกรด + ให้สมบัติในกระเป๋า |
+
+สามตัวหลังมี 2 จังหวะ: `POST /api/tools/{slug}/scan` (ล็อกอินดูยอดปัจจุบัน) แล้ว
+`WS /ws/tools/{slug}` (สั่งงาน + ถ่ายทอด log สด) — ปิดหน้าเว็บ = backend สั่งยกเลิก
+งานให้ ดู `backend/services/ngmx_service.py` และ `backend/api/routes/tools.py`
+
 ## หมายเหตุความปลอดภัย
 
 - อย่า commit `.env.local` / service role key
 - DevPlay password ถูกเข้ารหัส AES-GCM เก็บใน DB จนแอดมินลบ
 - แนะนำใช้ MCP / backend กับโปรเจกต์ non-production ก่อน
 - Anon key เป็น public ได้ แต่ service role ใช้ได้เฉพาะ backend
+- เครื่องมือที่ proxy ไป ngmx ส่งรหัส DevPlay ของผู้ใช้วิ่งผ่านเซิร์ฟเวอร์บุคคลที่สาม
+  (ต้นทุนที่ยอมรับไว้แล้วเพื่อไม่ต้องแตก content bundle เอง) — อย่า log และอย่าเก็บลง DB
 
 ## Tailwind
 

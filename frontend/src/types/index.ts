@@ -182,3 +182,78 @@ export type AccountInspectResult = {
   trophies: number;
   points?: { today: number; current: number; gift_count: number } | null;
 };
+
+// ── เครื่องมือฟรีที่ยืมจาก ngmx (ปั๊มผง / เปิดกล่อง / ตี + สมบัติ) ──────────
+// รูปร่างตามที่ ngmx ตอบกลับมาตรง ๆ — backend เราส่งต่อโดยไม่แปลง
+// (ดู backend/services/ngmx_service.py)
+
+export type PowderScan = {
+  mid: string;
+  nickname?: string | null;
+  coin: number;
+  powder: number;
+  box_price: number;
+};
+
+export type GiftBoxScan = {
+  mid: string;
+  nickname?: string | null;
+  boxes: number;
+};
+
+export type TreasureItem = {
+  uuid: string;
+  group_seq: number;
+  name: string;
+  grade: string;
+  upgrade_group: string;
+  image_tag: string;
+  has_icon: boolean;
+  plus: number;
+  maxed: boolean;
+  upgradeable: boolean;
+  next_price: number;
+  next_percent: number | null;
+};
+
+// บันไดราคาอัปเกรดของแต่ละเกรด: ขั้น +plus ใช้กี่เหรียญ และโอกาสสำเร็จกี่ %
+export type TreasureLadderStep = {
+  plus: number;
+  price: number;
+  money_type: number;
+  percent: number | null;
+};
+
+export type TreasureScan = {
+  mid: string;
+  nickname?: string | null;
+  coin: number;
+  gem: number;
+  max_plus: number;
+  max_picks: number;
+  ladders: Record<string, TreasureLadderStep[]>;
+  treasures: TreasureItem[];
+};
+
+export type ToolSummaryRow = { label: string; value: string; sub?: string };
+
+export type ToolJobResult = {
+  title?: string;
+  delivered?: number;
+  requested?: number;
+  target?: string;
+  summary?: ToolSummaryRow[];
+  next_step?: string;
+};
+
+export type ToolJob = {
+  id: string;
+  status: string;
+  progress: number;
+  step: string;
+  units: number;
+  delivered: number;
+  queue_position: number;
+  result: ToolJobResult | null;
+  error: { message?: string } | null;
+};

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Gift,
+  Hammer,
   Heart,
   History,
   LayoutDashboard,
@@ -11,6 +13,7 @@ import {
   ScanEye,
   Settings,
   Shield,
+  Sparkles,
   UserMinus,
   UserPlus,
 } from "lucide-react";
@@ -23,6 +26,9 @@ const links = [
   { href: "/packages", label: "ซื้อแพ็คเกจ", icon: Package },
   { href: "/history", label: "ประวัติ", icon: History },
   { href: "/account", label: "เช็คข้อมูลไอดี", icon: ScanEye },
+  { href: "/powder", label: "ปั๊มผงเวทมนตร์", icon: Sparkles },
+  { href: "/giftbox", label: "เปิดกล่องของขวัญ", icon: Gift },
+  { href: "/treasure", label: "ตี + สมบัติ", icon: Hammer },
   { href: "/friend-requests", label: "รับเพื่อน", icon: UserPlus },
   { href: "/friends", label: "ลบเพื่อน", icon: UserMinus },
   { href: "/settings", label: "ตั้งค่า", icon: Settings },

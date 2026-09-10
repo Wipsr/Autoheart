@@ -51,6 +51,15 @@ async def check_maintenance(request: Request) -> None:
     path = request.url.path
     if path.startswith("/api/admin") or path.startswith("/api/public") or path.startswith("/api/auth") or path in ("/health", "/", "/docs", "/openapi.json"):
         return
+    await assert_not_in_maintenance()
+
+
+async def assert_not_in_maintenance() -> None:
+    """เช็คโหมดปิดปรับปรุงโดยไม่ต้องมี Request
+
+    WebSocket ไม่ได้วิ่งผ่าน dependency ตัวบน (ไม่มี path allowlist ให้ยกเว้น)
+    แต่ก็ต้องโดนปิดตอนปิดปรับปรุงเหมือนกัน
+    """
     db = get_supabase_admin()
     res = (
         db.table("system_settings")

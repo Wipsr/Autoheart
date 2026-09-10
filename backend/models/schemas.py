@@ -264,3 +264,35 @@ class WorkerSettingsInput(BaseModel):
     retry_base_delay_seconds: int = Field(30, ge=5, le=3600)
     retry_max_attempts: int = Field(3, ge=1, le=10)
     telegram_alert_cooldown_seconds: int = Field(300, ge=0, le=86400)
+
+
+# ── เครื่องมือฟรีที่ยืมจาก ngmx (ปั๊มผง / เปิดกล่อง / ตี + สมบัติ) ──────────
+# ทุกตัวเข้าบัญชีเกมด้วยชุดเดียวกับหน้าอื่น: บัญชีที่ save ไว้ หรือกรอกสด
+
+
+class ToolScanRequest(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    account_id: Optional[str] = None
+
+
+class PowderRunParams(BaseModel):
+    powder: int = Field(..., ge=1, le=1_000_000)
+
+
+class GiftBoxRunParams(BaseModel):
+    open_all: bool = False
+    boxes: int = Field(..., ge=1, le=100_000)
+
+
+class TreasurePick(BaseModel):
+    uuid: str = Field(..., min_length=1, max_length=64)
+    group_seq: int
+
+
+class TreasureRunParams(BaseModel):
+    # ngmx จำกัด 60 ชิ้นต่องาน (max_picks จาก /treasure/scan)
+    treasures: list[TreasurePick] = Field(..., min_length=1, max_length=60)
+    target_plus: int = Field(..., ge=1, le=9)
+    # None = ไม่จำกัดงบ — ห้ามแปลงเป็น 0 เพราะฝั่ง ngmx 0 แปลว่า "ห้ามใช้เหรียญเลย"
+    budget: Optional[int] = Field(None, gt=0)
