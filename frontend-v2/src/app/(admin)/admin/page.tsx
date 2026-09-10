@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/States";
 import { PageHeader, StatCard } from "@/components/admin/AdminUI";
+import { useAdminPulse } from "@/components/admin/AdminShell";
+import { Banknote, Coins, ListOrdered, PlayCircle, Users, Wallet } from "lucide-react";
 import { formatBahtExact, formatPoints } from "@/lib/utils";
 
 type Overview = {
@@ -24,6 +26,7 @@ type Overview = {
 
 export default function AdminPage() {
   const { token } = useAuth();
+  const { refresh: refreshPulse } = useAdminPulse();
   const [data, setData] = useState<Overview | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -44,6 +47,7 @@ export default function AdminPage() {
     try {
       await api(path, { method: "POST", token });
       load();
+      refreshPulse();
     } finally {
       setBusy(false);
     }
@@ -117,21 +121,47 @@ export default function AdminPage() {
         </span>
       </Card>
 
+      {/* เรียงจากของที่ต้องลงมือก่อน ไม่ใช่ตัวเลขที่ดูสวย — งานค้างอยู่แถวแรกเสมอ */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard label="ผู้ใช้ทั้งหมด" value={data.users.toLocaleString("th-TH")} />
-        <StatCard label="งานที่ยัง active" value={data.active_jobs} tone="text-live" />
-        <StatCard label="งานทั้งหมด" value={data.total_jobs.toLocaleString("th-TH")} />
         <StatCard
           label="เติมเงินรอตรวจมือ"
           value={data.needs_manual_topups}
+          icon={Wallet}
+          href="/admin/topups"
           tone={data.needs_manual_topups > 0 ? "text-fail" : undefined}
-          hint={data.needs_manual_topups > 0 ? "ต้องเข้าไปเคลียร์ที่หน้าการเติมเงิน" : "ไม่มีค้าง"}
+          hint={data.needs_manual_topups > 0 ? "กดเพื่อเข้าไปเคลียร์" : "ไม่มีค้าง"}
         />
-        <StatCard label="รายได้ (บาท)" value={formatBahtExact(data.revenue_baht)} />
+        <StatCard
+          label="งานที่ยัง active"
+          value={data.active_jobs}
+          icon={PlayCircle}
+          href="/admin/jobs"
+          tone="text-live"
+          hint="รวมที่รออยู่ในคิวและกำลังรัน"
+        />
+        <StatCard
+          label="งานทั้งหมด"
+          value={data.total_jobs.toLocaleString("th-TH")}
+          icon={ListOrdered}
+          href="/admin/jobs"
+        />
+        <StatCard
+          label="ผู้ใช้ทั้งหมด"
+          value={data.users.toLocaleString("th-TH")}
+          icon={Users}
+          href="/admin/users"
+        />
+        <StatCard
+          label="รายได้ (บาท)"
+          value={formatBahtExact(data.revenue_baht)}
+          icon={Banknote}
+          hint="ยอดอั่งเปาที่เครดิตสำเร็จสะสม"
+        />
         <StatCard
           label="พอยท์ที่เครดิตไปแล้ว"
           value={formatPoints(data.points_credited)}
-          tone="text-heart"
+          icon={Coins}
+          tone="text-point-ink"
           hint="เฉพาะยอดที่เติมเข้าพอยท์ ไม่รวมที่เติมตรงเป็นหัวใจ"
         />
       </div>

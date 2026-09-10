@@ -6,7 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { Field, PageHeader, Toggle } from "@/components/admin/AdminUI";
+import { Field, PageHeader, SubTabs, Toggle } from "@/components/admin/AdminUI";
+import { SYSTEM_TABS } from "@/components/admin/adminNav";
 
 export default function AdminProxyPage() {
   const { token } = useAuth();
@@ -60,7 +61,8 @@ export default function AdminProxyPage() {
 
   return (
     <div className="max-w-xl space-y-4">
-      <PageHeader title="Proxy" description="ใช้กับ worker ที่รัน heart farm เท่านั้น" />
+      <PageHeader title="ตั้งค่าระบบ" description="Proxy ที่ worker ใช้ยิงออก — มีผลเฉพาะงาน heart farm" />
+      <SubTabs tabs={SYSTEM_TABS} />
 
       <Card className="space-y-4 p-5">
         <Field label="Proxy URL" hint="รูปแบบ http://user:pass@host:port/">

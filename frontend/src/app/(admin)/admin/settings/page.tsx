@@ -7,7 +7,8 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { ListSkeleton } from "@/components/ui/States";
-import { PageHeader } from "@/components/admin/AdminUI";
+import { PageHeader, SubTabs } from "@/components/admin/AdminUI";
+import { SYSTEM_TABS } from "@/components/admin/adminNav";
 
 type Setting = { key: string; value: string; description?: string };
 
@@ -44,9 +45,10 @@ export default function AdminSettingsPage() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="ค่าระบบ"
+        title="ตั้งค่าระบบ"
         description="queue_strategy (fair | fifo) · truemoney_phone_override · maintenance_mode · hearts_per_minute"
       />
+      <SubTabs tabs={SYSTEM_TABS} />
 
       {loading ? (
         <Card className="overflow-hidden">

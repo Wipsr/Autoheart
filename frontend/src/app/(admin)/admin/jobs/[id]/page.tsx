@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge, ProgressBar, StatusPill } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/States";
 import { JobConsole } from "@/components/queue/JobConsole";
+import { PageHeader } from "@/components/admin/AdminUI";
 import type { JobLog } from "@/hooks/useQueue";
 import { formatHearts } from "@/lib/utils";
 import type { Job } from "@/types";
@@ -49,14 +49,11 @@ export default function AdminJobDetailPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <Link href="/admin/jobs" className="font-mono text-xs text-dim hover:text-muted">
-          ← กลับรายการงาน
-        </Link>
-        <h1 className="mt-1 font-display text-xl font-bold">
-          Job <span className="font-mono">{job.id.slice(0, 8)}</span>
-        </h1>
-      </div>
+      <PageHeader
+        title={`Job ${job.id.slice(0, 8)}`}
+        description={job.devplay_email}
+        crumb={job.id.slice(0, 8)}
+      />
 
       <Card className="space-y-3 p-4 text-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">

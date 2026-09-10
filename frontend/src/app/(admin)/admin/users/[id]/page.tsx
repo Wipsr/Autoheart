@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
@@ -9,7 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/States";
-import { StatCard } from "@/components/admin/AdminUI";
+import { PageHeader, StatCard } from "@/components/admin/AdminUI";
 import { formatHearts } from "@/lib/utils";
 
 type Detail = {
@@ -65,18 +64,16 @@ export default function AdminUserDetailPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <Link href="/admin/users" className="font-mono text-xs text-dim hover:text-muted">
-          ← กลับรายชื่อผู้ใช้
-        </Link>
-        <h1 className="mt-1 flex flex-wrap items-center gap-2 font-display text-xl font-bold">
-          {data.user.nickname || data.user.email}
-          {data.user.is_banned && (
+      <PageHeader
+        title={data.user.nickname || data.user.email || "ผู้ใช้"}
+        description={data.user.id}
+        crumb={data.user.nickname || data.user.email || data.user.id.slice(0, 8)}
+        actions={
+          data.user.is_banned ? (
             <Badge className="border border-fail/50 bg-fail/10 text-fail">banned</Badge>
-          )}
-        </h1>
-        <p className="mt-0.5 font-mono text-[11px] text-dim">{data.user.id}</p>
-      </div>
+          ) : undefined
+        }
+      />
 
       <div className="grid gap-3 sm:grid-cols-4">
         <StatCard label="เครดิตหัวใจ" value={formatHearts(data.user.hearts)} tone="text-heart" />
