@@ -149,7 +149,16 @@ BEGIN
 END;
 $$;
 
--- ── 3) สิทธิ์: backend (service_role) เท่านั้น ──────────────────────────
+-- ── 3) ชื่อแพ็กเกจ ───────────────────────────────────────────────────
+-- 015 เคยเปลี่ยน "หัวใจ" ในชื่อแพ็กเป็น "พอยท์" ตอนรวมสองสกุลเข้าด้วยกัน
+-- ตอนนี้แพ็กเกจคือของที่ซื้อแล้วได้ "หัวใจ" (ไม่ใช่พอยท์) เปลี่ยนชื่อกลับ
+-- (สแกนทั้งตาราง ไม่เจาะจง slug เพราะแอดมินเพิ่มแพ็กเองได้)
+
+UPDATE public.packages
+SET name = replace(name, 'พอยท์', 'หัวใจ')
+WHERE name LIKE '%พอยท์%';
+
+-- ── 4) สิทธิ์: backend (service_role) เท่านั้น ──────────────────────────
 
 REVOKE EXECUTE ON FUNCTION public.credit_user_hearts(UUID, INTEGER, NUMERIC) FROM anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.deduct_user_hearts(UUID, INTEGER) FROM anon, authenticated;
