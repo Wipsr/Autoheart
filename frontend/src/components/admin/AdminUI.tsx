@@ -1,23 +1,77 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ChevronRight } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { findAdminNavItem, isAdminPathActive } from "./adminNav";
 
+/**
+ * หัวหน้าแอดมินทุกหน้าใช้ตัวนี้ตัวเดียว
+ * breadcrumb ตั้งให้เองจาก path — หน้ารายละเอียด (jobs/xxx) จะได้มีทางกลับเสมอ
+ */
 export function PageHeader({
   title,
   description,
   actions,
+  crumb,
 }: {
   title: string;
   description?: string;
   actions?: React.ReactNode;
+  /** ป้ายท้าย breadcrumb ของหน้ารายละเอียด เช่น "งาน a1b2c3d4" */
+  crumb?: string;
 }) {
+  const pathname = usePathname();
+  const parent = findAdminNavItem(pathname);
+  const showCrumb = !!crumb && !!parent;
+
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3">
-      <div>
-        <h1 className="font-display text-xl font-bold">{title}</h1>
-        {description && <p className="mt-1 text-sm text-muted">{description}</p>}
+    <div className="mb-1">
+      {showCrumb && (
+        <nav aria-label="breadcrumb" className="mb-2 flex items-center gap-1 text-xs text-dim">
+          <Link href={parent.href} className="transition hover:text-heart">
+            {parent.label}
+          </Link>
+          <ChevronRight className="h-3 w-3" />
+          <span className="truncate text-muted">{crumb}</span>
+        </nav>
+      )}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="font-display text-xl font-bold tracking-tight">{title}</h1>
+          {description && <p className="mt-1 text-sm text-muted">{description}</p>}
+        </div>
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
-      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+/** แท็บย่อยของหน้าที่จับกลุ่มกันอยู่ (ค่าระบบ / Proxy / ปิดปรับปรุง) */
+export function SubTabs({ tabs }: { tabs: [string, string][] }) {
+  const pathname = usePathname();
+  return (
+    <div className="-mt-1 flex gap-1 overflow-x-auto border-b border-lineSoft">
+      {tabs.map(([href, label]) => {
+        const active = isAdminPathActive(href, pathname);
+        return (
+          <Link
+            key={href}
+            href={href}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "shrink-0 border-b-2 px-3 py-2 text-sm transition",
+              active
+                ? "border-heart font-medium text-heart"
+                : "border-transparent text-dim hover:text-muted"
+            )}
+          >
+            {label}
+          </Link>
+        );
+      })}
     </div>
   );
 }
@@ -40,7 +94,7 @@ export function FilterTabs({
           type="button"
           onClick={() => onChange(o.value)}
           className={cn(
-            "shrink-0 rounded border px-3 py-1.5 font-mono text-xs transition",
+            "shrink-0 rounded-md border px-3 py-1.5 font-mono text-xs transition",
             value === o.value
               ? "border-heart/50 bg-heart/10 text-heart"
               : "border-line text-dim hover:text-muted"
@@ -60,20 +114,41 @@ export function StatCard({
   value,
   tone,
   hint,
+  icon: Icon,
+  href,
 }: {
   label: string;
   value: string | number;
   tone?: string;
   hint?: string;
+  icon?: LucideIcon;
+  /** ทำให้การ์ดกดเข้าหน้าที่เกี่ยวข้องได้ — ตัวเลขที่กดไม่ได้ทำให้ต้องวนหาเมนูเอง */
+  href?: string;
 }) {
-  return (
-    <div className="rounded-md border border-line bg-panel p-4">
-      <p className="font-mono text-[10px] uppercase tracking-widest text-dim">{label}</p>
-      <p className={cn("mt-1 truncate font-mono text-2xl font-semibold tabular-nums", tone)}>
+  const body = (
+    <>
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate font-mono text-[10px] uppercase tracking-widest text-dim">{label}</p>
+        {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-dim" />}
+      </div>
+      <p className={cn("mt-1.5 truncate font-mono text-2xl font-semibold tabular-nums", tone)}>
         {value}
       </p>
       {hint && <p className="mt-1 truncate text-xs text-dim">{hint}</p>}
-    </div>
+    </>
+  );
+
+  const className = cn(
+    "block rounded-md border border-line bg-panel p-4 transition",
+    href && "hover:border-heart/40"
+  );
+
+  return href ? (
+    <Link href={href} className={className}>
+      {body}
+    </Link>
+  ) : (
+    <div className={className}>{body}</div>
   );
 }
 

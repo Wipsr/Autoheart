@@ -6,7 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Field, PageHeader, Toggle } from "@/components/admin/AdminUI";
+import { Field, PageHeader, SubTabs, Toggle } from "@/components/admin/AdminUI";
+import { SYSTEM_TABS } from "@/components/admin/adminNav";
 
 type Maintenance = {
   enabled: boolean;
@@ -44,9 +45,10 @@ export default function MaintenancePage() {
   return (
     <div className="max-w-xl space-y-4">
       <PageHeader
-        title="ปิดปรับปรุง & แบนเนอร์"
+        title="ตั้งค่าระบบ"
         description="ปิดเว็บชั่วคราว หรือขึ้นแถบประกาศบนหัวเว็บ"
       />
+      <SubTabs tabs={SYSTEM_TABS} />
 
       <Card className="space-y-4 p-5">
         <div className="flex items-center justify-between gap-3">
