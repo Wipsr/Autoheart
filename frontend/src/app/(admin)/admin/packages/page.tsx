@@ -15,7 +15,7 @@ type Package = {
   id: number;
   name: string;
   slug: string;
-  hearts: number;
+  points: number;
   price_baht: number;
   description?: string | null;
   badge?: string | null;
@@ -27,7 +27,7 @@ type Package = {
 type Form = {
   name: string;
   slug: string;
-  hearts: string;
+  points: string;
   price_baht: string;
   description: string;
   badge: string;
@@ -38,7 +38,7 @@ type Form = {
 const EMPTY: Form = {
   name: "",
   slug: "",
-  hearts: "",
+  points: "",
   price_baht: "",
   description: "",
   badge: "",
@@ -49,7 +49,7 @@ const EMPTY: Form = {
 const toForm = (p: Package): Form => ({
   name: p.name,
   slug: p.slug,
-  hearts: String(p.hearts),
+  points: String(p.points),
   price_baht: String(p.price_baht),
   description: p.description ?? "",
   badge: p.badge ?? "",
@@ -60,7 +60,7 @@ const toForm = (p: Package): Form => ({
 const toPayload = (f: Form) => ({
   name: f.name.trim(),
   slug: f.slug.trim(),
-  hearts: Number(f.hearts),
+  points: Number(f.points),
   price_baht: Number(f.price_baht),
   description: f.description.trim() || null,
   badge: f.badge.trim() || null,
@@ -69,7 +69,7 @@ const toPayload = (f: Form) => ({
 });
 
 /** ตั้ง slug อัตโนมัติจากจำนวนหัวใจ ให้ล้อรูปแบบเดิม (1000-hearts) */
-const slugFromHearts = (hearts: string) => (hearts ? `${Number(hearts)}-hearts` : "");
+const slugFromPoints = (points: string) => (points ? `${Number(points)}-hearts` : "");
 
 function PackageForm({
   value,
@@ -118,15 +118,15 @@ function PackageForm({
             min="1"
             className="font-mono tabular-nums"
             placeholder="1000"
-            value={value.hearts}
+            value={value.points}
             onChange={(e) => {
-              const hearts = e.target.value;
+              const points = e.target.value;
               // เดา slug ให้เฉพาะตอนยังไม่ได้แก้เอง จะได้ไม่ทับของที่แอดมินตั้งไว้
-              const auto = value.slug === "" || value.slug === slugFromHearts(value.hearts);
+              const auto = value.slug === "" || value.slug === slugFromPoints(value.points);
               onChange({
                 ...value,
-                hearts,
-                slug: auto ? slugFromHearts(hearts) : value.slug,
+                points,
+                slug: auto ? slugFromPoints(points) : value.slug,
               });
             }}
           />
@@ -333,7 +333,7 @@ export default function AdminPackagesPage() {
                 </div>
                 <div className="flex items-center gap-4 font-mono text-xs tabular-nums text-muted">
                   <span>
-                    {p.hearts.toLocaleString()} หัวใจ · {p.price_baht.toLocaleString()} ฿
+                    {p.points.toLocaleString()} หัวใจ · {p.price_baht.toLocaleString()} ฿
                   </span>
                   <Button size="sm" variant="secondary" onClick={() => startEdit(p)}>
                     แก้ไข

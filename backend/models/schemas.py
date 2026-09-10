@@ -32,7 +32,7 @@ class PackageOut(BaseModel):
     id: int
     name: str
     slug: str
-    hearts: int
+    points: int
     price_baht: float
     description: Optional[str] = None
     badge: Optional[str] = None
@@ -45,7 +45,7 @@ class ProfileOut(BaseModel):
     email: str
     display_name: Optional[str] = None
     role: str
-    credits: int
+    points: int
     total_spent_baht: float = 0
     total_jobs: int = 0
     is_banned: bool = False
@@ -65,7 +65,7 @@ class TopupOut(BaseModel):
     amount_baht: Optional[float] = None
     status: str
     credit_status: Optional[str] = None
-    hearts_credited: int = 0
+    points_credited: int = 0
     error_code: Optional[str] = None
     error_message: Optional[str] = None
     created_at: Optional[datetime] = None
@@ -223,7 +223,7 @@ class PackageInput(BaseModel):
     # slug เป็นคีย์ถาวรที่ migration/สคริปต์ใช้อ้างถึงแพ็ก (เช่น 013 อัปเดตราคาด้วย slug)
     # เลยบังคับรูปแบบ kebab-case ไว้ กันพิมพ์เว้นวรรค/ตัวใหญ่ปนจนอ้างยาก
     slug: str = Field(..., min_length=1, max_length=60, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-    hearts: int = Field(..., gt=0)
+    points: int = Field(..., gt=0)
     price_baht: float = Field(..., ge=0)
     description: Optional[str] = None
     badge: Optional[str] = None
@@ -233,7 +233,7 @@ class PackageInput(BaseModel):
 
 class PromotionInput(BaseModel):
     title: str
-    hearts_reward: int = Field(gt=0)
+    points_reward: int = Field(gt=0)
     is_active: bool = True
     starts_at: Optional[datetime] = None
     ends_at: Optional[datetime] = None

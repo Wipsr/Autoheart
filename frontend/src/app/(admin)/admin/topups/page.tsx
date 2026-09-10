@@ -101,7 +101,7 @@ export default function AdminTopupsPage() {
               </div>
 
               <span className="shrink-0 font-mono text-xs tabular-nums text-heart">
-                +{formatHearts(t.hearts_credited)}
+                +{formatHearts(t.points_credited)}
               </span>
 
               {t.credit_status !== "credited" && (

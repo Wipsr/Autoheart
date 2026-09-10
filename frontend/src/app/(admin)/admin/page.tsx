@@ -16,7 +16,7 @@ type Overview = {
   total_jobs: number;
   needs_manual_topups: number;
   revenue_baht: number;
-  hearts_credited: number;
+  points_credited: number;
   queue_paused: boolean;
   current_job_id?: string | null;
   strategy: string;
@@ -130,7 +130,7 @@ export default function AdminPage() {
         <StatCard label="รายได้ (บาท)" value={formatBahtExact(data.revenue_baht)} />
         <StatCard
           label="หัวใจที่เครดิตไปแล้ว"
-          value={formatHearts(data.hearts_credited)}
+          value={formatHearts(data.points_credited)}
           tone="text-heart"
         />
       </div>

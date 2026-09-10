@@ -1,13 +1,13 @@
 -- Seed packages, default proxy row, system settings
 
-INSERT INTO public.packages (name, slug, hearts, price_baht, description, badge, sort_order, is_active)
+INSERT INTO public.packages (name, slug, points, price_baht, description, badge, sort_order, is_active)
 VALUES
-    ('แพ็คเกจ 1,000 หัวใจ', '1000-hearts', 1000, 49.00, 'เหมาะสำหรับเริ่มต้น', NULL, 1, TRUE),
-    ('แพ็คเกจ 2,000 หัวใจ', '2000-hearts', 2000, 69.00, 'คุ้มค่าที่สุด ประหยัดกว่า 30%', 'ยอดนิยม', 2, TRUE),
-    ('แพ็คเกจ 3,000 หัวใจ', '3000-hearts', 3000, 99.00, 'สำหรับสายฟาร์มจริงจัง ประหยัดกว่า 33%', 'คุ้มสุด', 3, TRUE)
+    ('แพ็คเกจ 1,000 พอยท์', '1000-hearts', 1000, 49.00, 'เหมาะสำหรับเริ่มต้น', NULL, 1, TRUE),
+    ('แพ็คเกจ 2,000 พอยท์', '2000-hearts', 2000, 69.00, 'คุ้มค่าที่สุด ประหยัดกว่า 30%', 'ยอดนิยม', 2, TRUE),
+    ('แพ็คเกจ 3,000 พอยท์', '3000-hearts', 3000, 99.00, 'สำหรับสายฟาร์มจริงจัง ประหยัดกว่า 33%', 'คุ้มสุด', 3, TRUE)
 ON CONFLICT (slug) DO UPDATE SET
     name = EXCLUDED.name,
-    hearts = EXCLUDED.hearts,
+    points = EXCLUDED.points,
     price_baht = EXCLUDED.price_baht,
     description = EXCLUDED.description,
     badge = EXCLUDED.badge,

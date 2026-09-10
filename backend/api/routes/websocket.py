@@ -90,7 +90,7 @@ async def me(user=Depends(get_current_user)):
         "email": user.get("email"),
         "display_name": user.get("display_name") or user.get("nickname"),
         "role": user["role"],
-        "credits": user["credits"],
+        "points": user["points"],
         "total_spent_baht": user.get("total_spent_baht"),
         "total_jobs": user.get("total_jobs"),
     }

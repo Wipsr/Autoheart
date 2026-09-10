@@ -80,7 +80,7 @@ export default function AdminUsersPage() {
                 <p className="mt-0.5 font-mono text-[11px] text-dim">{u.id.slice(0, 8)}</p>
               </div>
               <span className="shrink-0 font-mono text-xs tabular-nums text-heart">
-                ♥ {formatHearts(u.credits)}
+                ♥ {formatHearts(u.points)}
               </span>
             </Link>
           ))}

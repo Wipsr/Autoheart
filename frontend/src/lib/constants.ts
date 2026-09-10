@@ -2,7 +2,7 @@ export const PACKAGES = [
   {
     slug: "1000-hearts",
     name: "แพ็คเกจ 1,000 หัวใจ",
-    hearts: 1000,
+    points: 1000,
     price_baht: 49,
     description: "เหมาะสำหรับเริ่มต้น",
     badge: null as string | null,
@@ -10,7 +10,7 @@ export const PACKAGES = [
   {
     slug: "2000-hearts",
     name: "แพ็คเกจ 2,000 หัวใจ",
-    hearts: 2000,
+    points: 2000,
     price_baht: 69,
     description: "คุ้มค่าที่สุด ประหยัดกว่า 30%",
     badge: "ยอดนิยม",
@@ -18,7 +18,7 @@ export const PACKAGES = [
   {
     slug: "3000-hearts",
     name: "แพ็คเกจ 3,000 หัวใจ",
-    hearts: 3000,
+    points: 3000,
     price_baht: 99,
     description: "สำหรับสายฟาร์มจริงจัง ประหยัดกว่า 33%",
     badge: "คุ้มสุด",

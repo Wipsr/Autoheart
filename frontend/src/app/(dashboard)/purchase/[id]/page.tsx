@@ -67,7 +67,7 @@ export default function PurchasePage() {
             id: i + 1,
             name: p.name,
             slug: p.slug,
-            hearts: p.hearts,
+            points: p.points,
             price_baht: p.price_baht,
             description: p.description,
             badge: p.badge,
@@ -82,13 +82,13 @@ export default function PurchasePage() {
   );
 
   const totalBaht = (pkg?.price_baht || 0) * qty;
-  const totalHearts = (pkg?.hearts || 0) * qty;
+  const totalPoints = (pkg?.points || 0) * qty;
   const payableBaht = coupon?.amount_after ?? totalBaht;
 
   // จ่ายด้วยหัวใจที่มีอยู่: backend หักเครดิตให้อยู่แล้วตอน /api/jobs/create
   // เส้นทางนี้จึงแค่ข้ามการแลกซอง ไม่ต้องเติมเครดิตเข้าไปก่อนแล้วหักออกทันที
-  const balance = profile?.credits ?? 0;
-  const canPayWithBalance = balance >= totalHearts;
+  const balance = profile?.points ?? 0;
+  const canPayWithBalance = balance >= totalPoints;
   const payMethod: PayMethod = useMemo(() => {
     if (payMethodChoice === "balance" && !canPayWithBalance) return "voucher";
     return payMethodChoice ?? (canPayWithBalance ? "balance" : "voucher");
@@ -354,7 +354,7 @@ export default function PurchasePage() {
                   หลังลด ฿{formatBahtExact(payableBaht)}
                 </p>
               )}
-              <p className="text-sm text-muted">ได้ {formatHearts(totalHearts)} หัวใจ</p>
+              <p className="text-sm text-muted">ได้ {formatHearts(totalPoints)} หัวใจ</p>
             </div>
           </div>
 
@@ -541,14 +541,14 @@ export default function PurchasePage() {
                 </div>
                 <div className="flex justify-between text-muted">
                   <span>
-                    ใช้ไป ({formatHearts(pkg.hearts)} × {qty})
+                    ใช้ไป ({formatHearts(pkg.points)} × {qty})
                   </span>
-                  <span className="tabular-nums">−{formatHearts(totalHearts)} หัวใจ</span>
+                  <span className="tabular-nums">−{formatHearts(totalPoints)} หัวใจ</span>
                 </div>
                 <div className="flex justify-between border-t border-heart/25 pt-1 font-medium">
                   <span>คงเหลือหลังทำรายการ</span>
                   <span className="tabular-nums text-heart">
-                    {formatHearts(balance - totalHearts)} หัวใจ
+                    {formatHearts(balance - totalPoints)} หัวใจ
                   </span>
                 </div>
               </div>
@@ -600,7 +600,7 @@ export default function PurchasePage() {
               <div className="space-y-1 rounded-md border border-line bg-white/[0.03] p-3 text-sm">
                 <div className="flex justify-between text-muted">
                   <span>
-                    {formatHearts(pkg.hearts)} หัวใจ × {qty}
+                    {formatHearts(pkg.points)} หัวใจ × {qty}
                   </span>
                   <span className="tabular-nums">฿{formatBahtExact(totalBaht)}</span>
                 </div>
@@ -612,7 +612,7 @@ export default function PurchasePage() {
                 )}
                 <div className="flex justify-between border-t border-line pt-1 font-medium">
                   <span>ได้รับ</span>
-                  <span className="text-heart">{formatHearts(totalHearts)} หัวใจ</span>
+                  <span className="text-heart">{formatHearts(totalPoints)} หัวใจ</span>
                 </div>
               </div>
             )}
@@ -625,7 +625,7 @@ export default function PurchasePage() {
                   ? "กำลังสร้างงาน..."
                   : "กำลังแลกซอง..."
                 : usingBalance
-                  ? `ใช้ ${formatHearts(totalHearts)} หัวใจ และเข้าคิว`
+                  ? `ใช้ ${formatHearts(totalPoints)} หัวใจ และเข้าคิว`
                   : "ยืนยันชำระเงินและเข้าคิว"}
             </Button>
             <Button type="button" variant="ghost" className="w-full" onClick={() => setStep(2)}>

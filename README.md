@@ -12,11 +12,38 @@ Deploy: frontend → **Vercel**, backend → **Railway** (ดู [Deploy](#deplo
 
 ```
 Autoheart/
-├── frontend/          # Next.js 14 (App Router) + Tailwind + Framer Motion
+├── frontend/          # Next.js 14 (App Router) — ธีมเดิม ดำ + ชมพู
+├── frontend-v2/       # Next.js 14 — ธีมใหม่ โทนสว่าง + ระบบพอยท์ (ดู frontend-v2/README.md)
 ├── backend/           # FastAPI + job runner + heart_farm worker
 ├── supabase/          # SQL migrations + seed
 └── ARCHITECTURE.md
 ```
+
+ทั้งสอง frontend ใช้ backend ตัวเดียวกัน เปิดคู่กันระหว่างย้ายได้
+
+## พอยท์ (Point)
+
+สกุลเงินของระบบเรียกว่า **พอยท์** ไม่ใช่ "เครดิตหัวใจ" แล้ว — migration `015_points_currency.sql`
+เปลี่ยนชื่อคอลัมน์และ RPC ให้ตรงกัน:
+
+| เดิม | ใหม่ |
+|---|---|
+| `profiles.credits` | `profiles.points` |
+| `packages.hearts` | `packages.points` |
+| `topup_redemptions.hearts_credited` | `topup_redemptions.points_credited` |
+| `promotions.hearts_reward` | `promotions.points_reward` |
+| `jobs.credits_refunded` | `jobs.points_refunded` |
+| — | `jobs.points_spent` (คอลัมน์ใหม่) |
+| `credit_user_hearts()` / `deduct_user_hearts()` | `credit_user_points()` / `deduct_user_points()` |
+
+**ที่ไม่เปลี่ยน:** `jobs.target_hearts`, `jobs.hearts_collected`, `hearts_per_minute`
+คือหัวใจในเกมที่ worker ไปเก็บมาจริง ไม่ใช่ยอดเงินในบัญชี
+
+อัตราตอนนี้ 1 พอยท์ = 1 หัวใจ แต่ `jobs.points_spent` เก็บยอดที่หักจริงไว้กับงาน
+ถ้าวันหนึ่งเปลี่ยนอัตรา ตรรกะการคืนพอยท์ไม่ต้องแก้
+
+ชื่อฟังก์ชันเดิม (`credit_user_hearts` / `deduct_user_hearts`) ยังอยู่เป็น wrapper ชี้ไปตัวใหม่
+กัน backend รุ่นเก่าพังระหว่าง deploy — ลบทิ้งได้เมื่อ Railway รันโค้ดใหม่ครบแล้ว
 
 ## Auth (Nickname / Password)
 
@@ -117,14 +144,14 @@ npm run dev
 ## โฟลว์ผู้ใช้
 
 1. สมัคร / ล็อกอิน (Supabase Auth)
-2. เลือกแพ็คเกจ × N → วางลิงก์ซองอั่งเปา → ได้ credits (หัวใจ)
+2. เลือกแพ็คเกจ × N → วางลิงก์ซองอั่งเปา → ได้พอยท์
 3. กรอก DevPlay 1 ไอดีหรือหลายไอดี (batch)
 4. ระบบ verify credentials → สร้าง jobs → Fair Interleaved Queue
 5. ดูตำแหน่งคิว / เวลารอ dynamic / live console บน `/queue`
 
 ## เครื่องมือฟรี (proxy ไป ngmx)
 
-นอกจากฟาร์มหัวใจที่เข้าคิว worker ของเราเอง ยังมีเครื่องมือที่ใช้ฟรี ไม่ตัดเครดิต
+นอกจากฟาร์มหัวใจที่เข้าคิว worker ของเราเอง ยังมีเครื่องมือที่ใช้ฟรี ไม่ตัดพอยท์
 และไม่เข้าคิว เพราะงานรันอยู่ฝั่ง ngmx:
 
 | หน้า | เครื่องมือ | ทำอะไร |
@@ -157,7 +184,8 @@ Repo: https://github.com/Wipsr/Autoheart (branch `main`)
 
 ### Frontend → Vercel
 
-Import repo → **Root Directory = `frontend`** (preset Next.js ตรวจเอง)
+Import repo → **Root Directory = `frontend`** หรือ **`frontend-v2`** (preset Next.js ตรวจเอง)
+ทั้งสองตัวใช้ตัวแปรชุดเดียวกัน และชี้ backend ตัวเดียวกันได้พร้อมกัน
 
 ```
 NEXT_PUBLIC_SUPABASE_URL

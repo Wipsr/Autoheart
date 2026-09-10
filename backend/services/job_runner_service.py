@@ -283,12 +283,12 @@ class JobRunnerService:
             job_id, {"type": "status", "job_id": job_id, "status": "completed"}
         )
 
-    def _refund_job_credits(self, job_id: str) -> bool:
-        """Refund target_hearts once when job ends in failure. Returns True if refunded."""
+    def _refund_job_points(self, job_id: str) -> bool:
+        """Refund the points deducted at order time, once. Returns True if refunded."""
         db = get_supabase_admin()
         res = (
             db.table("jobs")
-            .select("user_id, target_hearts, credits_refunded")
+            .select("user_id, target_hearts, points_spent, points_refunded")
             .eq("id", job_id)
             .limit(1)
             .execute()
@@ -296,24 +296,24 @@ class JobRunnerService:
         if not res.data:
             return False
         job = res.data[0]
-        if job.get("credits_refunded"):
+        if job.get("points_refunded"):
             return False
         db.rpc(
-            "credit_user_hearts",
+            "credit_user_points",
             {
                 "p_user_id": job["user_id"],
-                "p_hearts": int(job["target_hearts"]),
+                "p_points": int(job.get("points_spent") or job["target_hearts"]),
                 "p_baht": 0,
             },
         ).execute()
-        db.table("jobs").update({"credits_refunded": True}).eq("id", job_id).execute()
+        db.table("jobs").update({"points_refunded": True}).eq("id", job_id).execute()
         return True
 
     async def _fail(self, job_id: str, message: str, category: str = "permanent") -> None:
         db = get_supabase_admin()
         job_data = (
             db.table("jobs")
-            .select("attempt_count, target_hearts")
+            .select("attempt_count, target_hearts, points_spent")
             .eq("id", job_id)
             .limit(1)
             .execute()
@@ -338,12 +338,12 @@ class JobRunnerService:
             update_payload["devplay_password_encrypted"] = ""
         db.table("jobs").update(update_payload).eq("id", job_id).execute()
         if not retry:
-            refunded = self._refund_job_credits(job_id)
+            refunded = self._refund_job_points(job_id)
             if refunded:
-                hearts = int(row.get("target_hearts") or 0)
+                points = int(row.get("points_spent") or row.get("target_hearts") or 0)
                 await self.append_log(
                     job_id,
-                    f"คืนเครดิต {hearts} หัวใจที่หักไว้แล้ว",
+                    f"คืนพอยท์ {points} P ที่หักไว้แล้ว",
                     level="info",
                 )
         await self.append_log(

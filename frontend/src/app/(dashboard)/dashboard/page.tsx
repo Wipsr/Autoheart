@@ -46,7 +46,7 @@ export default function DashboardPage() {
           ) : (
             <p className="mt-1 flex items-baseline gap-1.5 font-mono text-3xl font-semibold tabular-nums text-heart">
               <Heart className="h-4 w-4 fill-heart" />
-              {formatHearts(profile?.credits ?? 0)}
+              {formatHearts(profile?.points ?? 0)}
             </p>
           )}
         </Card>

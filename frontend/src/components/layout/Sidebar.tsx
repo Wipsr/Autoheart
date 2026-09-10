@@ -76,7 +76,7 @@ export function Sidebar() {
         <p className="font-mono text-[10px] uppercase tracking-widest text-dim">เครดิตหัวใจ</p>
         <p className="mt-1 flex items-center gap-1.5 font-mono text-xl font-semibold tabular-nums text-heart">
           <Heart className="h-3.5 w-3.5 fill-heart" />
-          {formatHearts(profile?.credits ?? 0)}
+          {formatHearts(profile?.points ?? 0)}
         </p>
       </div>
     </aside>

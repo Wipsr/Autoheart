@@ -27,19 +27,19 @@ class AdminService:
         )
         credited = (
             self.db.table("topup_redemptions")
-            .select("amount_baht, hearts_credited")
+            .select("amount_baht, points_credited")
             .eq("status", "credited")
             .execute()
         )
         revenue = sum(float(r.get("amount_baht") or 0) for r in (credited.data or []))
-        hearts = sum(int(r.get("hearts_credited") or 0) for r in (credited.data or []))
+        points = sum(int(r.get("points_credited") or 0) for r in (credited.data or []))
         return {
             "users": profiles.count or 0,
             "active_jobs": jobs_active.count or 0,
             "total_jobs": jobs_today.count or 0,
             "needs_manual_topups": topups_manual.count or 0,
             "revenue_baht": revenue,
-            "hearts_credited": hearts,
+            "points_credited": points,
         }
 
     def list_users(self, limit: int = 50, offset: int = 0, q: str | None = None) -> list[dict]:

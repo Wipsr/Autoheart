@@ -10,7 +10,7 @@ import type { Package } from "@/types";
 
 /** ราคาต่อ 100 หัวใจ — ตัวเลขเดียวที่เทียบแพ็คกันได้จริง (ปัดสองตำแหน่งให้ตรงกับที่แสดง) */
 export function unitPrice(pkg: Package) {
-  return Math.round((pkg.price_baht / pkg.hearts) * 10000) / 100;
+  return Math.round((pkg.price_baht / pkg.points) * 10000) / 100;
 }
 
 export function PackageCard({
@@ -49,7 +49,7 @@ export function PackageCard({
       </p>
       <p className="mt-1 flex items-center gap-1.5 font-mono text-sm tabular-nums text-heart">
         <Heart className="h-3.5 w-3.5 fill-heart" />
-        {formatHearts(pkg.hearts)} หัวใจ
+        {formatHearts(pkg.points)} หัวใจ
       </p>
 
       <div className="mt-3 space-y-1 border-t border-lineSoft pt-3 font-mono text-[11px] tabular-nums text-dim">

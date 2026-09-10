@@ -60,7 +60,7 @@ export function Navbar() {
           {user ? (
             <>
               <span className="rounded border border-heart/30 bg-heart/10 px-2.5 py-1 font-mono text-xs tabular-nums text-heart">
-                ♥ {profile ? formatHearts(profile.credits) : "…"}
+                ♥ {profile ? formatHearts(profile.points) : "…"}
               </span>
               <Button variant="ghost" size="sm" onClick={() => signOut()}>
                 ออกจากระบบ
@@ -115,7 +115,7 @@ export function Navbar() {
               )}
               <div className="flex items-center justify-between gap-3 pt-1">
                 <span className="rounded border border-heart/30 bg-heart/10 px-2.5 py-1 font-mono text-xs tabular-nums text-heart">
-                  ♥ {profile ? formatHearts(profile.credits) : "…"}
+                  ♥ {profile ? formatHearts(profile.points) : "…"}
                 </span>
                 <Button variant="ghost" size="sm" onClick={() => signOut()}>
                   ออกจากระบบ

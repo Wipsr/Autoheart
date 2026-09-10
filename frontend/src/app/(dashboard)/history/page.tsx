@@ -107,7 +107,7 @@ export default function HistoryPage() {
                 </p>
               </div>
               <span className="font-mono text-sm tabular-nums text-heart">
-                +{formatHearts(t.hearts_credited)}
+                +{formatHearts(t.points_credited)}
               </span>
             </div>
           ))}

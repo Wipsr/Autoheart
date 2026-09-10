@@ -40,9 +40,9 @@ class CredentialError(AppError):
         super().__init__("invalid_credentials", message, 400)
 
 
-class InsufficientCreditsError(AppError):
-    def __init__(self, message: str = "เครดิตหัวใจไม่พอ"):
-        super().__init__("insufficient_credits", message, 400)
+class InsufficientPointsError(AppError):
+    def __init__(self, message: str = "พอยท์ไม่พอ"):
+        super().__init__("insufficient_points", message, 400)
 
 
 class MaintenanceError(AppError):

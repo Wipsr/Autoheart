@@ -153,7 +153,7 @@ async def login(body: LoginRequest):
     db = get_supabase_admin()
     profile = (
         db.table("profiles")
-        .select("id, nickname, display_name, role, credits, is_banned")
+        .select("id, nickname, display_name, role, points, is_banned")
         .ilike("nickname", nick)
         .limit(1)
         .execute()

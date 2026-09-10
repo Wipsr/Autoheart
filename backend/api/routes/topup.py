@@ -51,7 +51,7 @@ async def redeem_topup(
         else None
     )
     expected = coupon_preview["amount_after"] if coupon_preview else amount_before
-    hearts_total = int(pkg["hearts"]) * body.quantity
+    points_total = int(pkg["points"]) * body.quantity
 
     meta = client_meta(request)
     row = {
@@ -113,10 +113,10 @@ async def redeem_topup(
 
     try:
         db.rpc(
-            "credit_user_hearts",
+            "credit_user_points",
             {
                 "p_user_id": user["id"],
-                "p_hearts": hearts_total,
+                "p_points": points_total,
                 "p_baht": result.get("amount_baht") or expected,
             },
         ).execute()
@@ -140,7 +140,7 @@ async def redeem_topup(
                 {
                     "status": "credited",
                     "credit_status": "credited",
-                    "hearts_credited": hearts_total,
+                    "points_credited": points_total,
                 }
             )
             .eq("id", topup_id)
@@ -156,7 +156,7 @@ async def redeem_topup(
                     "status": "needs_manual",
                     "credit_status": "needs_manual",
                     "error_note": str(e),
-                    "hearts_credited": 0,
+                    "points_credited": 0,
                 }
             )
             .eq("id", topup_id)

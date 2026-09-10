@@ -12,7 +12,7 @@ export default function PackagesPage() {
       id: i + 1,
       name: p.name,
       slug: p.slug,
-      hearts: p.hearts,
+      points: p.points,
       price_baht: p.price_baht,
       description: p.description,
       badge: p.badge,

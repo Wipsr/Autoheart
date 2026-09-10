@@ -18,7 +18,7 @@ type Detail = {
     nickname?: string;
     email?: string;
     role?: string;
-    credits: number;
+    points: number;
     is_banned?: boolean;
   };
   jobs: unknown[];
@@ -78,7 +78,7 @@ export default function AdminUserDetailPage() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard label="เครดิตคงเหลือ" value={formatHearts(data.user.credits)} tone="text-heart" />
+        <StatCard label="เครดิตคงเหลือ" value={formatHearts(data.user.points)} tone="text-heart" />
         <StatCard label="งานทั้งหมด" value={data.jobs.length} />
         <StatCard label="รายการเติมเงิน" value={data.topups.length} />
       </div>

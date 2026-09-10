@@ -4,7 +4,7 @@ export type Profile = {
   email?: string | null;
   display_name?: string | null;
   role: "user" | "admin";
-  credits: number;
+  points: number;
   total_spent_baht?: number;
   total_jobs?: number;
   is_banned?: boolean;
@@ -14,7 +14,7 @@ export type Package = {
   id: number;
   name: string;
   slug: string;
-  hearts: number;
+  points: number;
   price_baht: number;
   description?: string | null;
   badge?: string | null;
@@ -50,7 +50,7 @@ export type Topup = {
   amount_baht?: number | null;
   status: string;
   credit_status?: string | null;
-  hearts_credited: number;
+  points_credited: number;
   error_code?: string | null;
   error_message?: string | null;
   created_at?: string | null;

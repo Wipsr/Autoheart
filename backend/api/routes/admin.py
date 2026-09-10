@@ -149,14 +149,18 @@ async def admin_cancel(job_id: str, refund: bool = True, _admin=Depends(get_admi
     j = job.data[0]
     if (
         refund
-        and not j.get("credits_refunded")
+        and not j.get("points_refunded")
         and j["status"] in ("queued", "validating", "processing", "failed")
     ):
         db.rpc(
-            "credit_user_hearts",
-            {"p_user_id": j["user_id"], "p_hearts": j["target_hearts"], "p_baht": 0},
+            "credit_user_points",
+            {
+                "p_user_id": j["user_id"],
+                "p_points": int(j.get("points_spent") or j["target_hearts"]),
+                "p_baht": 0,
+            },
         ).execute()
-        db.table("jobs").update({"credits_refunded": True}).eq("id", job_id).execute()
+        db.table("jobs").update({"points_refunded": True}).eq("id", job_id).execute()
     db.table("jobs").update(
         {"status": "cancelled", "queue_position": None, "progress_message": "ยกเลิกโดยแอดมิน"}
     ).eq("id", job_id).execute()
@@ -297,15 +301,15 @@ async def manual_credit(topup_id: str, body: AdminCreditRequest, admin=Depends(g
         raise NotFoundError("ไม่พบรายการเติมเงิน")
     t = res.data[0]
     if t.get("credit_status") == "credited":
-        return {"ok": False, "message": "เครดิตไปแล้ว"}
+        return {"ok": False, "message": "เติมพอยท์ไปแล้ว"}
 
     pkg = db.table("packages").select("*").eq("id", t["package_id"]).limit(1).execute().data[0]
-    hearts = int(pkg["hearts"]) * int(t.get("quantity") or 1)
+    points = int(pkg["points"]) * int(t.get("quantity") or 1)
     amount = float(t.get("amount_baht") or pkg["price_baht"]) * int(t.get("quantity") or 1)
 
     db.rpc(
-        "credit_user_hearts",
-        {"p_user_id": t["user_id"], "p_hearts": hearts, "p_baht": amount},
+        "credit_user_points",
+        {"p_user_id": t["user_id"], "p_points": points, "p_baht": amount},
     ).execute()
     updated = (
         db.table("topup_redemptions")
@@ -313,7 +317,7 @@ async def manual_credit(topup_id: str, body: AdminCreditRequest, admin=Depends(g
             {
                 "status": "credited",
                 "credit_status": "credited",
-                "hearts_credited": hearts,
+                "points_credited": points,
                 "admin_credited_by": admin["id"],
                 "admin_credited_at": datetime.now(timezone.utc).isoformat(),
                 "admin_note": body.note,

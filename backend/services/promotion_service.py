@@ -15,7 +15,7 @@ class PromotionService:
         return (
             get_supabase_admin()
             .table("promotions")
-            .select("id,slug,title,type,hearts_reward,requires_devplay,ends_at")
+            .select("id,slug,title,type,points_reward,requires_devplay,ends_at")
             .eq("is_active", True)
             .or_(f"starts_at.is.null,starts_at.lte.{now}")
             .or_(f"ends_at.is.null,ends_at.gte.{now}")
@@ -48,7 +48,7 @@ class PromotionService:
             "user_id": user_id,
             "devplay_email_normalized": normalized,
             "devplay_email_hash": fingerprint,
-            "hearts_credited": promotion["hearts_reward"],
+            "points_credited": promotion["points_reward"],
             "ip_address": ip,
         }
         try:
@@ -56,11 +56,11 @@ class PromotionService:
         except Exception as exc:
             raise AppError("promotion_already_claimed", "บัญชีหรือ DevPlay นี้ใช้สิทธิ์ไปแล้ว", 409) from exc
         try:
-            db.rpc("credit_user_hearts", {"p_user_id": user_id, "p_hearts": promotion["hearts_reward"], "p_baht": 0}).execute()
+            db.rpc("credit_user_points", {"p_user_id": user_id, "p_points": promotion["points_reward"], "p_baht": 0}).execute()
         except Exception:
             db.table("promotion_claims").delete().eq("promotion_id", promotion_id).eq("user_id", user_id).execute()
             raise
-        return {"ok": True, "hearts_credited": promotion["hearts_reward"], "title": promotion["title"]}
+        return {"ok": True, "points_credited": promotion["points_reward"], "title": promotion["title"]}
 
 
 promotion_service = PromotionService()
